@@ -1,0 +1,7 @@
+{
+"type": "FeatureCollection",
+"name": "Foxe_Basin",
+"features": [
+{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 290.0, 63.5 ], [ 288.0, 70.0 ], [ 277.0, 71.0 ], [ 275.0, 67.0 ], [ 270.0, 67.0 ], [ 277.6, 64.1 ], [ 281.7, 63.3 ], [ 282.0, 64.7 ], [ 287.0, 65.0 ], [ 290.0, 63.5 ] ] ] } }
+]
+}
