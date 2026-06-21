@@ -8,7 +8,7 @@ from collections.abc import Sequence
 
 from src.data.download_data import main as download_data
 from src.generate_plots import main as generate_plots
-from src.logging_config import configure_logging
+from src.logging_config import DEFAULT_LOG_FILE, configure_logging
 from src.process_data import main as process_data
 
 
@@ -22,6 +22,8 @@ STAGES = {
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command line options for selecting and running pipeline stages."""
+
     parser = argparse.ArgumentParser(description="Run Hudson Bay sea ice pipeline stages.")
     parser.add_argument(
         "stage",
@@ -29,11 +31,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Pipeline stage to execute.",
     )
     parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file")
+    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> None:
+    """Run one pipeline stage, or all stages, using shared logging settings."""
+
     args = parse_args(argv)
     configure_logging(level=args.log_level, log_file=args.log_file)
     stages = STAGES.values() if args.stage == "all" else (STAGES[args.stage],)

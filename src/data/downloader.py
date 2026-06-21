@@ -14,10 +14,13 @@ from typing import Iterable
 import requests
 from bs4 import BeautifulSoup
 
+from src.paths import DATA_DIR
+
 
 DEFAULT_NSIDC_GEOTIFF_URL = (
     "https://noaadata.apps.nsidc.org/NOAA/G02135/north/daily/geotiff"
 )
+DEFAULT_GEOTIFF_DIR = DATA_DIR / "geotiff"
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +34,8 @@ class DownloadSummary:
     failed_files: int = 0
 
     def merge(self, other: "DownloadSummary") -> "DownloadSummary":
+        """Return a new summary containing this summary plus another one."""
+
         return DownloadSummary(
             checked_files=self.checked_files + other.checked_files,
             downloaded_files=self.downloaded_files + other.downloaded_files,
@@ -45,11 +50,21 @@ class NSIDCDownloader:
     def __init__(
         self,
         base_url: str = DEFAULT_NSIDC_GEOTIFF_URL,
-        local_base: str | Path = "data/geotiff",
+        local_base: str | Path = DEFAULT_GEOTIFF_DIR,
         product: str = "concentration",
         timeout: int = 30,
         session: requests.Session | None = None,
     ) -> None:
+        """Create a downloader for one NSIDC GeoTIFF product.
+
+        Args:
+            base_url: Base URL of the NSIDC directory index.
+            local_base: Local directory where year/month folders are stored.
+            product: Product name fragment to match in remote filenames.
+            timeout: Request timeout in seconds.
+            session: Optional requests session for connection reuse or tests.
+        """
+
         self.base_url = base_url.rstrip("/") + "/"
         self.local_base = Path(local_base)
         self.product = product
@@ -117,12 +132,21 @@ class NSIDCDownloader:
         return files
 
     def download_file(self, year: str, month: str, filename: str) -> bool:
-        """Download a single file and return whether it was saved."""
+        """Download one file unless it already exists locally.
+
+        Returns:
+            ``True`` if the file is present after the call, including files
+            that were skipped because they already existed. ``False`` signals
+            that the remote request failed and no complete local file was saved.
+        """
 
         remote_url = f"{self.base_url}{year}/{month}/{filename}"
         local_dir = self.local_base / year / month
         local_dir.mkdir(parents=True, exist_ok=True)
         local_path = local_dir / filename
+        if local_path.exists():
+            logger.info("Skipping existing file %s", local_path)
+            return True
 
         logger.info("Downloading %s", remote_url)
         response = self.session.get(remote_url, stream=True, timeout=self.timeout)
@@ -226,6 +250,8 @@ class NSIDCDownloader:
         return summary
 
     def _get_index(self, url: str) -> BeautifulSoup:
+        """Fetch and parse one remote HTML directory index."""
+
         logger.debug("Fetching remote index: %s", url)
         response = self.session.get(url, timeout=self.timeout)
         response.raise_for_status()
@@ -233,6 +259,8 @@ class NSIDCDownloader:
 
     @staticmethod
     def _iter_hrefs(soup: BeautifulSoup) -> list[str]:
+        """Return all href values from links in a parsed HTML document."""
+
         return [
             href
             for link in soup.find_all("a")

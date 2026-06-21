@@ -1,0 +1,25 @@
+"""Project-level filesystem paths used by command line entry points."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+"""Absolute path to the project root directory, next to the ``src`` folder."""
+
+DATA_DIR = PROJECT_ROOT / "data"
+"""Default directory for downloaded or generated data files."""
+
+LOG_DIR = PROJECT_ROOT / "logs"
+"""Default directory for application log files."""
+
+
+def resolve_project_path(path: str | Path, base_dir: Path = PROJECT_ROOT) -> Path:
+    """Return an absolute path, resolving relative inputs below ``base_dir``."""
+
+    path = Path(path)
+    if path.is_absolute():
+        return path
+
+    return base_dir / path
