@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import sys
 from collections.abc import Sequence
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.data.download_data import main as download_data
 from src.generate_plots import main as generate_plots
@@ -30,6 +35,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         choices=(*STAGES.keys(), "all"),
         help="Pipeline stage to execute.",
     )
+    parser.add_argument(
+        "stage_args",
+        nargs=argparse.REMAINDER,
+        help="Additional arguments passed to the selected stage.",
+    )
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
     return parser.parse_args(argv)
@@ -42,10 +52,15 @@ def main(argv: Sequence[str] | None = None) -> None:
     configure_logging(level=args.log_level, log_file=args.log_file)
     stages = STAGES.values() if args.stage == "all" else (STAGES[args.stage],)
 
-    logger.info("Running pipeline stage: %s", args.stage)
+    if args.stage == "all" and args.stage_args:
+        raise ValueError("Additional stage arguments can only be used with one stage.")
+
     stage_args = ["--log-level", args.log_level]
     if args.log_file:
         stage_args.extend(["--log-file", args.log_file])
+    stage_args.extend(args.stage_args)
+    if not any(arg in ("-h", "--help") for arg in args.stage_args):
+        logger.info("Running pipeline stage: %s", args.stage)
 
     for stage in stages:
         stage(stage_args)

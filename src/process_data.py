@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import sys
 from collections.abc import Sequence
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.logging_config import DEFAULT_LOG_FILE, configure_logging
 

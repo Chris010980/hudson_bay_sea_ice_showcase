@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import sys
 from collections.abc import Sequence
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from src.data.downloader import (
     DEFAULT_GEOTIFF_DIR,
