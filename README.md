@@ -104,6 +104,7 @@ The workflow consists of the following stages:
 
 ## Project Structure
 
+'''
 project_root/
 │
 ├── src/
@@ -123,6 +124,7 @@ project_root/
 ├── logs/
 ├── requirements.txt
 └── README.md
+'''
 
 ## Installation
 
@@ -151,17 +153,17 @@ or, if the project uses a script entry point:
 
 python src/main.py
 
-Typical workflow:
+## Typical workflow:
 
-# 1. Download or place source data in data/raw/
+### 1. Download or place source data in data/raw/
 
-# 2. Run preprocessing
+### 2. Run preprocessing
 python src/main.py --stage preprocess
 
-# 3. Generate time-series figures
+### 3. Generate time-series figures
 python src/main.py --stage timeseries
 
-# 4. Generate maps and polar visualisations
+### 4. Generate maps and polar visualisations
 python src/main.py --stage maps
 Outputs
 
