@@ -104,128 +104,83 @@ The workflow consists of the following stages:
 
 ## Project Structure
 
-```text
-project_root/
+hudson_bay_sea_ice/
+├── data/
+│   └── geotiff/                 # Daily GeoTIFF sea ice concentration data (1978–present)
+│       ├── 1978/
+│       ├── 1979/
+│       ├── ...
+│       └── 2025/
+│
+├── logs/
+│   └── hudson_bay_sea_ice.log   # Application log
+│
+├── output/
+│   └── plots/                   # Generated figures
 │
 ├── src/
-│   ├── main.py
+│   ├── analysis/                # Statistical analyses and time-series processing
+│   │
 │   ├── data/
-│   │   ├── download_data.py
-│   │   └── downloader.py
-│   ├── logging_config.py
-│   └── paths.py
+│   │   ├── downloader.py        # Download routines
+│   │   └── download_data.py     # Download entry point
+│   │
+│   ├── geospatial/              # Geographic utilities and processing
+│   │
+│   ├── visualization/           # Plotting and visualization
+│   │
+│   ├── generate_plots.py        # Figure generation
+│   ├── process_data.py          # Data processing pipeline
+│   ├── logging_config.py        # Logging configuration
+│   ├── paths.py                 # Centralized project paths
+│   └── main.py                  # Main application
 │
-├── data/
-│   └── geotiff/          # Downloaded NSIDC GeoTIFF files, excluded from Git
+├── tests/                       # Unit tests
 │
-├── logs/                 # Runtime logs, excluded from Git
 ├── requirements.txt
 └── README.md
-```
+
 
 ## Installation
 
 Clone the repository and create a virtual environment:
 
-```bash
 git clone https://github.com/Chris010980/[REPOSITORY_NAME].git
 cd [REPOSITORY_NAME]
 
 python -m venv .venv
 source .venv/bin/activate
-```
 
 On Windows:
 
-```powershell
 .venv\Scripts\activate
-```
 
 ## Install dependencies:
 
-```bash
 pip install -r requirements.txt
-```
+Usage
 
-## Usage
+The final commands should reflect the actual entry point of the repository. For example:
 
-Show the available pipeline stages:
+python -m sea_ice.main
 
-```bash
-python src/main.py -h
-```
+or, if the project uses a script entry point:
 
-Run the download stage:
-
-```bash
-python src/main.py download
-```
-
-By default, downloads are stored below `data/geotiff/` and logs are written to
-`logs/hudson_bay_sea_ice.log`.
-
-The downloader compares the remote NSIDC directory listing with the files that
-already exist locally. Files already present in `data/geotiff/<year>/<month>/`
-are skipped, so rerunning the command only downloads missing files.
-
-Preview what would be downloaded without writing files:
-
-```bash
-python src/main.py download --dry-run
-```
-
-Limit the check to a year or month:
-
-```bash
-python src/main.py download --year 2026 --dry-run
-python src/main.py download --year 2026 --month 06_Jun --dry-run
-```
-
-Download only missing concentration files for a selected year:
-
-```bash
-python src/main.py download --year 2026
-```
-
-Download missing extent files instead of concentration files:
-
-```bash
-python src/main.py download --year 2026 --product extent
-```
-
-Both `--year` and `--month` can be repeated:
-
-```bash
-python src/main.py download --year 2025 --year 2026 --month 05_May --month 06_Jun
-```
+python src/main.py
 
 ## Typical workflow:
 
-### 1. Download or update source data in data/geotiff/
+1. Download or place source data in data/raw/
 
-```bash
-python src/main.py download
-```
+2. Run preprocessing
+python src/main.py --stage preprocess
 
-### 2. Run preprocessing
+3. Generate time-series figures
+python src/main.py --stage timeseries
 
-```bash
-python src/main.py process
-```
-
-### 3. Generate plots
-
-```bash
-python src/main.py plots
-```
-
-### 4. Run all migrated stages
-
-```bash
-python src/main.py all
-```
-
-## Outputs
+4. Generate maps and polar visualisations
+python src/main.py --stage maps
+Outputs
 
 ## Generated outputs may include:
 

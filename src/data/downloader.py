@@ -7,6 +7,7 @@ calculate statistics, or create plots.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -21,6 +22,7 @@ DEFAULT_NSIDC_GEOTIFF_URL = (
     "https://noaadata.apps.nsidc.org/NOAA/G02135/north/daily/geotiff"
 )
 DEFAULT_GEOTIFF_DIR = DATA_DIR / "geotiff"
+GEOTIFF_FILENAME_PATTERN = re.compile(r"^N_(?P<date>\d{8})_(?P<product>.+?)_v.+\.tif$")
 logger = logging.getLogger(__name__)
 
 
@@ -66,7 +68,7 @@ class NSIDCDownloader:
         """
 
         self.base_url = base_url.rstrip("/") + "/"
-        self.local_base = Path(local_base)
+        self.local_base = Path(local_base).expanduser().resolve()
         self.product = product
         self.timeout = timeout
         self.session = session or requests.Session()
@@ -119,8 +121,9 @@ class NSIDCDownloader:
         """Return matching local GeoTIFF files for a year/month directory."""
 
         local_dir = self.local_base / year / month
+        logger.info("Checking local directory: %s", local_dir)
         if not local_dir.exists():
-            logger.debug("Local directory does not exist yet: %s", local_dir)
+            logger.warning("Local directory does not exist yet: %s", local_dir)
             return []
 
         files = sorted(
@@ -128,7 +131,14 @@ class NSIDCDownloader:
             for path in local_dir.iterdir()
             if path.is_file() and path.suffix == ".tif" and self.product in path.name
         )
-        logger.debug("Found %s local files in %s.", len(files), local_dir)
+        logger.info(
+            "Found %s local %s file(s) in %s.",
+            len(files),
+            self.product,
+            local_dir,
+        )
+        if files:
+            logger.debug("First local file in %s: %s", local_dir, files[0])
         return files
 
     def download_file(self, year: str, month: str, filename: str) -> bool:
@@ -146,6 +156,14 @@ class NSIDCDownloader:
         local_path = local_dir / filename
         if local_path.exists():
             logger.info("Skipping existing file %s", local_path)
+            return True
+        local_match = self._find_equivalent_local_file(local_dir, filename)
+        if local_match is not None:
+            logger.info(
+                "Skipping %s because equivalent local file already exists: %s",
+                filename,
+                local_match,
+            )
             return True
 
         logger.info("Downloading %s", remote_url)
@@ -179,9 +197,10 @@ class NSIDCDownloader:
         summary = DownloadSummary()
 
         logger.info(
-            "Starting download sync for %s year(s)%s.",
+            "Starting download sync for %s year(s)%s. Local data root: %s",
             len(selected_years),
             " in dry-run mode" if dry_run else "",
+            self.local_base,
         )
 
         for year in selected_years:
@@ -193,8 +212,47 @@ class NSIDCDownloader:
             for month in remote_months:
                 logger.info("Checking remote directory %s/%s.", year, month)
                 remote_files = self.get_remote_files(year, month)
-                local_files = set(self.get_local_files(year, month))
-                missing_files = [name for name in remote_files if name not in local_files]
+                local_files = self.get_local_files(year, month)
+                local_file_set = set(local_files)
+                local_file_keys = {
+                    file_key
+                    for filename in local_files
+                    if (file_key := self._file_key(filename)) is not None
+                }
+                exact_matches = sum(1 for name in remote_files if name in local_file_set)
+                missing_files = [
+                    name
+                    for name in remote_files
+                    if name not in local_file_set and self._file_key(name) not in local_file_keys
+                ]
+                logger.info(
+                    "%s/%s comparison: remote=%s, local=%s, exact_matches=%s, "
+                    "missing=%s, skipped=%s.",
+                    year,
+                    month,
+                    len(remote_files),
+                    len(local_files),
+                    exact_matches,
+                    len(missing_files),
+                    len(remote_files) - len(missing_files),
+                )
+                if len(remote_files) - len(missing_files) > exact_matches:
+                    logger.info(
+                        "%s/%s skipped %s file(s) by matching date and product "
+                        "despite different versioned filenames.",
+                        year,
+                        month,
+                        len(remote_files) - len(missing_files) - exact_matches,
+                    )
+                if remote_files:
+                    logger.debug("First remote file for %s/%s: %s", year, month, remote_files[0])
+                if missing_files:
+                    logger.debug(
+                        "First missing file for %s/%s: %s",
+                        year,
+                        month,
+                        missing_files[0],
+                    )
 
                 if missing_files:
                     logger.info(
@@ -256,6 +314,37 @@ class NSIDCDownloader:
         response = self.session.get(url, timeout=self.timeout)
         response.raise_for_status()
         return BeautifulSoup(response.text, "html.parser")
+
+    @staticmethod
+    def _file_key(filename: str) -> tuple[str, str] | None:
+        """Return a date/product key for a NSIDC GeoTIFF filename."""
+
+        match = GEOTIFF_FILENAME_PATTERN.match(filename)
+        if match is None:
+            return None
+
+        return match.group("date"), match.group("product")
+
+    def _find_equivalent_local_file(
+        self,
+        local_dir: Path,
+        filename: str,
+    ) -> Path | None:
+        """Return an existing local file with the same date and product."""
+
+        file_key = self._file_key(filename)
+        if file_key is None or not local_dir.exists():
+            return None
+
+        for local_path in sorted(local_dir.iterdir()):
+            if (
+                local_path.is_file()
+                and local_path.suffix == ".tif"
+                and self._file_key(local_path.name) == file_key
+            ):
+                return local_path
+
+        return None
 
     @staticmethod
     def _iter_hrefs(soup: BeautifulSoup) -> list[str]:

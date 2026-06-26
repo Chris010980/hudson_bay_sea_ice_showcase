@@ -43,10 +43,13 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     args = parse_args(argv)
     configure_logging(level=args.log_level, log_file=args.log_file)
+    output_dir = resolve_project_path(args.output_dir)
+
+    logger.info("Download output directory resolved to: %s", output_dir)
 
     downloader = NSIDCDownloader(
         base_url=args.base_url,
-        local_base=resolve_project_path(args.output_dir),
+        local_base=output_dir,
         product=args.product,
     )
     summary = downloader.sync(
