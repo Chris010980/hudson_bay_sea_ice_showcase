@@ -104,6 +104,7 @@ The workflow consists of the following stages:
 
 ## Project Structure
 
+```text
 hudson_bay_sea_ice/
 ├── data/
 │   └── geotiff/                 # Daily GeoTIFF sea ice concentration data (1978–present)
@@ -138,8 +139,7 @@ hudson_bay_sea_ice/
 ├── tests/                       # Unit tests
 │
 ├── requirements.txt
-└── README.md
-
+```
 
 ## Installation
 
