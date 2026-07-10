@@ -11,13 +11,13 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from src.data.downloader import (
+from src.data_download.downloader import (
     DEFAULT_GEOTIFF_DIR,
     DEFAULT_NSIDC_GEOTIFF_URL,
     NSIDCDownloader,
 )
-from src.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.paths import resolve_project_path
+from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
+from src.config.paths import resolve_project_path
 
 
 logger = logging.getLogger(__name__)

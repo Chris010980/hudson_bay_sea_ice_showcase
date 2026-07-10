@@ -11,10 +11,10 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.data.download_data import main as download_data
-from src.generate_plots import main as generate_plots
-from src.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.process_data import main as process_data
+from src.data_download.download_data import main as download_data
+from src.visualization.generate_plots import main as generate_plots
+from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
+from src.analysis.process_data import main as process_data
 
 
 logger = logging.getLogger(__name__)

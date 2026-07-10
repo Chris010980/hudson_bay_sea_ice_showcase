@@ -15,7 +15,7 @@ from typing import Iterable
 import requests
 from bs4 import BeautifulSoup
 
-from src.paths import DATA_DIR
+from src.config.paths import DATA_DIR
 
 
 DEFAULT_NSIDC_GEOTIFF_URL = (

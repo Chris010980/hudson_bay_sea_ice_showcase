@@ -11,7 +11,7 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.logging_config import DEFAULT_LOG_FILE, configure_logging
+from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
 
 
 logger = logging.getLogger(__name__)

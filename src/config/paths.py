@@ -5,14 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-"""Absolute path to the project root directory, next to the ``src`` folder."""
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+"""Absolute path to the project root directory, one level above the ``src`` package."""
 
 DATA_DIR = PROJECT_ROOT / "data"
 """Default directory for downloaded or generated data files."""
 
 LOG_DIR = PROJECT_ROOT / "logs"
 """Default directory for application log files."""
+
+OUTPUT_DIR = PROJECT_ROOT / "output"
+"""Default directory for generated plot and analysis outputs."""
 
 
 def resolve_project_path(path: str | Path, base_dir: Path = PROJECT_ROOT) -> Path:

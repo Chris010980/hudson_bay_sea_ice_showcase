@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from src.paths import LOG_DIR
+from src.config.paths import LOG_DIR
 
 DEFAULT_LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 DEFAULT_LOG_FILE = LOG_DIR / "hudson_bay_sea_ice.log"
