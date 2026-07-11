@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 import matplotlib
 
 matplotlib.use("Agg")
@@ -12,7 +15,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
 import tifffile
+from cartopy.mpl.patch import geos_to_path
 from PIL import Image
+from shapely.geometry import Polygon
 
 from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
 
@@ -21,6 +26,14 @@ os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
 
 DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
 DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_preview.png"
+logger = logging.getLogger(__name__)
+
+
+def _normalize_longitudes(lon_grid: np.ndarray) -> np.ndarray:
+    """Normalize longitudes from the [-180, 180] convention to [0, 360)."""
+
+    lon = np.asarray(lon_grid, dtype=np.float32)
+    return np.where(lon < 0.0, lon + 360.0, lon)
 
 
 def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
@@ -44,6 +57,7 @@ def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
 def _load_tiff_data(input_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Read a GeoTIFF and build lon/lat coordinate arrays for plotting."""
 
+    logger.info("Loading GeoTIFF data from %s", input_path)
     with tifffile.TiffFile(input_path) as tif:
         page = tif.pages[0]
         data = page.asarray()
@@ -56,6 +70,11 @@ def _load_tiff_data(input_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarra
             pixel_scale = tags["ModelPixelScaleTag"].value
             tiepoint = tags["ModelTiepointTag"].value
             source_crs = "EPSG:3411"
+            logger.debug(
+                "Using GeoTIFF georeferencing tags: pixel_scale=%s tiepoint=%s",
+                pixel_scale,
+                tiepoint,
+            )
 
             x = tiepoint[3] + (np.arange(data.shape[1]) + 0.5) * pixel_scale[0]
             y = tiepoint[4] - (np.arange(data.shape[0]) + 0.5) * pixel_scale[1]
@@ -63,14 +82,69 @@ def _load_tiff_data(input_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarra
 
             transformer = pyproj.Transformer.from_crs(source_crs, "EPSG:4326", always_xy=True)
             lon_grid, lat_grid = transformer.transform(x_grid, y_grid)
+            lon_grid = _normalize_longitudes(lon_grid)
+            logger.debug("Derived %dx%d raster coordinates", data.shape[0], data.shape[1])
             return data, lon_grid, lat_grid
 
+    logger.warning("GeoTIFF georeferencing tags not found, falling back to synthetic bounds")
     height, width = data.shape
     lon_min, lon_max, lat_min, lat_max = DEFAULT_REGION_BOUNDS
     x_values = np.linspace(lon_min, lon_max, width)
     y_values = np.linspace(lat_min, lat_max, height)
     lon_grid, lat_grid = np.meshgrid(x_values, y_values)
     return data, lon_grid, lat_grid
+
+
+def _prepare_plot_data(data: np.ndarray) -> np.ndarray:
+    """Normalize raster values so invalid or negative entries render as 0% sea ice."""
+
+    prepared = np.asarray(data, dtype=np.float32)
+    if prepared.ndim == 3:
+        prepared = prepared[0]
+    prepared = np.where(np.isnan(prepared) | (prepared < 0.0), 0.0, prepared)
+
+    if prepared.size:
+        max_value = float(np.nanmax(prepared))
+        if np.isfinite(max_value) and max_value > 1.0:
+            logger.debug("Normalizing raster values to unit range with max %.3f", max_value)
+            prepared = prepared / max_value
+
+    return np.clip(prepared, 0.0, 1.0)
+
+
+def _load_rendered_tiff(input_path: Path) -> np.ndarray:
+    """Load a GeoTIFF as an image, preserving any palette color table."""
+
+    with Image.open(input_path) as image:
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+        rendered = np.asarray(image)
+
+    logger.debug("Rendered TIFF image with shape %s", rendered.shape)
+    return rendered
+
+
+def _build_boundary_path(
+    projection: ccrs.Projection,
+    bounds: tuple[float, float, float, float],
+) -> object:
+    """Create a simple regional boundary path for the overview plot."""
+
+    lon_min, lon_max, lat_min, lat_max = bounds
+    boundary_points = [
+        (lon_min, lat_min),
+        (lon_max, lat_min),
+        (lon_max, lat_max),
+        (lon_min, lat_max),
+        (lon_min, lat_min),
+    ]
+
+    polygon = Polygon(boundary_points)
+    if not polygon.is_valid:
+        polygon = polygon.buffer(0)
+
+    projected = projection.project_geometry(polygon, ccrs.PlateCarree())
+    return geos_to_path(projected)[0]
 
 
 def _prepare_data_for_plot(
@@ -82,18 +156,15 @@ def _prepare_data_for_plot(
     """Read and prepare a GeoTIFF for plotting."""
 
     resolved_path = resolve_project_path(input_path)
-    data, lon_grid, lat_grid = _load_tiff_data(resolved_path)
+    logger.info("Preparing GeoTIFF image for plotting with bounds %s", bounds)
+    _, lon_grid, lat_grid = _load_tiff_data(resolved_path)
+    rendered = _load_rendered_tiff(resolved_path)
 
-    if data.shape[0] != height or data.shape[1] != width:
-        data = np.array(Image.fromarray(data).resize((width, height), resample=Image.BILINEAR))
+    if rendered.shape[0] != height or rendered.shape[1] != width:
+        logger.debug("Resampling raster to %dx%d", width, height)
+        rendered = np.array(Image.fromarray(rendered).resize((width, height), resample=Image.BILINEAR))
         lon_grid = np.array(Image.fromarray(lon_grid.astype(np.float32)).resize((width, height), resample=Image.BILINEAR))
         lat_grid = np.array(Image.fromarray(lat_grid.astype(np.float32)).resize((width, height), resample=Image.BILINEAR))
-
-    if np.nanmax(data) > 1.5:
-        data = data / 100.0
-
-    data = np.ma.masked_invalid(data)
-    data = np.ma.masked_where(data < 0, data)
 
     mask = (
         (lon_grid >= bounds[0])
@@ -102,9 +173,9 @@ def _prepare_data_for_plot(
         & (lat_grid <= bounds[3])
     )
     if mask.any():
-        data = np.ma.masked_where(~mask, data)
+        logger.debug("Applied spatial mask to %d cells", int(mask.sum()))
 
-    return data, lon_grid, lat_grid
+    return rendered, lon_grid, lat_grid
 
 
 def plot_geotiff_region(
@@ -125,27 +196,35 @@ def plot_geotiff_region(
     resolved_output_path = resolve_project_path(output_path)
     resolved_output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    data, lon_grid, lat_grid = _prepare_data_for_plot(resolved_input_path, bounds=bounds)
+    logger.info("Creating sea-ice preview plot for %s", resolved_input_path)
+    logger.debug("Rendering bounds=%s title=%s", bounds, title)
+    image_data, lon_grid, lat_grid = _prepare_data_for_plot(resolved_input_path, bounds=bounds)
 
-    fig, ax = plt.subplots(figsize=(10, 8), dpi=180)
+    fig = plt.figure(figsize=(10, 8), dpi=180)
+    ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=-80))
+    ax.set_extent(list(bounds), crs=ccrs.PlateCarree())
 
-    mesh = ax.imshow(
-        data,
-        extent=[bounds[0], bounds[1], bounds[2], bounds[3]],
-        cmap="Blues_r",
-        vmin=0.0,
-        vmax=1.0,
-        origin="lower",
+    boundary_path = _build_boundary_path(ax.projection, bounds)
+    ax.set_boundary(boundary_path, transform=ax.projection)
+
+    image_extent = [
+        float(np.nanmin(lon_grid)),
+        float(np.nanmax(lon_grid)),
+        float(np.nanmin(lat_grid)),
+        float(np.nanmax(lat_grid)),
+    ]
+    ax.imshow(
+        image_data,
+        extent=image_extent,
+        origin="upper",
+        transform=ccrs.PlateCarree(),
+        zorder=2,
     )
 
-    ax.set_xlim(bounds[0], bounds[1])
-    ax.set_ylim(bounds[2], bounds[3])
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    ax.grid(True, alpha=0.3)
-
-    cbar = plt.colorbar(mesh, ax=ax, orientation="vertical", pad=0.04)
-    cbar.set_label("Sea ice concentration (0–1)")
+    ax.add_feature(cfeature.OCEAN, facecolor="lightblue", zorder=0)
+    ax.add_feature(cfeature.LAND, facecolor="lightgray", edgecolor="black", linewidth=0.25, zorder=1)
+    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, zorder=2)
+    ax.gridlines(draw_labels=False)
 
     stem = resolved_input_path.stem if resolved_input_path.exists() else Path(str(input_path)).stem
     plot_title = title or f"Sea ice concentration preview – {stem}"
@@ -153,6 +232,7 @@ def plot_geotiff_region(
 
     plt.tight_layout()
     fig.savefig(resolved_output_path, dpi=200, bbox_inches="tight")
+    logger.info("Saved plot to %s", resolved_output_path)
 
     if show:
         plt.show()
