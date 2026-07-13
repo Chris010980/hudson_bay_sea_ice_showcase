@@ -9,15 +9,14 @@ from pathlib import Path
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import matplotlib
+import matplotlib.colors as mcolors
+import matplotlib.path as mpath
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pyproj
-import tifffile
-from cartopy.mpl.patch import geos_to_path
-from PIL import Image
-from shapely.geometry import Polygon
+import rasterio
 
 from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
 
@@ -27,13 +26,6 @@ os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
 DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
 DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_preview.png"
 logger = logging.getLogger(__name__)
-
-
-def _normalize_longitudes(lon_grid: np.ndarray) -> np.ndarray:
-    """Normalize longitudes from the [-180, 180] convention to [0, 360)."""
-
-    lon = np.asarray(lon_grid, dtype=np.float32)
-    return np.where(lon < 0.0, lon + 360.0, lon)
 
 
 def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
@@ -53,131 +45,6 @@ def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
 
     return max(candidates, key=lambda path: (path.stat().st_mtime, path.as_posix()))
 
-
-def _load_tiff_data(input_path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Read a GeoTIFF and build lon/lat coordinate arrays for plotting."""
-
-    logger.info("Loading GeoTIFF data from %s", input_path)
-    with tifffile.TiffFile(input_path) as tif:
-        page = tif.pages[0]
-        data = page.asarray()
-        if data.ndim == 3:
-            data = data[0]
-        data = np.asarray(data, dtype=np.float32)
-
-        tags = page.tags
-        if "ModelPixelScaleTag" in tags and "ModelTiepointTag" in tags:
-            pixel_scale = tags["ModelPixelScaleTag"].value
-            tiepoint = tags["ModelTiepointTag"].value
-            source_crs = "EPSG:3411"
-            logger.debug(
-                "Using GeoTIFF georeferencing tags: pixel_scale=%s tiepoint=%s",
-                pixel_scale,
-                tiepoint,
-            )
-
-            x = tiepoint[3] + (np.arange(data.shape[1]) + 0.5) * pixel_scale[0]
-            y = tiepoint[4] - (np.arange(data.shape[0]) + 0.5) * pixel_scale[1]
-            x_grid, y_grid = np.meshgrid(x, y)
-
-            transformer = pyproj.Transformer.from_crs(source_crs, "EPSG:4326", always_xy=True)
-            lon_grid, lat_grid = transformer.transform(x_grid, y_grid)
-            lon_grid = _normalize_longitudes(lon_grid)
-            logger.debug("Derived %dx%d raster coordinates", data.shape[0], data.shape[1])
-            return data, lon_grid, lat_grid
-
-    logger.warning("GeoTIFF georeferencing tags not found, falling back to synthetic bounds")
-    height, width = data.shape
-    lon_min, lon_max, lat_min, lat_max = DEFAULT_REGION_BOUNDS
-    x_values = np.linspace(lon_min, lon_max, width)
-    y_values = np.linspace(lat_min, lat_max, height)
-    lon_grid, lat_grid = np.meshgrid(x_values, y_values)
-    return data, lon_grid, lat_grid
-
-
-def _prepare_plot_data(data: np.ndarray) -> np.ndarray:
-    """Normalize raster values so invalid or negative entries render as 0% sea ice."""
-
-    prepared = np.asarray(data, dtype=np.float32)
-    if prepared.ndim == 3:
-        prepared = prepared[0]
-    prepared = np.where(np.isnan(prepared) | (prepared < 0.0), 0.0, prepared)
-
-    if prepared.size:
-        max_value = float(np.nanmax(prepared))
-        if np.isfinite(max_value) and max_value > 1.0:
-            logger.debug("Normalizing raster values to unit range with max %.3f", max_value)
-            prepared = prepared / max_value
-
-    return np.clip(prepared, 0.0, 1.0)
-
-
-def _load_rendered_tiff(input_path: Path) -> np.ndarray:
-    """Load a GeoTIFF as an image, preserving any palette color table."""
-
-    with Image.open(input_path) as image:
-        if image.mode != "RGBA":
-            image = image.convert("RGBA")
-        rendered = np.asarray(image)
-
-    logger.debug("Rendered TIFF image with shape %s", rendered.shape)
-    return rendered
-
-
-def _build_boundary_path(
-    projection: ccrs.Projection,
-    bounds: tuple[float, float, float, float],
-) -> object:
-    """Create a simple regional boundary path for the overview plot."""
-
-    lon_min, lon_max, lat_min, lat_max = bounds
-    boundary_points = [
-        (lon_min, lat_min),
-        (lon_max, lat_min),
-        (lon_max, lat_max),
-        (lon_min, lat_max),
-        (lon_min, lat_min),
-    ]
-
-    polygon = Polygon(boundary_points)
-    if not polygon.is_valid:
-        polygon = polygon.buffer(0)
-
-    projected = projection.project_geometry(polygon, ccrs.PlateCarree())
-    return geos_to_path(projected)[0]
-
-
-def _prepare_data_for_plot(
-    input_path: str | Path,
-    bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
-    width: int = 1200,
-    height: int = 1200,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Read and prepare a GeoTIFF for plotting."""
-
-    resolved_path = resolve_project_path(input_path)
-    logger.info("Preparing GeoTIFF image for plotting with bounds %s", bounds)
-    _, lon_grid, lat_grid = _load_tiff_data(resolved_path)
-    rendered = _load_rendered_tiff(resolved_path)
-
-    if rendered.shape[0] != height or rendered.shape[1] != width:
-        logger.debug("Resampling raster to %dx%d", width, height)
-        rendered = np.array(Image.fromarray(rendered).resize((width, height), resample=Image.BILINEAR))
-        lon_grid = np.array(Image.fromarray(lon_grid.astype(np.float32)).resize((width, height), resample=Image.BILINEAR))
-        lat_grid = np.array(Image.fromarray(lat_grid.astype(np.float32)).resize((width, height), resample=Image.BILINEAR))
-
-    mask = (
-        (lon_grid >= bounds[0])
-        & (lon_grid <= bounds[1])
-        & (lat_grid >= bounds[2])
-        & (lat_grid <= bounds[3])
-    )
-    if mask.any():
-        logger.debug("Applied spatial mask to %d cells", int(mask.sum()))
-
-    return rendered, lon_grid, lat_grid
-
-
 def plot_geotiff_region(
     input_path: str | Path | None = None,
     output_path: str | Path | None = None,
@@ -185,57 +52,278 @@ def plot_geotiff_region(
     title: str | None = None,
     show: bool = False,
 ) -> Path:
-    """Create a regional sea-ice preview plot from a GeoTIFF and save it to disk."""
+    """
+    Generate the Hudson Bay sea-ice overview plot.
+    """
 
     if input_path is None:
         input_path = find_concentration_geotiff()
 
-    resolved_input_path = resolve_project_path(input_path)
+    input_path = resolve_project_path(input_path)
+
     if output_path is None:
         output_path = DEFAULT_OUTPUT_PLOT_PATH
-    resolved_output_path = resolve_project_path(output_path)
-    resolved_output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    logger.info("Creating sea-ice preview plot for %s", resolved_input_path)
-    logger.debug("Rendering bounds=%s title=%s", bounds, title)
-    image_data, lon_grid, lat_grid = _prepare_data_for_plot(resolved_input_path, bounds=bounds)
+    output_path = resolve_project_path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig = plt.figure(figsize=(10, 8), dpi=180)
-    ax = plt.axes(projection=ccrs.NorthPolarStereo(central_longitude=-80))
-    ax.set_extent(list(bounds), crs=ccrs.PlateCarree())
+    lon_min, lon_max, lat_min, lat_max = bounds
 
-    boundary_path = _build_boundary_path(ax.projection, bounds)
-    ax.set_boundary(boundary_path, transform=ax.projection)
+    logger.info("Reading %s", input_path)
 
-    image_extent = [
-        float(np.nanmin(lon_grid)),
-        float(np.nanmax(lon_grid)),
-        float(np.nanmin(lat_grid)),
-        float(np.nanmax(lat_grid)),
-    ]
-    ax.imshow(
-        image_data,
-        extent=image_extent,
-        origin="upper",
+    with rasterio.open(input_path) as src:
+
+        ice = src.read(1).astype(np.float32)
+        transform = src.transform
+
+    # -------------------------------------------------------------
+    # NSIDC values
+    # -------------------------------------------------------------
+
+    ice_mask = ice <= 1000
+
+    ice = ice.astype(np.float32)
+    ice[~ice_mask] = np.nan
+    ice /= 1000.0
+
+    extent = (
+        transform.c,
+        transform.c + transform.a * ice.shape[1],
+        transform.f + transform.e * ice.shape[0],
+        transform.f,
+    )
+
+    source_crs = ccrs.epsg(3411)
+
+    globe = ccrs.Globe(
+        semimajor_axis=6378273,
+        semiminor_axis=6356889.449,
+    )
+
+    projection = ccrs.Stereographic(
+        central_latitude=90,
+        central_longitude=-80,
+        true_scale_latitude=70,
+        globe=globe,
+    )
+
+    ocean_color = "#08306b"
+    land_color = "#d9d9d9"
+
+    ice_cmap = mcolors.LinearSegmentedColormap.from_list(
+        "SeaIce",
+        [
+            ocean_color,
+            "#2171b5",
+            "#6baed6",
+            "#c6dbef",
+            "#ffffff",
+        ],
+    )
+
+    fig = plt.figure(figsize=(8, 8))
+    fig.patch.set_facecolor("white")
+
+    ax = plt.axes(projection=projection)
+    ax.set_facecolor("white")
+
+    ax.set_extent(
+        [lon_min, lon_max, lat_min, lat_max],
+        crs=ccrs.PlateCarree(),
+    )
+
+    ax.spines["geo"].set_visible(False)
+
+    # -------------------------------------------------------------
+    # Boundary polygon
+    # -------------------------------------------------------------
+
+    n = 400
+
+    lon_bottom = np.linspace(lon_min, lon_max, n)
+    lon_top = np.linspace(lon_max, lon_min, n)
+
+    lat_bottom = np.full(n, lat_min)
+    lat_top = np.full(n, lat_max)
+
+    lon_right = np.full(n, lon_max)
+    lon_left = np.full(n, lon_min)
+
+    lat_right = np.linspace(lat_min, lat_max, n)
+    lat_left = np.linspace(lat_max, lat_min, n)
+
+    polygon_lon = np.concatenate(
+        [
+            lon_bottom,
+            lon_right,
+            lon_top,
+            lon_left,
+            [lon_min],
+        ]
+    )
+
+    polygon_lat = np.concatenate(
+        [
+            lat_bottom,
+            lat_right,
+            lat_top,
+            lat_left,
+            [lat_min],
+        ]
+    )
+
+    proj = projection.transform_points(
+        ccrs.PlateCarree(),
+        polygon_lon,
+        polygon_lat,
+    )
+
+    boundary = mpath.Path(proj[:, :2])
+
+    ax.set_boundary(
+        boundary,
+        transform=ax.transData,
+    )
+
+    # border
+
+    ax.plot(
+        polygon_lon,
+        polygon_lat,
         transform=ccrs.PlateCarree(),
+        color="0.25",
+        linewidth=1.0,
+        zorder=20,
+    )
+
+    # ocean
+
+    ax.fill(
+        polygon_lon,
+        polygon_lat,
+        transform=ccrs.PlateCarree(),
+        facecolor=ocean_color,
+        edgecolor="none",
+        zorder=0,
+    )
+
+    # land / coast
+
+    ax.add_feature(
+        cfeature.LAND,
+        facecolor=land_color,
+        edgecolor="none",
         zorder=2,
     )
 
-    ax.add_feature(cfeature.OCEAN, facecolor="lightblue", zorder=0)
-    ax.add_feature(cfeature.LAND, facecolor="lightgray", edgecolor="black", linewidth=0.25, zorder=1)
-    ax.add_feature(cfeature.COASTLINE, linewidth=0.5, zorder=2)
-    ax.gridlines(draw_labels=False)
+    ax.coastlines(
+        linewidth=0.7,
+        color="0.35",
+        zorder=4,
+    )
 
-    stem = resolved_input_path.stem if resolved_input_path.exists() else Path(str(input_path)).stem
-    plot_title = title or f"Sea ice concentration preview – {stem}"
-    ax.set_title(plot_title)
+    # grid
 
-    plt.tight_layout()
-    fig.savefig(resolved_output_path, dpi=200, bbox_inches="tight")
-    logger.info("Saved plot to %s", resolved_output_path)
+    gl = ax.gridlines(
+        crs=ccrs.PlateCarree(),
+        draw_labels=False,
+        linewidth=0.6,
+        color="gray",
+        alpha=0.5,
+        linestyle=":",
+    )
+
+    gl.xlocator = plt.FixedLocator(
+        [-100, -90, -80, -70, -60]
+    )
+
+    gl.ylocator = plt.FixedLocator(
+        [50, 55, 60, 65, 70, 75]
+    )
+
+    # labels
+
+    for lon in [-100, -90, -80, -70, -60]:
+
+        ax.text(
+            lon,
+            lat_min - 0.6,
+            f"{abs(lon)}°W",
+            transform=ccrs.PlateCarree(),
+            ha="center",
+            va="top",
+            fontsize=10,
+            clip_on=False,
+            zorder=50,
+        )
+
+    for lat in [50, 55, 60, 65, 70, 75]:
+
+        ax.text(
+            lon_min - 0.8,
+            lat,
+            f"{lat}°N",
+            transform=ccrs.PlateCarree(),
+            ha="right",
+            va="center",
+            fontsize=10,
+            clip_on=False,
+            zorder=50,
+        )
+
+    img = ax.imshow(
+        ice,
+        origin="upper",
+        extent=extent,
+        transform=source_crs,
+        cmap=ice_cmap,
+        vmin=0,
+        vmax=1,
+        interpolation="nearest",
+        zorder=3,
+    )
+
+    cbar = plt.colorbar(
+        img,
+        ax=ax,
+        shrink=0.75,
+        pad=0.05,
+    )
+
+    cbar.ax.tick_params(labelsize=10)
+
+    cbar.set_label(
+        "Sea ice concentration",
+        fontsize=11,
+    )
+
+    cbar.set_ticks(np.linspace(0, 1, 6))
+
+    fig.suptitle(
+        title or "Hudson Bay Sea Ice Concentration",
+        fontsize=16,
+        y=0.98,
+    )
+
+    plt.subplots_adjust(
+        left=0.06,
+        right=0.88,
+        bottom=0.06,
+        top=0.92,
+    )
+
+    fig.savefig(
+        output_path,
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+
+    logger.info("Saved plot to %s", output_path)
 
     if show:
         plt.show()
 
     plt.close(fig)
-    return resolved_output_path
+
+    return output_path
