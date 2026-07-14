@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -51,6 +52,9 @@ def plot_geotiff_region(
     bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
     title: str | None = None,
     show: bool = False,
+    draw_regions=False,
+    region_file=None,
+    selected_regions=None,
 ) -> Path:
     """
     Generate the Hudson Bay sea-ice overview plot.
@@ -327,3 +331,38 @@ def plot_geotiff_region(
     plt.close(fig)
 
     return output_path
+
+def load_regions(
+    region_file: str | Path | None = None,
+) -> dict:
+
+    if region_file is None:
+        region_file = PROJECT_ROOT / "src/config/regions.json"
+
+    with open(region_file, encoding="utf-8") as f:
+        return json.load(f)
+    
+def draw_regions(
+    ax,
+    regions,
+    selected=None,
+):
+    for region in regions:
+
+        if selected is not None:
+            if region["name"] not in selected:
+                continue
+
+        coords = np.asarray(region["coordinates"])
+
+        lon = coords[:,0]
+        lat = coords[:,1]
+
+        ax.plot(
+            lon,
+            lat,
+            transform=ccrs.PlateCarree(),
+            linewidth=2,
+            color="red",
+            zorder=30,
+        )

@@ -40,6 +40,23 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--title", default=None, help="Optional title for the generated plot.")
     parser.add_argument("--show", action="store_true", help="Display the plot window after saving it.")
+    parser.add_argument(
+        "--regions",
+        action="store_true",
+        help="Draw analysis regions."
+    )
+
+    parser.add_argument(
+        "--split-regions",
+        action="store_true",
+        help="Create one plot per region."
+    )
+
+    parser.add_argument(
+        "--selected-region",
+        nargs="+",
+        help="Only plot selected regions."
+    )
     return parser.parse_args(argv)
 
 
