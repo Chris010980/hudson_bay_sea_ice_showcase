@@ -29,40 +29,95 @@ STAGES = {
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for selecting and running pipeline stages."""
 
-    parser = argparse.ArgumentParser(description="Run Hudson Bay sea ice pipeline stages.")
+    parser = argparse.ArgumentParser(
+        description="Run Hudson Bay sea ice pipeline stages."
+    )
+
     parser.add_argument(
         "stage",
         choices=(*STAGES.keys(), "all"),
         help="Pipeline stage to execute.",
     )
+
     parser.add_argument(
-        "stage_args",
-        nargs=argparse.REMAINDER,
-        help="Additional arguments passed to the selected stage.",
+        "--log-level",
+        default="INFO",
     )
-    parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
+
+    parser.add_argument(
+        "--log-file",
+        default=str(DEFAULT_LOG_FILE),
+    )
+
+    # ---------------------------------------------------------
+    # Plot options
+    # ---------------------------------------------------------
+
+    parser.add_argument(
+        "--regions",
+        action="store_true",
+        help="Draw analysis regions.",
+    )
+
+    parser.add_argument(
+        "--split-regions",
+        action="store_true",
+        help="Generate one plot for each region.",
+    )
+
+    parser.add_argument(
+        "--selected-region",
+        nargs="+",
+        metavar="REGION",
+        help="Only generate plots for selected regions.",
+    )
+
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="Display plots after generation.",
+    )
+
     return parser.parse_args(argv)
 
-
 def main(argv: Sequence[str] | None = None) -> None:
-    """Run one pipeline stage, or all stages, using shared logging settings."""
+    """Run one pipeline stage or the complete pipeline."""
 
     args = parse_args(argv)
-    configure_logging(level=args.log_level, log_file=args.log_file)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
+    )
+
     stages = STAGES.values() if args.stage == "all" else (STAGES[args.stage],)
 
-    if args.stage == "all" and args.stage_args:
-        raise ValueError("Additional stage arguments can only be used with one stage.")
+    for stage in stages:
 
-    stage_args = ["--log-level", args.log_level]
-    if args.log_file:
-        stage_args.extend(["--log-file", args.log_file])
-    stage_args.extend(args.stage_args)
-    if not any(arg in ("-h", "--help") for arg in args.stage_args):
+        stage_args = [
+            "--log-level",
+            args.log_level,
+            "--log-file",
+            args.log_file,
+        ]
+
+        if args.stage == "plots":
+
+            if args.regions:
+                stage_args.append("--regions")
+
+            if args.split_regions:
+                stage_args.append("--split-regions")
+
+            if args.selected_region:
+                stage_args.append("--selected-region")
+                stage_args.extend(args.selected_region)
+
+            if args.show:
+                stage_args.append("--show")
+
         logger.info("Running pipeline stage: %s", args.stage)
 
-    for stage in stages:
         stage(stage_args)
 
 
