@@ -52,9 +52,8 @@ def plot_geotiff_region(
     bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
     title: str | None = None,
     show: bool = False,
-    draw_regions=False,
-    region_file=None,
-    selected_regions=None,
+    show_regions: bool = False,
+    region: list[str] | None = None,
 ) -> Path:
     """
     Generate the Hudson Bay sea-ice overview plot.
@@ -287,6 +286,16 @@ def plot_geotiff_region(
         zorder=3,
     )
 
+    if show_regions:
+
+        regions = load_regions()
+
+        draw_regions(
+            ax,
+            regions,
+            selected=region,
+        )
+
     cbar = plt.colorbar(
         img,
         ax=ax,
@@ -332,37 +341,70 @@ def plot_geotiff_region(
 
     return output_path
 
+
 def load_regions(
     region_file: str | Path | None = None,
-) -> dict:
+) -> dict[str, dict]:
+    """Load region definitions from regions.json."""
 
     if region_file is None:
         region_file = PROJECT_ROOT / "src/config/regions.json"
 
     with open(region_file, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+
+    return data["regions"]
+
     
 def draw_regions(
     ax,
-    regions,
-    selected=None,
+    regions: dict[str, dict],
+    selected: list[str] | None = None,
+    color: str = "crimson",
+    linewidth: float = 2.0,
 ):
-    for region in regions:
+    """Draw one or more analysis regions."""
 
-        if selected is not None:
-            if region["name"] not in selected:
-                continue
+    for name, region in regions.items():
 
-        coords = np.asarray(region["coordinates"])
+        if selected is not None and name not in selected:
+            continue
 
-        lon = coords[:,0]
-        lat = coords[:,1]
+        coords = np.asarray(region["polygon"], dtype=float)
+
+        lon = coords[:, 0].copy()
+        lat = coords[:, 1]
+
+        # 0...360 -> -180...180
+        lon = np.where(lon > 180.0, lon - 360.0, lon)
+
+        # Polygon schließen
+        lon = np.append(lon, lon[0])
+        lat = np.append(lat, lat[0])
 
         ax.plot(
             lon,
             lat,
             transform=ccrs.PlateCarree(),
-            linewidth=2,
-            color="red",
+            color=color,
+            linewidth=linewidth,
             zorder=30,
+        )
+
+        # Schwerpunkt für Text
+        ax.text(
+            lon.mean(),
+            lat.mean(),
+            name,
+            transform=ccrs.PlateCarree(),
+            fontsize=9,
+            ha="center",
+            va="center",
+            bbox=dict(
+                facecolor="white",
+                alpha=0.75,
+                edgecolor="none",
+                pad=1.5,
+            ),
+            zorder=31,
         )

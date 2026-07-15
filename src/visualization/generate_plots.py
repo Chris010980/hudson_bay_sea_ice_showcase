@@ -43,28 +43,72 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--regions",
         action="store_true",
-        help="Draw analysis regions."
+        help="Overlay analysis regions on the overview plot.",
     )
 
     parser.add_argument(
-        "--split-regions",
-        action="store_true",
-        help="Create one plot per region."
-    )
-
-    parser.add_argument(
-        "--selected-region",
+        "--region",
         nargs="+",
-        help="Only plot selected regions."
+        metavar="REGION",
+        help="Generate plots only for the selected region(s).",
+    )
+
+    parser.add_argument(
+        "--all-regions",
+        action="store_true",
+        help="Generate one plot for every analysis region.",
     )
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    """Generate the initial GeoTIFF-based preview plot for the pipeline."""
+    """Generate sea ice plots."""
 
     args = parse_args(argv)
-    configure_logging(level=args.log_level, log_file=args.log_file)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
+    )
+
+    # -------------------------------------------------------------
+    # Generate one plot for every region
+    # -------------------------------------------------------------
+
+    if args.all_regions:
+
+        from src.visualization.geotiff_plot import load_regions
+
+        regions = load_regions()
+
+        for region_name in regions:
+
+            output = Path(args.output)
+
+            output_file = (
+                output.parent /
+                f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
+            )
+
+            plot_geotiff_region(
+                input_path=args.input_tiff,
+                output_path=output_file,
+                bounds=tuple(args.bounds),
+                title=region_name,
+                show=args.show,
+                show_regions=True,
+                region=[region_name],
+            )
+
+            logger.info("Saved %s", output_file)
+
+        return
+
+    # -------------------------------------------------------------
+    # Normal plot
+    # -------------------------------------------------------------
+
+    show_regions = args.regions or args.region is not None
 
     output_path = plot_geotiff_region(
         input_path=args.input_tiff,
@@ -72,8 +116,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         bounds=tuple(args.bounds),
         title=args.title,
         show=args.show,
+        show_regions=show_regions,
+        region=args.region,
     )
-    logger.info("Saved sea ice preview plot to %s", output_path)
+
+    logger.info("Saved %s", output_path)
 
 
 if __name__ == "__main__":
