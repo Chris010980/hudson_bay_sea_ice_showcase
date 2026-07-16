@@ -7,12 +7,18 @@ import logging
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.visualization.geotiff_plot import DEFAULT_OUTPUT_PLOT_PATH, DEFAULT_REGION_BOUNDS, plot_geotiff_region
+from src.visualization.geotiff_plot import (
+    DEFAULT_OUTPUT_PLOT_PATH,
+    DEFAULT_REGION_BOUNDS,
+    SeaIcePlotter,
+    load_regions,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -71,56 +77,72 @@ def main(argv: Sequence[str] | None = None) -> None:
         log_file=args.log_file,
     )
 
-    # -------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Plotter
+    # ---------------------------------------------------------
+
+    plotter = SeaIcePlotter(
+        input_path=args.input_tiff,
+        bounds=tuple(args.bounds),
+    )
+
+    plotter.load()
+
+    # ---------------------------------------------------------
     # Generate one plot for every region
-    # -------------------------------------------------------------
+    # ---------------------------------------------------------
 
     if args.all_regions:
 
-        from src.visualization.geotiff_plot import load_regions
+        for region_name in load_regions():
 
-        regions = load_regions()
-
-        for region_name in regions:
+            plotter.plot_single_region(region_name)
 
             output = Path(args.output)
 
             output_file = (
-                output.parent /
-                f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
+                output.parent
+                / f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
             )
 
-            plot_geotiff_region(
-                input_path=args.input_tiff,
-                output_path=output_file,
-                bounds=tuple(args.bounds),
-                title=region_name,
-                show=args.show,
-                show_regions=True,
-                region=[region_name],
-            )
+            plotter.save(output_file)
 
             logger.info("Saved %s", output_file)
 
         return
 
-    # -------------------------------------------------------------
-    # Normal plot
-    # -------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Overview with all regions
+    # ---------------------------------------------------------
 
-    show_regions = args.regions or args.region is not None
+    if args.regions:
 
-    output_path = plot_geotiff_region(
-        input_path=args.input_tiff,
-        output_path=args.output,
-        bounds=tuple(args.bounds),
-        title=args.title,
-        show=args.show,
-        show_regions=show_regions,
-        region=args.region,
-    )
+        plotter.plot_regions()
 
-    logger.info("Saved %s", output_path)
+    # ---------------------------------------------------------
+    # Only selected regions
+    # ---------------------------------------------------------
+
+    elif args.region:
+
+        plotter.plot_overview()
+
+        plotter.draw_regions(selected=args.region)
+
+    # ---------------------------------------------------------
+    # Plain overview
+    # ---------------------------------------------------------
+
+    else:
+
+        plotter.plot_overview()
+
+    plotter.save(args.output)
+
+    logger.info("Saved %s", args.output)
+
+    if args.show:
+        plt.show()
 
 
 if __name__ == "__main__":

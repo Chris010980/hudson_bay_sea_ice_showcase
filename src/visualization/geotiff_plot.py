@@ -19,6 +19,9 @@ import numpy as np
 import pyproj
 import rasterio
 
+from datetime import datetime
+import re
+
 from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
 
 os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
@@ -46,365 +49,463 @@ def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
 
     return max(candidates, key=lambda path: (path.stat().st_mtime, path.as_posix()))
 
-def plot_geotiff_region(
-    input_path: str | Path | None = None,
-    output_path: str | Path | None = None,
-    bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
-    title: str | None = None,
-    show: bool = False,
-    show_regions: bool = False,
-    region: list[str] | None = None,
-) -> Path:
-    """
-    Generate the Hudson Bay sea-ice overview plot.
-    """
+class SeaIcePlotter:
 
-    if input_path is None:
-        input_path = find_concentration_geotiff()
+    # ---------------------------------------------------------
+    # Construction
+    # ---------------------------------------------------------
 
-    input_path = resolve_project_path(input_path)
+    def __init__(
+        self,
+        input_path: str | Path | None = None,
+        bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
+    ):
+        if input_path is None:
+            input_path = find_concentration_geotiff()
 
-    if output_path is None:
-        output_path = DEFAULT_OUTPUT_PLOT_PATH
+        self.input_path = resolve_project_path(input_path)
+        self.bounds = bounds
 
-    output_path = resolve_project_path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+        # matplotlib
+        self.fig = None
+        self.ax = None
 
-    lon_min, lon_max, lat_min, lat_max = bounds
+        # raster
+        self.ice = None
+        self.transform = None
+        self.extent = None
 
-    logger.info("Reading %s", input_path)
+        # projection
+        self.source_crs = None
+        self.projection = None
+        self.globe = None
 
-    with rasterio.open(input_path) as src:
+        # metadata
+        self.date = None
 
-        ice = src.read(1).astype(np.float32)
-        transform = src.transform
+        self._configure_style()
 
-    # -------------------------------------------------------------
-    # NSIDC values
-    # -------------------------------------------------------------
+    def _configure_style(self):
 
-    ice_mask = ice <= 1000
+        self.figure_size = (7.2, 6.2)
 
-    ice = ice.astype(np.float32)
-    ice[~ice_mask] = np.nan
-    ice /= 1000.0
+        self.left_margin = 0.07
+        self.right_margin = 0.89
 
-    extent = (
-        transform.c,
-        transform.c + transform.a * ice.shape[1],
-        transform.f + transform.e * ice.shape[0],
-        transform.f,
-    )
+        self.bottom_margin = 0.10
+        self.top_margin = 0.87
 
-    source_crs = ccrs.epsg(3411)
+        self.title_y = 0.965
+        self.subtitle_y = 0.93
 
-    globe = ccrs.Globe(
-        semimajor_axis=6378273,
-        semiminor_axis=6356889.449,
-    )
+        self.colorbar_pad = 0.05
+        self.colorbar_shrink = 0.75
 
-    projection = ccrs.Stereographic(
-        central_latitude=90,
-        central_longitude=-80,
-        true_scale_latitude=70,
-        globe=globe,
-    )
+        self.title_fontsize = 16
+        self.subtitle_fontsize = 11
 
-    ocean_color = "#08306b"
-    land_color = "#d9d9d9"
+        self.axis_fontsize = 10
 
-    ice_cmap = mcolors.LinearSegmentedColormap.from_list(
-        "SeaIce",
-        [
-            ocean_color,
-            "#2171b5",
-            "#6baed6",
-            "#c6dbef",
-            "#ffffff",
-        ],
-    )
+        self.colorbar_fontsize = 11
+        self.colorbar_ticksize = 10
 
-    fig = plt.figure(figsize=(8, 8))
-    fig.patch.set_facecolor("white")
+        self.grid_linewidth = 0.6
 
-    ax = plt.axes(projection=projection)
-    ax.set_facecolor("white")
+        self.border_color = "0.25"
+        self.coast_color = "0.35"
 
-    ax.set_extent(
-        [lon_min, lon_max, lat_min, lat_max],
-        crs=ccrs.PlateCarree(),
-    )
+        self.ocean_color = "#08306b"
+        self.land_color = "#d9d9d9"
 
-    ax.spines["geo"].set_visible(False)
+        self.region_color = "crimson"
 
-    # -------------------------------------------------------------
-    # Boundary polygon
-    # -------------------------------------------------------------
+        self.region_linewidth = 2
 
-    n = 400
+        self.region_fontsize = 8
 
-    lon_bottom = np.linspace(lon_min, lon_max, n)
-    lon_top = np.linspace(lon_max, lon_min, n)
-
-    lat_bottom = np.full(n, lat_min)
-    lat_top = np.full(n, lat_max)
-
-    lon_right = np.full(n, lon_max)
-    lon_left = np.full(n, lon_min)
-
-    lat_right = np.linspace(lat_min, lat_max, n)
-    lat_left = np.linspace(lat_max, lat_min, n)
-
-    polygon_lon = np.concatenate(
-        [
-            lon_bottom,
-            lon_right,
-            lon_top,
-            lon_left,
-            [lon_min],
-        ]
-    )
-
-    polygon_lat = np.concatenate(
-        [
-            lat_bottom,
-            lat_right,
-            lat_top,
-            lat_left,
-            [lat_min],
-        ]
-    )
-
-    proj = projection.transform_points(
-        ccrs.PlateCarree(),
-        polygon_lon,
-        polygon_lat,
-    )
-
-    boundary = mpath.Path(proj[:, :2])
-
-    ax.set_boundary(
-        boundary,
-        transform=ax.transData,
-    )
-
-    # border
-
-    ax.plot(
-        polygon_lon,
-        polygon_lat,
-        transform=ccrs.PlateCarree(),
-        color="0.25",
-        linewidth=1.0,
-        zorder=20,
-    )
-
-    # ocean
-
-    ax.fill(
-        polygon_lon,
-        polygon_lat,
-        transform=ccrs.PlateCarree(),
-        facecolor=ocean_color,
-        edgecolor="none",
-        zorder=0,
-    )
-
-    # land / coast
-
-    ax.add_feature(
-        cfeature.LAND,
-        facecolor=land_color,
-        edgecolor="none",
-        zorder=2,
-    )
-
-    ax.coastlines(
-        linewidth=0.7,
-        color="0.35",
-        zorder=4,
-    )
-
-    # grid
-
-    gl = ax.gridlines(
-        crs=ccrs.PlateCarree(),
-        draw_labels=False,
-        linewidth=0.6,
-        color="gray",
-        alpha=0.5,
-        linestyle=":",
-    )
-
-    gl.xlocator = plt.FixedLocator(
-        [-100, -90, -80, -70, -60]
-    )
-
-    gl.ylocator = plt.FixedLocator(
-        [50, 55, 60, 65, 70, 75]
-    )
-
-    # labels
-
-    for lon in [-100, -90, -80, -70, -60]:
-
-        ax.text(
-            lon,
-            lat_min - 0.6,
-            f"{abs(lon)}°W",
-            transform=ccrs.PlateCarree(),
-            ha="center",
-            va="top",
-            fontsize=10,
-            clip_on=False,
-            zorder=50,
+        self.cmap = mcolors.LinearSegmentedColormap.from_list(
+            "SeaIce",
+            [
+                self.ocean_color,
+                "#2171b5",
+                "#6baed6",
+                "#c6dbef",
+                "#ffffff",
+            ],
         )
 
-    for lat in [50, 55, 60, 65, 70, 75]:
+    def load(self):
 
-        ax.text(
-            lon_min - 0.8,
-            lat,
-            f"{lat}°N",
-            transform=ccrs.PlateCarree(),
-            ha="right",
-            va="center",
-            fontsize=10,
-            clip_on=False,
-            zorder=50,
+        self._load_raster()
+
+        self._prepare_data()
+
+        self._build_projection()
+
+        self._extract_metadata()
+
+        self.regions = load_regions()
+
+    def _create_figure(self):
+
+        self.fig = plt.figure(figsize=self.figure_size)
+
+        self.ax = plt.axes(projection=self.projection)
+        self.ax.set_facecolor("white")
+
+        lon_min, lon_max, lat_min, lat_max = self.bounds
+
+        self.ax.set_extent(
+            [lon_min, lon_max, lat_min, lat_max],
+            crs=ccrs.PlateCarree(),
         )
 
-    img = ax.imshow(
-        ice,
-        origin="upper",
-        extent=extent,
-        transform=source_crs,
-        cmap=ice_cmap,
-        vmin=0,
-        vmax=1,
-        interpolation="nearest",
-        zorder=3,
-    )
+        self.ax.spines["geo"].set_visible(False)
 
-    if show_regions:
+    def _load_raster(self):
 
-        regions = load_regions()
+        with rasterio.open(self.input_path) as src:
 
-        draw_regions(
-            ax,
-            regions,
-            selected=region,
+            self.ice = src.read(1).astype(np.float32)
+
+            self.transform = src.transform
+
+    def _prepare_data(self):
+
+        mask = self.ice <= 1000
+
+        self.ice[~mask] = np.nan
+
+        self.ice /= 1000
+
+        self.extent = (
+            self.transform.c,
+            self.transform.c + self.transform.a * self.ice.shape[1],
+            self.transform.f + self.transform.e * self.ice.shape[0],
+            self.transform.f,
         )
 
-    cbar = plt.colorbar(
-        img,
-        ax=ax,
-        shrink=0.75,
-        pad=0.05,
-    )
+    def _build_projection(self):
 
-    cbar.ax.tick_params(labelsize=10)
+        self.source_crs = ccrs.epsg(3411)
 
-    cbar.set_label(
-        "Sea ice concentration",
-        fontsize=11,
-    )
+        self.globe = ccrs.Globe(
+            semimajor_axis=6378273,
+            semiminor_axis=6356889.449,
+        )
 
-    cbar.set_ticks(np.linspace(0, 1, 6))
+        self.projection = ccrs.Stereographic(
+            central_latitude=90,
+            central_longitude=-80,
+            true_scale_latitude=70,
+            globe=self.globe,
+        )
 
-    fig.suptitle(
-        title or "Hudson Bay Sea Ice Concentration",
-        fontsize=16,
-        y=0.98,
-    )
+    def _draw_background(self):
 
-    plt.subplots_adjust(
-        left=0.06,
-        right=0.88,
-        bottom=0.06,
-        top=0.92,
-    )
+        self._draw_boundary()
 
-    fig.savefig(
-        output_path,
-        dpi=300,
-        bbox_inches="tight",
-        facecolor="white",
-    )
+        self._draw_ocean()
 
-    logger.info("Saved plot to %s", output_path)
+        self._draw_land()
 
-    if show:
-        plt.show()
-
-    plt.close(fig)
-
-    return output_path
-
-
-def load_regions(
-    region_file: str | Path | None = None,
-) -> dict[str, dict]:
-    """Load region definitions from regions.json."""
-
-    if region_file is None:
-        region_file = PROJECT_ROOT / "src/config/regions.json"
-
-    with open(region_file, encoding="utf-8") as f:
-        data = json.load(f)
-
-    return data["regions"]
+        self._draw_coastline()
 
     
-def draw_regions(
-    ax,
-    regions: dict[str, dict],
-    selected: list[str] | None = None,
-    color: str = "crimson",
-    linewidth: float = 2.0,
-):
-    """Draw one or more analysis regions."""
+    def _draw_boundary(self):
+        
+        lon_min, lon_max, lat_min, lat_max = self.bounds
 
-    for name, region in regions.items():
+        n = 400
 
-        if selected is not None and name not in selected:
-            continue
+        lon_bottom = np.linspace(lon_min, lon_max, n)
+        lon_top = np.linspace(lon_max, lon_min, n)
 
-        coords = np.asarray(region["polygon"], dtype=float)
+        lat_bottom = np.full(n, lat_min)
+        lat_top = np.full(n, lat_max)
 
-        lon = coords[:, 0].copy()
-        lat = coords[:, 1]
+        lon_right = np.full(n, lon_max)
+        lon_left = np.full(n, lon_min)
 
-        # 0...360 -> -180...180
-        lon = np.where(lon > 180.0, lon - 360.0, lon)
+        lat_right = np.linspace(lat_min, lat_max, n)
+        lat_left = np.linspace(lat_max, lat_min, n)
 
-        # Polygon schließen
-        lon = np.append(lon, lon[0])
-        lat = np.append(lat, lat[0])
-
-        ax.plot(
-            lon,
-            lat,
-            transform=ccrs.PlateCarree(),
-            color=color,
-            linewidth=linewidth,
-            zorder=30,
+        polygon_lon = np.concatenate(
+            [
+                lon_bottom,
+                lon_right,
+                lon_top,
+                lon_left,
+                [lon_min],
+            ]
         )
 
-        # Schwerpunkt für Text
-        ax.text(
-            lon.mean(),
-            lat.mean(),
-            name,
-            transform=ccrs.PlateCarree(),
-            fontsize=9,
-            ha="center",
-            va="center",
-            bbox=dict(
-                facecolor="white",
-                alpha=0.75,
-                edgecolor="none",
-                pad=1.5,
-            ),
-            zorder=31,
+        polygon_lat = np.concatenate(
+            [
+                lat_bottom,
+                lat_right,
+                lat_top,
+                lat_left,
+                [lat_min],
+            ]
+        )
+
+        proj = self.projection.transform_points(
+            ccrs.PlateCarree(),
+            polygon_lon,
+            polygon_lat,
+        )
+
+        boundary = mpath.Path(proj[:, :2])
+
+        self.ax.set_boundary(
+            boundary,
+            transform=self.ax.transData,
+        )
+
+    def _draw_ocean(self):
+
+        self.ax.add_feature(
+            cfeature.OCEAN,
+            facecolor=self.ocean_color,
+            edgecolor="none",
+            zorder=1,
+        )
+
+    def _draw_land(self):
+
+        self.ax.add_feature(
+            cfeature.LAND,
+            facecolor=self.land_color,
+            edgecolor="none",
+            zorder=2,
+        )
+
+    def _draw_coastline(self):
+        self.ax.coastlines(color=self.coast_color, linewidth=0.8, zorder=4)
+
+    def _draw_grid(self):
+
+        self.gl = self.ax.gridlines(
+            crs=ccrs.PlateCarree(),
+            draw_labels=False,
+            linewidth=self.grid_linewidth,
+            color="gray",
+            alpha=0.5,
+            linestyle=":",
+        )
+
+        self.gl.xlocator = plt.FixedLocator(
+            [-100, -90, -80, -70, -60]
+        )
+
+        self.gl.ylocator = plt.FixedLocator(
+            [50, 55, 60, 65, 70, 75]
+        )
+
+    def _draw_axis_labels(self):
+        
+        lon_min, lon_max, lat_min, lat_max = self.bounds
+
+        for lon in [-100, -90, -80, -70, -60]:
+
+            self.ax.text(
+                lon,
+                lat_min - 0.6,
+                f"{abs(lon)}°W",
+                transform=ccrs.PlateCarree(),
+                ha="center",
+                va="top",
+                fontsize=self.axis_fontsize,
+                clip_on=False,
+                zorder=50,
+            )
+
+        for lat in [50, 55, 60, 65, 70, 75]:
+
+            self.ax.text(
+                lon_min - 0.8,
+                lat,
+                f"{lat}°N",
+                transform=ccrs.PlateCarree(),
+                ha="right",
+                va="center",
+                fontsize=self.axis_fontsize,
+                clip_on=False,
+                zorder=50,
+            )
+
+    def _draw_sea_ice(self):
+
+        self.image = self.ax.imshow(
+            self.ice,
+            origin="upper",
+            extent=self.extent,
+            transform=self.source_crs,
+            cmap=self.cmap,
+            vmin=0,
+            vmax=1,
+            interpolation="nearest",
+            zorder=3,
+        )
+
+    def draw_regions(
+        self,
+        selected=None,
+    ):
+
+        """Draw one or more analysis regions."""
+
+        for name, region in self.regions.items():
+
+            if selected is not None and name not in selected:
+                continue
+
+            coords = np.asarray(region["polygon"], dtype=float)
+
+            lon = coords[:, 0].copy()
+            lat = coords[:, 1]
+
+            # 0...360 -> -180...180
+            lon = np.where(lon > 180.0, lon - 360.0, lon)
+
+            # Polygon schließen
+            lon = np.append(lon, lon[0])
+            lat = np.append(lat, lat[0])
+
+            self.ax.plot(
+                lon,
+                lat,
+                transform=ccrs.PlateCarree(),
+                color=self.region_color,
+                linewidth=self.region_linewidth,
+                zorder=30,
+            )
+
+            # Schwerpunkt für Text
+            self.ax.text(
+                lon.mean(),
+                lat.mean(),
+                name,
+                transform=ccrs.PlateCarree(),
+                fontsize=self.region_fontsize,
+                ha="center",
+                va="center",
+                bbox=dict(
+                    facecolor="white",
+                    alpha=0.75,
+                    edgecolor="none",
+                    pad=1.5,
+                ),
+                zorder=31,
+            )
+
+    def _draw_colorbar(self):
+        
+        self.cbar = plt.colorbar(
+            self.image,
+            ax=self.ax,
+            shrink=self.colorbar_shrink,
+            pad=self.colorbar_pad,
+        )
+
+        self.cbar.ax.tick_params(labelsize=self.colorbar_ticksize)
+
+        self.cbar.set_label(
+            "Sea ice concentration",
+            fontsize=self.colorbar_fontsize,
+        )
+
+        self.cbar.set_ticks(np.linspace(0, 1, 6))
+
+    def _extract_metadata(self):
+
+        self.date = None
+
+        match = re.search(r"(\d{8})", self.input_path.stem)
+
+        if match:
+
+            self.date = datetime.strptime(
+                match.group(1),
+                "%Y%m%d",
+            )
+
+    def _draw_title(
+        self,
+        title=None,
+    ):
+
+        self.fig.suptitle(
+            title or "Hudson Bay Sea Ice Concentration",
+            fontsize=self.title_fontsize,
+            fontweight="bold",
+            y=self.title_y,
+        )
+
+        title = title or "Hudson Bay Sea Ice Concentration"
+
+        if self.date is not None:
+            title += "\n" + self.date.strftime("%d %B %Y")
+
+        self.fig.suptitle(
+            title,
+            fontsize=self.title_fontsize,
+            linespacing=1.6,
+        )
+
+    def save(
+        self,
+        output_path,
+    ):
+        output_path = resolve_project_path(output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self.fig.savefig(
+            output_path,
+            dpi=300,
+            bbox_inches="tight",
+            facecolor="white",
+        )
+
+        logger.info("Saved plot to %s", output_path)
+
+    def plot_overview(self):
+
+        self._create_figure()
+
+        self._draw_background()
+
+        self._draw_grid()
+
+        self._draw_axis_labels()
+
+        self._draw_sea_ice()
+
+        self._draw_colorbar()
+
+        self._draw_title()
+
+        plt.subplots_adjust(
+            left=self.left_margin,
+            right=self.right_margin,
+            bottom=self.bottom_margin,
+            top=self.top_margin,
+        )
+
+    def plot_regions(self):
+
+        self.plot_overview()
+
+        self.draw_regions()
+
+    def plot_single_region(
+        self,
+        region,
+    ):
+
+        self.plot_overview()
+
+        self.draw_regions(
+            selected=[region],
         )
