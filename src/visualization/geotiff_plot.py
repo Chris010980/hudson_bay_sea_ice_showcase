@@ -2,27 +2,29 @@
 
 from __future__ import annotations
 
+from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
+
+from pathlib import Path
+from datetime import datetime
+
 import json
 import logging
 import os
-from pathlib import Path
-
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-import matplotlib
-import matplotlib.colors as mcolors
-import matplotlib.path as mpath
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
+import re
 import pyproj
 import rasterio
 
-from datetime import datetime
-import re
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
-from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
+import numpy as np
+
+import matplotlib
+import matplotlib.colors as mcolors
+import matplotlib.path as mpath
+import matplotlib.pyplot as plt
+matplotlib.use("Agg")
+
 
 os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
 os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
@@ -32,23 +34,7 @@ DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_
 logger = logging.getLogger(__name__)
 
 
-def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
-    """Return a representative concentration GeoTIFF from the local data tree."""
-
-    base_dir = Path(data_dir) if data_dir is not None else DATA_DIR / "geotiff"
-    if not base_dir.is_absolute():
-        base_dir = PROJECT_ROOT / base_dir
-
-    candidates = [
-        path
-        for path in base_dir.rglob("*.tif")
-        if "concentration" in path.name.lower()
-    ]
-    if not candidates:
-        raise FileNotFoundError(f"No concentration GeoTIFF found in {base_dir}.")
-
-    return max(candidates, key=lambda path: (path.stat().st_mtime, path.as_posix()))
-
+   
 class SeaIcePlotter:
 
     # ---------------------------------------------------------
@@ -61,7 +47,7 @@ class SeaIcePlotter:
         bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
     ):
         if input_path is None:
-            input_path = find_concentration_geotiff()
+            input_path = self.find_concentration_geotiff()
 
         self.input_path = resolve_project_path(input_path)
         self.bounds = bounds
@@ -106,6 +92,8 @@ class SeaIcePlotter:
 
         self.axis_fontsize = 10
 
+        self.map_padding_south = 1.5
+
         self.colorbar_fontsize = 11
         self.colorbar_ticksize = 10
 
@@ -134,6 +122,38 @@ class SeaIcePlotter:
             ],
         )
 
+    @staticmethod
+    def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
+        """Return a representative concentration GeoTIFF from the local data tree."""
+
+        base_dir = Path(data_dir) if data_dir is not None else DATA_DIR / "geotiff"
+        if not base_dir.is_absolute():
+            base_dir = PROJECT_ROOT / base_dir
+
+        candidates = [
+            path
+            for path in base_dir.rglob("*.tif")
+            if "concentration" in path.name.lower()
+        ]
+        if not candidates:
+            raise FileNotFoundError(f"No concentration GeoTIFF found in {base_dir}.")
+
+        return max(candidates, key=lambda path: (path.stat().st_mtime, path.as_posix()))
+
+    def load_regions(
+        self,
+        region_file: str | Path | None = None,
+    ):
+        """Load region definitions from regions.json."""
+
+        if region_file is None:
+            region_file = PROJECT_ROOT / "src/config/regions.json"
+
+        with open(region_file, encoding="utf-8") as f:
+            data = json.load(f)
+
+        self.regions = data["regions"]
+
     def load(self):
 
         self._load_raster()
@@ -144,7 +164,7 @@ class SeaIcePlotter:
 
         self._extract_metadata()
 
-        self.regions = load_regions()
+        self.load_regions()
 
     def _create_figure(self):
 
@@ -154,9 +174,10 @@ class SeaIcePlotter:
         self.ax.set_facecolor("white")
 
         lon_min, lon_max, lat_min, lat_max = self.bounds
+        display_lat_min = lat_min - self.map_padding_south
 
         self.ax.set_extent(
-            [lon_min, lon_max, lat_min, lat_max],
+            [lon_min, lon_max, display_lat_min, lat_max],
             crs=ccrs.PlateCarree(),
         )
 
@@ -261,6 +282,15 @@ class SeaIcePlotter:
         self.ax.set_boundary(
             boundary,
             transform=self.ax.transData,
+        )
+
+        self.ax.plot(
+            polygon_lon,
+            polygon_lat,
+            transform=ccrs.PlateCarree(),
+            color="0.5",
+            linewidth=1.5,
+            zorder=20
         )
 
     def _draw_ocean(self):

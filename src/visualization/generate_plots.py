@@ -16,8 +16,7 @@ from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
 from src.visualization.geotiff_plot import (
     DEFAULT_OUTPUT_PLOT_PATH,
     DEFAULT_REGION_BOUNDS,
-    SeaIcePlotter,
-    load_regions,
+    SeaIcePlotter
 )
 
 
@@ -94,7 +93,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     if args.all_regions:
 
-        for region_name in load_regions():
+        for region_name in plotter.regions:
 
             plotter.plot_single_region(region_name)
 
