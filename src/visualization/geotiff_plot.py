@@ -466,13 +466,6 @@ class SeaIcePlotter:
         title=None,
     ):
 
-        self.fig.suptitle(
-            title or "Hudson Bay Sea Ice Concentration",
-            fontsize=self.title_fontsize,
-            fontweight="bold",
-            y=self.title_y,
-        )
-
         title = title or "Hudson Bay Sea Ice Concentration"
 
         if self.date is not None:
@@ -481,7 +474,9 @@ class SeaIcePlotter:
         self.fig.suptitle(
             title,
             fontsize=self.title_fontsize,
+            fontweight="bold",
             linespacing=1.6,
+            y=self.title_y,
         )
 
     def save(
@@ -500,21 +495,30 @@ class SeaIcePlotter:
 
         logger.info("Saved plot to %s", output_path)
 
-    def plot_overview(self):
+    def plot(
+        self,
+        title=None,
+        regions=None,
+    ):
 
         self._create_figure()
 
         self._draw_background()
-
         self._draw_grid()
-
         self._draw_axis_labels()
 
         self._draw_sea_ice()
 
+        if regions is not None:
+            self.draw_regions(selected=regions)
+
         self._draw_colorbar()
 
-        self._draw_title()
+        self._draw_title(title)
+
+        self._layout()
+
+    def _layout(self):
 
         plt.subplots_adjust(
             left=self.left_margin,
@@ -523,19 +527,17 @@ class SeaIcePlotter:
             top=self.top_margin,
         )
 
+    def plot_overview(self):
+
+        self.plot()
+
     def plot_regions(self):
 
-        self.plot_overview()
+        self.plot(regions=list(self.regions))
 
-        self.draw_regions()
+    def plot_single_region(self, region):
 
-    def plot_single_region(
-        self,
-        region,
-    ):
-
-        self.plot_overview()
-
-        self.draw_regions(
-            selected=[region],
+        self.plot(
+            title=region,
+            regions=[region],
         )
