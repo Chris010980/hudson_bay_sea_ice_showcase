@@ -1,0 +1,52 @@
+{
+    "Hudson Bay Area": {
+        "polygon_pixels": 4536,
+        "water_pixels": 2285,
+        "pixel_area_km2": 625,
+        "water_area_pixel_km2": 1428125.0,
+        "expected_water_pixels": 2285,
+        "naturalearth_water_area_km2": 1330535.9,
+        "difference_km2": 97589.1,
+        "difference_percent": 7.33
+    },
+    "Hudson Bay": {
+        "polygon_pixels": 2780,
+        "water_pixels": 1475,
+        "pixel_area_km2": 625,
+        "water_area_pixel_km2": 921875.0,
+        "expected_water_pixels": 1475,
+        "naturalearth_water_area_km2": 843709.8,
+        "difference_km2": 78165.2,
+        "difference_percent": 9.26
+    },
+    "Gulf of Boothia": {
+        "polygon_pixels": 446,
+        "water_pixels": 164,
+        "pixel_area_km2": 625,
+        "water_area_pixel_km2": 102500.0,
+        "expected_water_pixels": 164,
+        "naturalearth_water_area_km2": 96909.3,
+        "difference_km2": 5590.7,
+        "difference_percent": 5.77
+    },
+    "Foxe Basin": {
+        "polygon_pixels": 679,
+        "water_pixels": 341,
+        "pixel_area_km2": 625,
+        "water_area_pixel_km2": 213125.0,
+        "expected_water_pixels": 341,
+        "naturalearth_water_area_km2": 209039.4,
+        "difference_km2": 4085.6,
+        "difference_percent": 1.95
+    },
+    "Hudson Strait": {
+        "polygon_pixels": 631,
+        "water_pixels": 305,
+        "pixel_area_km2": 625,
+        "water_area_pixel_km2": 190625.0,
+        "expected_water_pixels": 305,
+        "naturalearth_water_area_km2": 180886.4,
+        "difference_km2": 9738.6,
+        "difference_percent": 5.38
+    }
+}

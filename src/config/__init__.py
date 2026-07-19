@@ -1,0 +1,1 @@
+"""Configuration settings for the sea ice analysis pipeline."""
