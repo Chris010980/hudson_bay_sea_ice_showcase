@@ -284,3 +284,38 @@ class ReferenceBuilder:
             "Saved reference summary to %s",
             REFERENCE_SUMMARY,
         )
+
+    # ---------------------------------------------------------
+    # check if instance already exists
+    # ---------------------------------------------------------
+
+    def ensure_reference(self) -> None:
+
+        if not REFERENCE_SUMMARY.exists():
+            logger.info("Reference metadata missing.")
+            self.build()
+            return
+
+        self._load_regions()
+
+        missing = []
+
+        for region in self.regions:
+
+            mask = self.mask_dir / f"{region}_water.npy"
+
+            if not mask.exists():
+                missing.append(region)
+
+        if missing:
+
+            logger.warning(
+                "Missing reference masks for: %s",
+                ", ".join(missing),
+            )
+
+            self.build()
+
+            return
+
+        logger.info("Reference already exists.")

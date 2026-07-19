@@ -15,6 +15,12 @@ if __package__ in (None, ""):
 from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
 from src.analysis.reference_builder import ReferenceBuilder
 
+from src.analysis.reference_builder import ReferenceBuilder
+from src.analysis.region_analyzer import RegionAnalyzer
+from src.analysis.results_manager import ResultsManager
+
+from src.config.paths import DATA_DIR
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,8 +44,48 @@ def main(argv=None):
 
     builder = ReferenceBuilder()
 
-    builder.build()
+    builder.ensure_reference()
 
+    results = ResultsManager()
+
+    geotiffs = sorted(
+        DATA_DIR.rglob("*concentration*.tif")
+    )
+
+    for tif in geotiffs:
+
+        try:
+
+            analyzer = RegionAnalyzer(tif)
+
+            analyzer._extract_date()
+
+            if results.is_date_processed(
+                analyzer.date,
+            ):
+
+                logger.info(
+                    "Skipping %s",
+                    analyzer.date,
+                )
+
+                continue
+
+            analyzer.analyze()
+
+            results.add_results(
+                analyzer.results,
+            )
+
+        except Exception as exc:
+
+            logger.error(
+                "Failed to process %s: %s",
+                tif.name,
+                exc,
+            )
+
+    results.save()
 
 if __name__ == "__main__":
     main()
