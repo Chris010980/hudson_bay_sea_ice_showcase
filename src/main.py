@@ -89,6 +89,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     _add_common_arguments(plots_parser)
 
     plots_parser.add_argument(
+        "plot_type",
+        choices=[
+            "overview",
+            "timeseries",
+            "polar",
+            "all",
+        ],
+        help="Type of plot to generate.",
+    )
+
+    plots_parser.add_argument(
         "--regions",
         action="store_true",
         help="Overlay analysis regions.",
@@ -178,6 +189,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     ]
 
     if args.stage == "plots":
+
+        stage_args.append(args.plot_type)
 
         if args.regions:
             stage_args.append("--regions")

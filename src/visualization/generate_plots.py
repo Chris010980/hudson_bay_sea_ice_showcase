@@ -18,6 +18,7 @@ from src.visualization.geotiff_plot import (
     DEFAULT_REGION_BOUNDS,
     SeaIcePlotter
 )
+from src.visualization.timeseries_plot import TimeSeriesPlotter
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,20 @@ logger = logging.getLogger(__name__)
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the plot generation stage."""
 
-    parser = argparse.ArgumentParser(description="Generate sea ice plots.")
+    parser = argparse.ArgumentParser(
+        description="Generate plots."
+    )
+
+    parser.add_argument(
+        "plot_type",
+        choices=[
+            "overview",
+            "timeseries",
+            "polar",
+            "all",
+        ],
+        help="Type of plot to generate.",
+    )
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
     parser.add_argument("--input-tiff", default=None, help="Path to a GeoTIFF file for the preview plot.")
@@ -76,72 +90,108 @@ def main(argv: Sequence[str] | None = None) -> None:
         log_file=args.log_file,
     )
 
-    # ---------------------------------------------------------
-    # Plotter
-    # ---------------------------------------------------------
+    if args.plot_type == "timeseries":
 
-    plotter = SeaIcePlotter(
-        input_path=args.input_tiff,
-        bounds=tuple(args.bounds),
-    )
+        plotter = TimeSeriesPlotter()
+        plotter.plot_timeseries()
 
-    plotter.load()
-
-    # ---------------------------------------------------------
-    # Generate one plot for every region
-    # ---------------------------------------------------------
-
-    if args.all_regions:
-
-        for region_name in plotter.regions:
-
-            plotter.plot_single_region(region_name)
-
-            output = Path(args.output)
-
-            output_file = (
-                output.parent
-                / f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
-            )
-
-            plotter.save(output_file)
-
-            logger.info("Saved %s", output_file)
-
+        logger.info("Time series plots generated.")
         return
 
-    # ---------------------------------------------------------
-    # Overview with all regions
-    # ---------------------------------------------------------
 
-    if args.regions:
+    if args.plot_type == "polar":
 
-        plotter.plot_regions()
+        plotter = TimeSeriesPlotter()
+        plotter.plot_polar()
 
-    # ---------------------------------------------------------
-    # Only selected regions
-    # ---------------------------------------------------------
+        logger.info("Polar plots generated.")
+        return
 
-    elif args.region:
 
-        plotter.plot_overview()
+    if args.plot_type == "all":
 
-        plotter.draw_regions(selected=args.region)
+        map_plotter = SeaIcePlotter(
+            input_path=args.input_tiff,
+            bounds=tuple(args.bounds),
+        )
 
-    # ---------------------------------------------------------
-    # Plain overview
-    # ---------------------------------------------------------
+        map_plotter.load()
+        map_plotter.plot_overview()
+        map_plotter.save(args.output)
 
-    else:
+        ts = TimeSeriesPlotter()
+        ts.plot_all()
 
-        plotter.plot_overview()
+        logger.info("All plots generated.")
+        return
 
-    plotter.save(args.output)
+    if args.plot_type == "overview":
+        # ---------------------------------------------------------
+        # Plotter
+        # ---------------------------------------------------------
 
-    logger.info("Saved %s", args.output)
+        plotter = SeaIcePlotter(
+            input_path=args.input_tiff,
+            bounds=tuple(args.bounds),
+        )
 
-    if args.show:
-        plt.show()
+        plotter.load()
+
+        # ---------------------------------------------------------
+        # Generate one plot for every region
+        # ---------------------------------------------------------
+
+        if args.all_regions:
+
+            for region_name in plotter.regions:
+
+                plotter.plot_single_region(region_name)
+
+                output = Path(args.output)
+
+                output_file = (
+                    output.parent
+                    / f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
+                )
+
+                plotter.save(output_file)
+
+                logger.info("Saved %s", output_file)
+
+            return
+
+        # ---------------------------------------------------------
+        # Overview with all regions
+        # ---------------------------------------------------------
+
+        if args.regions:
+
+            plotter.plot_regions()
+
+        # ---------------------------------------------------------
+        # Only selected regions
+        # ---------------------------------------------------------
+
+        elif args.region:
+
+            plotter.plot_overview()
+
+            plotter.draw_regions(selected=args.region)
+
+        # ---------------------------------------------------------
+        # Plain overview
+        # ---------------------------------------------------------
+
+        else:
+
+            plotter.plot_overview()
+
+        plotter.save(args.output)
+
+        logger.info("Saved %s", args.output)
+
+        if args.show:
+            plt.show()
 
 
 if __name__ == "__main__":
