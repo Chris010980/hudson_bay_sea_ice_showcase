@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-
+from datetime import date
 import pandas as pd
 
 from src.config.paths import PROJECT_ROOT
@@ -113,3 +113,65 @@ class ResultsManager:
         )
 
         return df
+    
+    def get_latest_processed_date(self) -> date | None:
+        """
+        Return the latest processed date stored in the summary CSV.
+
+        Returns
+        -------
+        date | None
+            Latest processed date or None if the summary does not exist
+            or contains no records.
+        """
+
+        if not self.csv_file.exists():
+
+            logger.info(
+                "Results summary not found: %s",
+                self.csv_file,
+            )
+
+            return None
+
+        df = pd.read_csv(
+            self.csv_file,
+            usecols=["date"],
+            parse_dates=["date"],
+        )
+
+        if df.empty:
+
+            logger.info(
+                "Results summary is empty."
+            )
+
+            return None
+
+        latest = df["date"].max()
+
+        if pd.isna(latest):
+
+            logger.warning(
+                "Results summary contains no valid dates."
+            )
+
+            return None
+
+        latest = latest.date()
+
+        logger.info(
+            "Latest processed date: %s",
+            latest.isoformat(),
+        )
+
+        return latest
+        
+    def has_results(self) -> bool:
+        """
+        Return True if the summary CSV exists and contains data.
+        """
+
+        latest = self.get_latest_processed_date()
+
+        return latest is not None 

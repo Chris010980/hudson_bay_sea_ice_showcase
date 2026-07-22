@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
-
+from datetime import date, timedelta
 import requests
 from bs4 import BeautifulSoup
 
@@ -186,33 +186,121 @@ class NSIDCDownloader:
 
     def sync(
         self,
-        years: Iterable[str] | None = None,
-        months: Iterable[str] | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
         dry_run: bool = False,
     ) -> DownloadSummary:
-        """Synchronize missing files and return a machine-readable summary."""
+        """
+        Synchronize GeoTIFF files within a given date range.
 
-        selected_years = list(years) if years is not None else self.get_remote_years()
-        selected_months = set(months) if months is not None else None
+        Parameters
+        ----------
+        start_date
+            First day to consider. If None, the complete archive is checked.
+
+        end_date
+            Last day to consider. If None, all available files are checked.
+
+        dry_run
+            Only compare remote and local files without downloading.
+        """
+
         summary = DownloadSummary()
 
+        years = self.get_remote_years()
+
         logger.info(
-            "Starting download sync for %s year(s)%s. Local data root: %s",
-            len(selected_years),
-            " in dry-run mode" if dry_run else "",
-            self.local_base,
+            "Synchronizing GeoTIFF archive%s.",
+            " (dry-run)" if dry_run else "",
         )
 
-        for year in selected_years:
+        for year in years:
+
+            year_int = int(year)
+
+            if (
+                start_date is not None
+                and year_int < start_date.year
+            ):
+                continue
+
+            if (
+                end_date is not None
+                and year_int > end_date.year
+            ):
+                continue
+
             remote_months = self.get_remote_months(year)
-            if selected_months is not None:
-                remote_months = [month for month in remote_months if month in selected_months]
-                logger.debug("Filtered months for %s to %s.", year, remote_months)
 
             for month in remote_months:
-                logger.info("Checking remote directory %s/%s.", year, month)
-                remote_files = self.get_remote_files(year, month)
-                local_files = self.get_local_files(year, month)
+
+                month_int = int(month.split("_")[0])
+
+                if (
+                    start_date is not None
+                    and year_int == start_date.year
+                    and month_int < start_date.month
+                ):
+                    continue
+
+                if (
+                    end_date is not None
+                    and year_int == end_date.year
+                    and month_int > end_date.month
+                ):
+                    continue
+
+                logger.info(
+                    "Checking %s/%s",
+                    year,
+                    month,
+                )
+
+                remote_files = self.get_remote_files(
+                    year,
+                    month,
+                )
+
+                # -----------------------------------------
+                # Filter files by date
+                # -----------------------------------------
+
+                filtered_remote_files = []
+
+                for filename in remote_files:
+
+                    key = self._file_key(filename)
+
+                    if key is None:
+                        continue
+
+                    file_date = date.fromisoformat(
+                        f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
+                    )
+
+                    if (
+                        start_date is not None
+                        and file_date < start_date
+                    ):
+                        continue
+
+                    if (
+                        end_date is not None
+                        and file_date > end_date
+                    ):
+                        continue
+
+                    filtered_remote_files.append(filename)
+
+                remote_files = filtered_remote_files
+
+                if not remote_files:
+                    continue
+
+                local_files = self.get_local_files(
+                    year,
+                    month,
+                )
                 local_file_set = set(local_files)
                 local_file_keys = {
                     file_key
@@ -355,3 +443,4 @@ class NSIDCDownloader:
             for link in soup.find_all("a")
             if (href := link.get("href"))
         ]
+    
