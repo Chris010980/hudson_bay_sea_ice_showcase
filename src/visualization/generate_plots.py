@@ -193,6 +193,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         if args.show:
             plt.show()
 
+        return True
+
 
 if __name__ == "__main__":
     main()

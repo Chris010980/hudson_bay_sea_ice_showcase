@@ -125,17 +125,17 @@ class ResultsManager:
             or contains no records.
         """
 
-        if not self.csv_file.exists():
+        if not self.csv_path.exists():
 
             logger.info(
                 "Results summary not found: %s",
-                self.csv_file,
+                self.csv_path,
             )
 
             return None
 
         df = pd.read_csv(
-            self.csv_file,
+            self.csv_path,
             usecols=["date"],
             parse_dates=["date"],
         )
