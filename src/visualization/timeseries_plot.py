@@ -56,6 +56,8 @@ class TimeSeriesPlotter:
 
         self.figure_size = (8.5,5)
 
+        self.polar_figure_size = (5.5, 5)
+
         self.linewidth = 1.2
 
         self.grid_alpha = 0.4
@@ -69,16 +71,24 @@ class TimeSeriesPlotter:
         self.legend_fontsize = 9
 
         self.colorbar_fontsize = 10
-
         self.colorbar_ticksize = 8
 
-        self.month_locator = MonthLocator()
+        # Polar layout
+        self.polar_left = 0.1
+        self.polar_right = 0.86
+        self.polar_bottom = 0.08
+        self.polar_top = 0.94
 
+        self.polar_colorbar_pad = 0.12
+        self.polar_colorbar_fraction = 0.045
+
+        self.month_locator = MonthLocator()
         self.month_formatter = DateFormatter("%b")
 
         self.theta_offset = np.deg2rad(15)
 
         self.output_dir = OUTPUT_DIR / "timeseries"
+
         self.polar_output_dir = OUTPUT_DIR / "polar"
 
         self.relative_series = (
@@ -170,8 +180,12 @@ class TimeSeriesPlotter:
         self,
         fig,
         ax,
+        *,
+        pad=0.02,
+        fraction=0.04,
     ):
         """Add the common year colorbar."""
+
         sm = plt.cm.ScalarMappable(
             cmap=self.cmap,
             norm=self.norm,
@@ -182,8 +196,8 @@ class TimeSeriesPlotter:
         cbar = fig.colorbar(
             sm,
             ax=ax,
-            pad=0.02,
-            fraction=0.04,
+            pad=pad,
+            fraction=fraction,
         )
 
         cbar.set_label(
@@ -308,7 +322,7 @@ class TimeSeriesPlotter:
 
         df_region["theta"] = (2*np.pi * (df_region.day_of_year-1) / 365 + self.theta_offset) % (2*np.pi)
 
-        fig, ax = plt.subplots(subplot_kw={"projection": "polar"}, figsize=self.figure_size)
+        fig, ax = plt.subplots(subplot_kw={"projection": "polar"}, figsize=self.polar_figure_size)
 
         for i, year in enumerate(self.unique_years):
             df_year = df_region[df_region["year"] == year].sort_values("theta")
@@ -334,8 +348,8 @@ class TimeSeriesPlotter:
         ax.set_theta_direction(-1)
 
         month_angles = np.deg2rad(np.arange(0, 360, 30))
-        month_labels = ["Dez", "Jan", "Feb", "Mär", "Apr", "Mai",
-                        "Jun", "Jul", "Aug", "Sep", "Okt", "Nov"]
+        month_labels = ["Dec", "Jan", "Feb", "Mar", "Apr", "May",
+                        "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
 
         ax.set_xticks(month_angles)
         ax.set_xticklabels(month_labels, fontsize=7)
@@ -346,7 +360,19 @@ class TimeSeriesPlotter:
         ax.grid(True)
         ax.set_ylabel("")
 
-        self._create_colorbar(fig, ax,)
+        self._create_colorbar(
+            fig,
+            ax,
+            pad=self.polar_colorbar_pad,
+            fraction=self.polar_colorbar_fraction,
+        )
+
+        fig.subplots_adjust(
+            left=self.polar_left,
+            right=self.polar_right,
+            bottom=self.polar_bottom,
+            top=self.polar_top,
+        )
 
         filepath = (
             self.output_dir

@@ -1,6 +1,6 @@
-HudsonBayOOP/
-
-HudsonBayPlot/
-
-data/
+data/geotiff/
 logs/
+.venv/
+src/playground/
+__pycache__/
+*.pyc

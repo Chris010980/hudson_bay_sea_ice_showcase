@@ -42,9 +42,14 @@ def main(argv=None):
     latest = results.get_latest_processed_date()
 
     start_date = None
-
     if latest is not None:
         start_date = latest + timedelta(days=1)
+
+    downloader = NSIDCDownloader()
+
+    downloader.sync(
+        start_date=start_date,
+    )
 
     process_data(
         [
