@@ -30,7 +30,7 @@ os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
 os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
 
 DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
-DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_preview.png"
+DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
 logger = logging.getLogger(__name__)
 
 
@@ -481,10 +481,40 @@ class SeaIcePlotter:
 
     def save(
         self,
-        output_path,
+        output_path: str | Path | None = None,
+        suffix: str | None = None,
     ):
+        """
+        Save the current figure.
+
+        Parameters
+        ----------
+        output_path
+            Destination file. If None, DEFAULT_OUTPUT_PLOT_PATH is used.
+
+        suffix
+            Optional suffix appended to the filename before the extension.
+
+            Example:
+                sea_ice_geotiff_preview.png
+                -> sea_ice_geotiff_preview_regions.png
+        """
+
+        if output_path is None:
+            output_path = DEFAULT_OUTPUT_PLOT_PATH
+
         output_path = resolve_project_path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if suffix:
+
+            output_path = output_path.with_name(
+                f"{output_path.stem}_{suffix}{output_path.suffix}"
+            )
+
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         self.fig.savefig(
             output_path,
@@ -494,6 +524,8 @@ class SeaIcePlotter:
         )
 
         logger.info("Saved plot to %s", output_path)
+
+        return output_path
 
     def plot(
         self,

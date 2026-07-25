@@ -235,6 +235,16 @@ class TimeSeriesPlotter:
                 alpha=0.9
             )
 
+        ax.scatter(
+            df_year["plot_date"].iloc[-1],
+            df_year[column].iloc[-1],
+            s=45,
+            color="red",
+            edgecolor="black",
+            linewidth=0.8,
+            zorder=10,
+        )
+
         #ax.set_title(f"{label} – {region}", fontsize=11)
         ax.set_ylabel(ylabel)
         ax.set_xlabel("Month")
@@ -309,6 +319,16 @@ class TimeSeriesPlotter:
                 linewidth=1.1,
                 alpha=0.85
             )
+
+        ax.scatter(
+            df_year["theta"].iloc[-1],
+            df_year[column].iloc[-1],
+            s=45,
+            color="red",
+            edgecolor="black",
+            linewidth=0.8,
+            zorder=10,
+        )
 
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)

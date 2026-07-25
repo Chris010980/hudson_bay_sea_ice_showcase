@@ -116,8 +116,31 @@ def main(argv: Sequence[str] | None = None) -> None:
         )
 
         map_plotter.load()
+        output = Path(args.output)
+
+        # -------------------------------------------------
+        # plain overview
+        # -------------------------------------------------
+
         map_plotter.plot_overview()
-        map_plotter.save(args.output)
+        map_plotter.save()
+
+        # -------------------------------------------------
+        # overview with all regions
+        # -------------------------------------------------
+
+        map_plotter.plot_regions()
+        map_plotter.save(suffix="regions")
+
+        # -------------------------------------------------
+        # one figure per region
+        # -------------------------------------------------
+
+        for region in map_plotter.regions:
+
+            map_plotter.plot_single_region(region)
+
+            map_plotter.save(suffix=region.lower().replace(' ', '_'))
 
         ts = TimeSeriesPlotter()
         ts.plot_all()

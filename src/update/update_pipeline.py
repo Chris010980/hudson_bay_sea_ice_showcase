@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from datetime import timedelta, date
 
 from src.analysis.results_manager import ResultsManager
-from src.data_download.download_data import NSIDCDownloader
+from src.data_download.downloader import NSIDCDownloader
 from src.analysis.process_data import main as process_data
 from src.visualization.generate_plots import main as generate_plots
 
@@ -41,17 +41,10 @@ def main(argv=None):
 
     latest = results.get_latest_processed_date()
 
-    downloader = NSIDCDownloader()
-
     start_date = None
 
     if latest is not None:
         start_date = latest + timedelta(days=1)
-
-    downloader.sync(
-        start_date=start_date,
-        end_date=date.today(),
-    )
 
     process_data(
         [
@@ -59,8 +52,12 @@ def main(argv=None):
             args.log_level,
             "--log-file",
             args.log_file,
+            "--start-date",
+            start_date.isoformat(),
         ]
     )
+
+    logger.info("Generating plots.")
 
     generate_plots(
         [
@@ -69,17 +66,13 @@ def main(argv=None):
             args.log_level,
             "--log-file",
             args.log_file,
-            *(
-                ["--keep-data"]
-                if args.keep_data
-                else []
-            )
         ]
     )
 
     if not args.keep_data:
-        downloader.delete_local_data()
 
-        logger.info(
-            "Temporary GeoTIFF files removed."
-        )
+        logger.info("Removing downloaded GeoTIFF files.")
+
+        NSIDCDownloader.delete_local_data()
+
+        logger.info("Temporary GeoTIFF files removed.")
