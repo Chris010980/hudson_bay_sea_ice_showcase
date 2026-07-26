@@ -110,43 +110,58 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     if args.plot_type == "all":
 
-        map_plotter = SeaIcePlotter(
-            input_path=args.input_tiff,
-            bounds=tuple(args.bounds),
-        )
+        try:
 
-        map_plotter.load()
-        output = Path(args.output)
+            map_plotter = SeaIcePlotter(
+                input_path=args.input_tiff,
+                bounds=tuple(args.bounds),
+            )
 
-        # -------------------------------------------------
-        # plain overview
-        # -------------------------------------------------
+            map_plotter.load()
+            output = Path(args.output)
 
-        map_plotter.plot_overview()
-        map_plotter.save()
+            # -------------------------------------------------
+            # plain overview
+            # -------------------------------------------------
 
-        # -------------------------------------------------
-        # overview with all regions
-        # -------------------------------------------------
+            map_plotter.plot_overview()
+            map_plotter.save()
 
-        map_plotter.plot_regions()
-        map_plotter.save(suffix="regions")
+            # -------------------------------------------------
+            # overview with all regions
+            # -------------------------------------------------
 
-        # -------------------------------------------------
-        # one figure per region
-        # -------------------------------------------------
+            map_plotter.plot_regions()
+            map_plotter.save(suffix="regions")
 
-        for region in map_plotter.regions:
+            # -------------------------------------------------
+            # one figure per region
+            # -------------------------------------------------
 
-            map_plotter.plot_single_region(region)
+            for region in map_plotter.regions:
 
-            map_plotter.save(suffix=region.lower().replace(' ', '_'))
+                map_plotter.plot_single_region(region)
 
-        ts = TimeSeriesPlotter()
-        ts.plot_all()
+                map_plotter.save(suffix=region.lower().replace(' ', '_'))
 
-        logger.info("All plots generated.")
-        return
+            ts = TimeSeriesPlotter()
+            ts.plot_all()
+
+            logger.info("All plots generated.")
+            return
+
+        except FileNotFoundError:
+
+            logger.warning(
+                "No GeoTIFF available. Skipping overview plots."
+            )
+
+            ts = TimeSeriesPlotter()
+            ts.plot_all()
+
+            logger.info("Only time series plots re-generated.")
+
+            return
 
     if args.plot_type == "overview":
         # ---------------------------------------------------------
