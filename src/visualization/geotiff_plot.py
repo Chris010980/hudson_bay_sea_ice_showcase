@@ -33,7 +33,19 @@ DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
 DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
 logger = logging.getLogger(__name__)
 
+import matplotlib as mpl
 
+mpl.rcParams.update(
+    {
+        "figure.dpi": 150,
+        "font.size": 10,
+        "axes.titlesize": 12,
+        "axes.labelsize": 11,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "savefig.bbox": "tight",
+    }
+)
    
 class SeaIcePlotter:
 
@@ -107,7 +119,7 @@ class SeaIcePlotter:
 
         self.region_color = "crimson"
 
-        self.region_linewidth = 2
+        self.region_linewidth = 1.6
 
         self.region_fontsize = 8
 
@@ -288,7 +300,7 @@ class SeaIcePlotter:
             polygon_lon,
             polygon_lat,
             transform=ccrs.PlateCarree(),
-            color="0.5",
+            color=self.border_color,
             linewidth=1.5,
             zorder=20
         )
@@ -312,17 +324,17 @@ class SeaIcePlotter:
         )
 
     def _draw_coastline(self):
-        self.ax.coastlines(color=self.coast_color, linewidth=0.8, zorder=4)
+        self.ax.coastlines(color=self.coast_color, linewidth=0.7, zorder=4)
 
     def _draw_grid(self):
 
         self.gl = self.ax.gridlines(
             crs=ccrs.PlateCarree(),
             draw_labels=False,
-            linewidth=self.grid_linewidth,
-            color="gray",
-            alpha=0.5,
-            linestyle=":",
+            color="0.6",
+            alpha=0.35,
+            linestyle="--",
+            linewidth=0.6,
         )
 
         self.gl.xlocator = plt.FixedLocator(
@@ -347,6 +359,7 @@ class SeaIcePlotter:
                 ha="center",
                 va="top",
                 fontsize=self.axis_fontsize,
+                color="0.25",
                 clip_on=False,
                 zorder=50,
             )
@@ -361,6 +374,7 @@ class SeaIcePlotter:
                 ha="right",
                 va="center",
                 fontsize=self.axis_fontsize,
+                color="0.25",
                 clip_on=False,
                 zorder=50,
             )
@@ -423,8 +437,9 @@ class SeaIcePlotter:
                 va="center",
                 bbox=dict(
                     facecolor="white",
-                    alpha=0.75,
-                    edgecolor="none",
+                    alpha=0.85,
+                    edgecolor="0.8",
+                    linewidth=0.5,
                     pad=1.5,
                 ),
                 zorder=31,
@@ -439,11 +454,17 @@ class SeaIcePlotter:
             pad=self.colorbar_pad,
         )
 
-        self.cbar.ax.tick_params(labelsize=self.colorbar_ticksize)
+        self.cbar.outline.set_edgecolor("0.6")
+
+        self.cbar.ax.tick_params(
+            colors="0.3",
+            labelsize=self.colorbar_ticksize,
+        )
 
         self.cbar.set_label(
             "Sea ice concentration",
             fontsize=self.colorbar_fontsize,
+            color="0.3",
         )
 
         self.cbar.set_ticks(np.linspace(0, 1, 6))
@@ -469,15 +490,30 @@ class SeaIcePlotter:
         title = title or "Hudson Bay Sea Ice Concentration"
 
         if self.date is not None:
-            title += "\n" + self.date.strftime("%d %B %Y")
+            subtitle = self.date.strftime("%d %B %Y")
+        else:
+            subtitle = ""
 
-        self.fig.suptitle(
+        self.fig.text(
+            0.5,
+            0.975,
             title,
+            ha="center",
+            va="top",
             fontsize=self.title_fontsize,
             fontweight="bold",
-            linespacing=1.6,
-            y=self.title_y,
         )
+
+        if self.date is not None:
+            self.fig.text(
+                0.5,
+                0.92,
+                self.date.strftime("%d %B %Y"),
+                ha="center",
+                va="top",
+                fontsize=self.subtitle_fontsize,
+                color="0.35",
+            )
 
     def save(
         self,

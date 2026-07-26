@@ -28,6 +28,23 @@ OUTPUT_DIR = PROJECT_ROOT / "output" / "plots"
 
 logger = logging.getLogger(__name__)
 
+mpl.rcParams.update({
+    "figure.dpi": 150,
+    "font.size": 10,
+    "axes.titlesize": 12,
+    "axes.labelsize": 11,
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "legend.fontsize": 9,
+    "legend.frameon": False,
+    "lines.linewidth": 1.8,
+    "grid.linestyle": "--",
+    "grid.alpha": 0.3,
+    "grid.color": "0.6",
+    "savefig.bbox": "tight",
+})
+
+
 class TimeSeriesPlotter:
 
     def __init__(
@@ -54,9 +71,9 @@ class TimeSeriesPlotter:
 
     def _configure_style(self):
 
-        self.figure_size = (8.5,5)
+        self.figure_size = (9,6)
 
-        self.polar_figure_size = (5.5, 5)
+        self.polar_figure_size = (6.5, 6)
 
         self.linewidth = 1.2
 
@@ -200,13 +217,17 @@ class TimeSeriesPlotter:
             fraction=fraction,
         )
 
+        cbar.outline.set_edgecolor("0.6")
+
+        cbar.ax.tick_params(
+            colors="0.3",
+            labelsize=self.colorbar_ticksize,
+        )
+
         cbar.set_label(
             "Year",
             fontsize=self.colorbar_fontsize,
-        )
-
-        cbar.ax.tick_params(
-            labelsize=self.colorbar_ticksize,
+            color="0.3",
         )
 
     def plot_timeseries(self):
@@ -237,6 +258,10 @@ class TimeSeriesPlotter:
 
         fig, ax = plt.subplots(figsize=self.figure_size,)
 
+        for spine in ax.spines.values():
+            spine.set_color("0.4")
+            spine.set_linewidth(0.8)
+
         # Einzeljahre
         for year in self.unique_years:
             df_year = df_region[df_region["year"] == year].sort_values("plot_date")
@@ -245,8 +270,8 @@ class TimeSeriesPlotter:
                 df_year["plot_date"],
                 df_year[column],
                 color=self.cmap(self.norm(year)),
-                linewidth=1.0,
-                alpha=0.9
+                linewidth=1.3,
+                alpha=0.85
             )
 
         ax.scatter(
@@ -260,12 +285,28 @@ class TimeSeriesPlotter:
         )
 
         #ax.set_title(f"{label} – {region}", fontsize=11)
-        ax.set_ylabel(ylabel)
-        ax.set_xlabel("Month")
+        ax.set_xlabel(
+            "Month",
+            fontsize=self.axis_fontsize,
+            color="0.25",
+        )
+
+        ax.set_ylabel(
+            ylabel,
+            fontsize=self.axis_fontsize,
+            color="0.25",
+        )
+
         ax.set_xlim(datetime(2000, 1, 1), datetime(2000, 12, 31))
         ax.xaxis.set_major_locator(self.month_locator)
         ax.xaxis.set_major_formatter(self.month_formatter)
-        ax.grid(True)
+        ax.grid(
+            True,
+            linestyle="--",
+            linewidth=0.7,
+            color="0.6",
+            alpha=0.3,
+        )
 
         # Colorbar für Jahre
         self._create_colorbar(fig, ax,)
@@ -324,13 +365,16 @@ class TimeSeriesPlotter:
 
         fig, ax = plt.subplots(subplot_kw={"projection": "polar"}, figsize=self.polar_figure_size)
 
+        ax.spines["polar"].set_color("0.4")
+        ax.spines["polar"].set_linewidth(0.8)
+
         for i, year in enumerate(self.unique_years):
             df_year = df_region[df_region["year"] == year].sort_values("theta")
             ax.plot(
                 df_year["theta"],
                 df_year[column],
                 color=self.cmap(self.norm(year)),
-                linewidth=1.1,
+                linewidth=1.3,
                 alpha=0.85
             )
 
@@ -352,12 +396,21 @@ class TimeSeriesPlotter:
                         "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
 
         ax.set_xticks(month_angles)
-        ax.set_xticklabels(month_labels, fontsize=7)
-        ax.tick_params(labelsize=7)
+        ax.set_xticklabels(month_labels, fontsize=self.tick_fontsize)
+        ax.tick_params(
+            labelsize=self.tick_fontsize,
+            colors="0.3",
+        )
 
         #ax.set_title(f"{label} – {region}", fontsize=11, pad=30)
         ax.set_rlabel_position(270)
-        ax.grid(True)
+        ax.grid(
+            True,
+            linestyle="--",
+            linewidth=0.7,
+            color="0.6",
+            alpha=0.3,
+        )
         ax.set_ylabel("")
 
         self._create_colorbar(
