@@ -89,6 +89,6 @@ def main(argv=None):
 
         logger.info("Removing downloaded GeoTIFF files.")
 
-        NSIDCDownloader.delete_local_data()
+        downloader.delete_local_data()
 
         logger.info("Temporary GeoTIFF files removed.")

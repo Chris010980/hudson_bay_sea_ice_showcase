@@ -457,8 +457,8 @@ class NSIDCDownloader:
 
         return [ href for link in links if (href := link.get("href")) ]
     
-
-    def delete_local_data(self) -> None:
+    @staticmethod
+    def delete_local_data() -> None:
         """
         Remove all downloaded GeoTIFF files while preserving the
         directory structure.
