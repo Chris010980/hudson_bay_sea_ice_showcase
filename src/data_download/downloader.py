@@ -7,6 +7,7 @@ calculate statistics, or create plots.
 from __future__ import annotations
 
 import logging
+from os import link
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -400,6 +401,11 @@ class NSIDCDownloader:
 
         logger.debug("Fetching remote index: %s", url)
         response = self.session.get(url, timeout=self.timeout)
+        logger.info(
+            "GET %s -> %s",
+            url,
+            response.status_code,
+        )
         response.raise_for_status()
         return BeautifulSoup(response.text, "html.parser")
 
@@ -438,9 +444,15 @@ class NSIDCDownloader:
     def _iter_hrefs(soup: BeautifulSoup) -> list[str]:
         """Return all href values from links in a parsed HTML document."""
 
-        return [
-            href
-            for link in soup.find_all("a")
-            if (href := link.get("href"))
-        ]
+        links = soup.find_all("a")
+
+        logger.info(
+            "Found %d links.",
+            len(links),
+        )
+
+        for link in links[:10]:
+            logger.info(link.get("href"))
+
+        return [ href for link in links if (href := link.get("href")) ]
     
