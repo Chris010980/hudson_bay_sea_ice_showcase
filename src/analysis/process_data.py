@@ -24,6 +24,16 @@ from src.config.paths import DATA_DIR
 logger = logging.getLogger(__name__)
 
 
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class ProcessSummary:
+    processed_files: int = 0
+    skipped_files: int = 0
+    failed_files: int = 0
+    new_results: int = 0
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the preprocessing stage."""
 
@@ -64,6 +74,8 @@ def main(argv=None):
 
     results = ResultsManager()
 
+    summary = ProcessSummary()
+
     geotiffs = sorted(
         DATA_DIR.rglob("*concentration*.tif")
     )
@@ -91,6 +103,7 @@ def main(argv=None):
             if results.is_date_processed(
                 analyzer.date,
             ):
+                summary.skipped_files += 1
 
                 logger.info(
                     "Skipping %s",
@@ -105,7 +118,12 @@ def main(argv=None):
                 analyzer.results,
             )
 
+            summary.processed_files += 1
+            summary.new_results += 1
+
         except Exception as exc:
+
+            summary.failed_files += 1
 
             logger.error(
                 "Failed to process %s: %s",
@@ -114,6 +132,10 @@ def main(argv=None):
             )
 
     results.save()
+
+    logger.info(summary)
+
+    return summary
 
 if __name__ == "__main__":
     main()
