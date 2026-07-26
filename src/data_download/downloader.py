@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from os import link
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -456,3 +457,55 @@ class NSIDCDownloader:
 
         return [ href for link in links if (href := link.get("href")) ]
     
+
+    def delete_local_data(self) -> None:
+        """
+        Remove all downloaded GeoTIFF files while preserving the
+        directory structure.
+        """
+
+        geotiff_root = DATA_DIR / "geotiff"
+
+        if not geotiff_root.exists():
+
+            logger.info(
+                "No local GeoTIFF directory found."
+            )
+
+            return
+
+        removed = 0
+
+        for tif in geotiff_root.rglob("*.tif"):
+
+            try:
+                tif.unlink()
+                removed += 1
+
+            except Exception as exc:
+
+                logger.warning(
+                    "Could not remove %s: %s",
+                    tif,
+                    exc,
+                )
+
+        # Leere Monats-/Jahresordner entfernen
+        for directory in sorted(
+            geotiff_root.rglob("*"),
+            reverse=True,
+        ):
+
+            if directory.is_dir():
+
+                try:
+                    directory.rmdir()
+
+                except OSError:
+                    # Verzeichnis ist nicht leer
+                    pass
+
+        logger.info(
+            "Removed %d GeoTIFF file(s).",
+            removed,
+        )

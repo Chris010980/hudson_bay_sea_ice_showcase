@@ -47,11 +47,11 @@ def main(argv=None):
 
     downloader = NSIDCDownloader()
 
-    downloader.sync(
+    summary = downloader.sync(
         start_date=start_date,
     )
 
-    process_data(
+    process_summary = process_data(
         [
             "--log-level",
             args.log_level,
@@ -62,6 +62,14 @@ def main(argv=None):
         ]
     )
 
+    if process_summary.new_results == 0:
+
+        logger.info(
+            "Dataset already up to date."
+        )
+
+        return
+    
     logger.info("Generating plots.")
 
     generate_plots(
@@ -74,7 +82,7 @@ def main(argv=None):
         ]
     )
 
-    if not args.keep_data:
+    if not args.keep_data and summary.downloaded_files > 0:
 
         logger.info("Removing downloaded GeoTIFF files.")
 
