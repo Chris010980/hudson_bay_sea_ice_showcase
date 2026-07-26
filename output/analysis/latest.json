@@ -1,0 +1,63 @@
+{
+  "dataset": "NSIDC G02135",
+  "date": "2026-07-24",
+  "generated": "2026-07-26T22:52:52Z",
+  "observations": 78727,
+  "regions": [
+    {
+      "region": "Foxe Basin",
+      "date": "2026-07-24",
+      "water_pixels": 341,
+      "water_area_km2": 213125.0,
+      "absolute_ice_area_km2": 53750.0,
+      "relative_ice_area_km2": 19007.5,
+      "absolute_coverage_percent": 25.219941348973606,
+      "relative_coverage_percent": 8.918475073313783,
+      "missing_pixels": 0
+    },
+    {
+      "region": "Gulf of Boothia",
+      "date": "2026-07-24",
+      "water_pixels": 164,
+      "water_area_km2": 102500.0,
+      "absolute_ice_area_km2": 39375.0,
+      "relative_ice_area_km2": 21645.0,
+      "absolute_coverage_percent": 38.41463414634146,
+      "relative_coverage_percent": 21.117073170731707,
+      "missing_pixels": 0
+    },
+    {
+      "region": "Hudson Bay",
+      "date": "2026-07-24",
+      "water_pixels": 1475,
+      "water_area_km2": 921875.0,
+      "absolute_ice_area_km2": 46250.0,
+      "relative_ice_area_km2": 14250.0,
+      "absolute_coverage_percent": 5.016949152542373,
+      "relative_coverage_percent": 1.5457627118644068,
+      "missing_pixels": 0
+    },
+    {
+      "region": "Hudson Bay Area",
+      "date": "2026-07-24",
+      "water_pixels": 2285,
+      "water_area_km2": 1428125.0,
+      "absolute_ice_area_km2": 142500.0,
+      "relative_ice_area_km2": 55460.0,
+      "absolute_coverage_percent": 9.978118161925602,
+      "relative_coverage_percent": 3.883413566739606,
+      "missing_pixels": 0
+    },
+    {
+      "region": "Hudson Strait",
+      "date": "2026-07-24",
+      "water_pixels": 305,
+      "water_area_km2": 190625.0,
+      "absolute_ice_area_km2": 3125.0,
+      "relative_ice_area_km2": 557.5,
+      "absolute_coverage_percent": 1.639344262295082,
+      "relative_coverage_percent": 0.29245901639344263,
+      "missing_pixels": 0
+    }
+  ]
+}

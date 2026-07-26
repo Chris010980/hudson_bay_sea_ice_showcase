@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from datetime import date
+import json
+
+from datetime import date, datetime
 import pandas as pd
 
 from src.config.paths import PROJECT_ROOT
@@ -20,12 +22,19 @@ DEFAULT_RESULTS = (
     / "ice_coverage_summary.csv"
 )
 
+DEFAULT_LATEST = (
+    PROJECT_ROOT
+    / "output"
+    / "analysis"
+    / "latest.json"
+)
 
 class ResultsManager:
 
     def __init__(
         self,
         csv_path: str | Path = DEFAULT_RESULTS,
+        latest_json_path: str | Path = DEFAULT_LATEST,
     ):
 
         self.csv_path = Path(csv_path)
@@ -35,6 +44,12 @@ class ResultsManager:
         )
 
         self.results: list[dict] = []
+
+        self.latest_json_path = Path(latest_json_path)
+        self.latest_json_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         if self.csv_path.exists():
 
@@ -94,6 +109,8 @@ class ResultsManager:
             inplace=True,
         )
 
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
+
         df.sort_values(
             [
                 "date",
@@ -106,6 +123,8 @@ class ResultsManager:
             self.csv_path,
             index=False,
         )
+
+        self._save_latest_json(df)
 
         logger.info(
             "Saved %d rows.",
@@ -175,3 +194,48 @@ class ResultsManager:
         latest = self.get_latest_processed_date()
 
         return latest is not None 
+    
+    def _save_latest_json(
+        self,
+        df: pd.DataFrame,
+    ) -> None:
+        """
+        Save the most recent observation as a compact JSON file.
+        """
+
+        if df.empty:
+            return
+
+        latest_date = df["date"].max()
+
+        latest = (
+            df[df["date"] == latest_date]
+            .sort_values("region")
+            .reset_index(drop=True)
+        )
+
+        payload = {
+            "dataset": "NSIDC G02135",
+            "date": latest_date,
+            "generated": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "observations": len(df),
+            "regions": latest.to_dict(orient="records"),
+        }
+
+        with open(
+            self.latest_json_path,
+            "w",
+            encoding="utf-8",
+        ) as f:
+
+            json.dump(
+                payload,
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
+
+        logger.info(
+            "Saved latest summary to %s.",
+            self.latest_json_path,
+        )
