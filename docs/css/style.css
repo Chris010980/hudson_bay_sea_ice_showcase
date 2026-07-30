@@ -1,0 +1,557 @@
+/* ==========================================================
+   Hudson Bay Sea Ice Analysis
+   ----------------------------------------------------------
+   Global Style
+========================================================== */
+
+:root {
+
+    --primary: #0b4f8c;
+    --primary-dark: #08396a;
+
+    --accent: #4ea5d9;
+
+    --background: #f4f7fb;
+
+    --card: white;
+
+    --text: #222;
+
+    --muted: #666;
+
+    --border: #d8dee8;
+
+    --shadow:
+        0 4px 12px rgba(0,0,0,.08);
+
+    --radius: 10px;
+
+    --max-width: 1200px;
+
+}
+
+/* ==========================================================
+   Base
+========================================================== */
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+html {
+
+    scroll-behavior: smooth;
+
+}
+
+body {
+
+    margin:0;
+
+    background:var(--background);
+
+    color:var(--text);
+
+    font-family:
+
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    line-height:1.65;
+
+}
+
+/* ==========================================================
+   Header
+========================================================== */
+
+header {
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--primary-dark),
+            var(--primary)
+        );
+
+    color:white;
+
+    padding:
+
+        3rem
+        2rem;
+
+    text-align:center;
+
+}
+
+header h1{
+
+    margin:0;
+
+    font-size:2.8rem;
+
+}
+
+header p{
+
+    max-width:900px;
+
+    margin:
+
+        1rem auto;
+
+    opacity:.95;
+
+}
+
+/* ==========================================================
+   Navigation
+========================================================== */
+
+nav{
+
+    margin-top:2rem;
+
+}
+
+nav a{
+
+    display:inline-block;
+
+    margin:
+
+        .35rem;
+
+    padding:
+
+        .6rem
+        1rem;
+
+    color:white;
+
+    text-decoration:none;
+
+    border-radius:6px;
+
+    transition:.25s;
+
+}
+
+nav a:hover{
+
+    background:
+
+        rgba(255,255,255,.15);
+
+}
+
+/* ==========================================================
+   Layout
+========================================================== */
+
+.container{
+
+    max-width:var(--max-width);
+
+    margin:auto;
+
+    padding:
+
+        2rem;
+
+}
+
+section{
+
+    background:var(--card);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    padding:2rem;
+
+    margin:
+
+        2rem 0;
+
+}
+
+.info-box{
+
+    border-left:
+
+        5px solid
+        var(--primary);
+
+}
+
+/* ==========================================================
+   Typography
+========================================================== */
+
+h2{
+
+    color:var(--primary);
+
+    margin-top:0;
+
+}
+
+h3{
+
+    color:var(--primary-dark);
+
+}
+
+p{
+
+    color:var(--text);
+
+}
+
+a{
+
+    color:var(--primary);
+
+}
+
+a:hover{
+
+    color:var(--accent);
+
+}
+
+/* ==========================================================
+   Cards
+========================================================== */
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(
+            auto-fit,
+            minmax(220px,1fr)
+        );
+
+    gap:1rem;
+
+    margin-top:1.5rem;
+
+}
+
+.stat-card{
+
+    background:white;
+
+    border:
+
+        1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:1.2rem;
+
+    text-align:center;
+
+    transition:.25s;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.stat-card h3{
+
+    margin-top:0;
+
+}
+
+.stat-card p{
+
+    font-size:1.4rem;
+
+    font-weight:600;
+
+}
+
+/* ==========================================================
+   Workflow
+========================================================== */
+
+.workflow{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:1rem;
+
+    margin-top:2rem;
+
+}
+
+.workflow-box{
+
+    background:var(--primary);
+
+    color:white;
+
+    padding:
+
+        1rem
+        1.5rem;
+
+    border-radius:8px;
+
+    min-width:160px;
+
+    text-align:center;
+
+    font-weight:600;
+
+}
+
+/* ==========================================================
+   Figures
+========================================================== */
+
+.plot-grid{
+
+    display:grid;
+
+    grid-template-columns:
+
+        repeat(
+            auto-fit,
+            minmax(320px,1fr)
+        );
+
+    gap:2rem;
+
+}
+
+.plot{
+
+    text-align:center;
+
+}
+
+.plot-image{
+
+    width:100%;
+
+    border-radius:8px;
+
+    cursor:zoom-in;
+
+    transition:.25s;
+
+    box-shadow:var(--shadow);
+
+}
+
+.plot-image:hover{
+
+    transform:scale(1.02);
+
+}
+
+figcaption{
+
+    color:var(--muted);
+
+    margin-top:1rem;
+
+    font-size:.95rem;
+
+}
+
+/* ==========================================================
+   Tables
+========================================================== */
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+th{
+
+    background:var(--primary);
+
+    color:white;
+
+}
+
+th,
+td{
+
+    padding:.75rem;
+
+    border:
+
+        1px solid
+        var(--border);
+
+}
+
+tbody tr:nth-child(even){
+
+    background:#f8fbff;
+
+}
+
+/* ==========================================================
+   Code
+========================================================== */
+
+details{
+
+    margin:2rem 0;
+
+}
+
+summary{
+
+    cursor:pointer;
+
+    font-weight:bold;
+
+}
+
+pre{
+
+    background:#1f2937;
+
+    color:#f8f8f2;
+
+    padding:1rem;
+
+    overflow:auto;
+
+    border-radius:8px;
+
+}
+
+/* ==========================================================
+   Status
+========================================================== */
+
+.completed{
+
+    color:#22863a;
+
+    font-weight:600;
+
+}
+
+.planned{
+
+    color:#b26a00;
+
+    font-weight:600;
+
+}
+
+/* ==========================================================
+   Footer
+========================================================== */
+
+footer{
+
+    text-align:center;
+
+    color:var(--muted);
+
+    padding:
+
+        2rem;
+
+}
+
+/* ==========================================================
+   Lightbox
+========================================================== */
+
+.lightbox{
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+
+        rgba(0,0,0,.85);
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:999;
+
+}
+
+.lightbox.active{
+
+    display:flex;
+
+}
+
+.lightbox img{
+
+    max-width:95%;
+
+    max-height:95%;
+
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media(max-width:900px){
+
+header h1{
+
+    font-size:2rem;
+
+}
+
+section{
+
+    padding:1.5rem;
+
+}
+
+.workflow{
+
+    flex-direction:column;
+
+}
+
+}
