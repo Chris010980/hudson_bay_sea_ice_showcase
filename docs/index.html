@@ -34,18 +34,18 @@ daily satellite-derived sea ice concentration in the Hudson Bay region.
 
 <a href="index.html">Home</a>
 
-<a href="pipeline.html">Pipeline</a>
+<a href="overview/pipeline.html">Pipeline</a>
 
-<a href="methodology.html">Methodology</a>
+<a href="overview/methodology.html">Methodology</a>
 
-<a href="regions.html">Regions</a>
+<a href="overview/regions.html">Regions</a>
 
-<a href="results.html">Results</a>
+<a href="overview/results.html">Results</a>
 
-<a href="roadmap.html">Roadmap</a>
+<a href="overview/roadmap.html">Roadmap</a>
 
 <a
-href="https://github.com/Chris010980/hudson_bay_sea_ice"
+href="https://github.com/Chris010980/hudson_bay_sea_ice_showcase"
 target="_blank"
 >
 GitHub
@@ -404,7 +404,7 @@ Seasonal cycle.
 document.getElementById("year").textContent =
 new Date().getFullYear();
 
-fetch("assets/latest.json")
+fetch("../output/analysis/latest.json")
 
 .then(r => r.json())
 
