@@ -178,12 +178,37 @@ showcase where the latest products become immediately available.
 
 <h3>Analysis</h3>
 
-<pre>
-output/
-└── analysis/
-    ├── ice_coverage_summary.csv
-    └── latest.json
-</pre>
+<div class="folder-tree">
+
+<div class="folder">📁 output</div>
+
+<div class="tree-indent">
+
+<div class="folder">📁 analysis</div>
+
+<div class="tree-indent">
+
+<div class="file">
+📄 ice_coverage_summary.csv
+</div>
+
+<div class="file">
+📄 latest.json
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<p>
+
+The CSV file stores the complete historical time series,
+while <code>latest.json</code> provides the most recent observation
+for dashboards and the GitHub Pages showcase.
+
+</p>
 
 </div>
 
@@ -191,13 +216,40 @@ output/
 
 <h3>Figures</h3>
 
-<pre>
-output/
-└── plots/
-    ├── overview
-    ├── regions
-    └── timeseries
-</pre>
+<div class="folder-tree">
+
+<div class="folder">📁 output</div>
+
+<div class="tree-indent">
+
+<div class="folder">📁 plots</div>
+
+<div class="tree-indent">
+
+<div class="folder">
+📁 overview
+</div>
+
+<div class="folder">
+📁 regions
+</div>
+
+<div class="folder">
+📁 timeseries
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<p>
+
+Publication-quality PNG figures are generated automatically after
+every successful processing run.
+
+</p>
 
 </div>
 
@@ -209,15 +261,85 @@ output/
 
 <h2>Project Structure</h2>
 
-<pre>
-hudson_bay_sea_ice/
-│
-├── data/
-├── output/
-├── src/
-├── tests/
-└── docs/
-</pre>
+<div class="project-grid">
+
+<div class="project-card">
+
+<h3>📁 data</h3>
+
+<ul>
+
+<li>GeoTIFF archive</li>
+
+<li>Natural Earth reference data</li>
+
+</ul>
+
+</div>
+
+<div class="project-card">
+
+<h3>📁 output</h3>
+
+<ul>
+
+<li>Analysis results</li>
+
+<li>Plots</li>
+
+<li>Reference data</li>
+
+</ul>
+
+</div>
+
+<div class="project-card">
+
+<h3>📁 src</h3>
+
+<ul>
+
+<li>Analysis</li>
+
+<li>Visualization</li>
+
+<li>Download</li>
+
+<li>Update pipeline</li>
+
+</ul>
+
+</div>
+
+<div class="project-card">
+
+<h3>📁 docs</h3>
+
+<ul>
+
+<li>GitHub Pages website</li>
+
+<li>Documentation</li>
+
+</ul>
+
+</div>
+
+<div class="project-card">
+
+<h3>📁 tests</h3>
+
+<ul>
+
+<li>Unit tests</li>
+
+<li>Regression tests</li>
+
+</ul>
+
+</div>
+
+</div>
 
 </section>
 

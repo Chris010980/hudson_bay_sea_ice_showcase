@@ -215,6 +215,8 @@ h2{
 
     color:var(--primary);
 
+    font-size: 2rem;
+
     margin-top:0;
 
 }
@@ -247,60 +249,154 @@ a:hover{
    Cards
 ========================================================== */
 
-.stats-grid{
+.stats-grid {
 
-    display:grid;
+    display: grid;
 
     grid-template-columns:
-
         repeat(
             auto-fit,
-            minmax(220px,1fr)
+            minmax(220px, 1fr)
         );
 
-    gap:1rem;
+    gap: 1.5rem;
 
-    margin-top:1.5rem;
-
-}
-
-.stat-card{
-
-    background:white;
-
-    border:
-
-        1px solid var(--border);
-
-    border-radius:var(--radius);
-
-    padding:1.2rem;
-
-    text-align:center;
-
-    transition:.25s;
+    margin-top: 1.5rem;
 
 }
 
-.stat-card:hover{
 
-    transform:translateY(-3px);
+/* ----------------------------------------------------------
+   Base Card
+---------------------------------------------------------- */
 
-    box-shadow:var(--shadow);
+.stat-card,
+.info-card,
+.metric-card,
+.step-card {
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 1.4rem;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
 
 }
 
-.stat-card h3{
 
-    margin-top:0;
+.stat-card:hover,
+.info-card:hover,
+.metric-card:hover,
+.step-card:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow: var(--shadow);
 
 }
 
-.stat-card p{
 
-    font-size:1.4rem;
+/* ----------------------------------------------------------
+   Shared Typography
+---------------------------------------------------------- */
 
-    font-weight:600;
+.stat-card h3,
+.info-card h3,
+.metric-card h3,
+.step-card h3 {
+
+    margin-top: 0;
+
+    margin-bottom: .8rem;
+
+    font-size: 1.25rem;
+
+    font-weight: 600;
+
+    color: var(--primary-dark);
+
+}
+
+
+.stat-card p,
+.info-card p,
+.metric-card p,
+.step-card p {
+
+    margin: 0;
+
+    font-size: 1rem;
+
+    line-height: 1.65;
+
+    font-weight: 400;
+
+    color: var(--muted);
+
+}
+
+
+/* ==========================================================
+   Metric Cards
+   (Latest Dataset, Numbers, Metadata)
+========================================================== */
+
+.metric-card {
+
+    text-align: center;
+
+}
+
+.metric-card p {
+
+    font-size: 1.15rem;
+
+    font-weight: 500;
+
+    color: var(--text);
+
+}
+
+
+/* ==========================================================
+   Information Cards
+   (Methodology, Documentation)
+========================================================== */
+
+.info-card {
+
+    text-align: left;
+
+}
+
+.info-card ul {
+
+    margin-top: .75rem;
+
+}
+
+
+/* ==========================================================
+   Workflow Cards
+========================================================== */
+
+.step-card {
+
+    text-align: center;
+
+}
+
+.step-card h3 {
+
+    color: var(--primary);
 
 }
 
@@ -576,5 +672,103 @@ section{
     flex-direction:column;
 
 }
+
+}
+
+/* ==========================================================
+   Folder Trees
+========================================================== */
+
+.folder-tree {
+
+    margin: 1rem 0;
+
+    font-family: monospace;
+
+    font-size: 0.95rem;
+
+}
+
+.folder,
+.file {
+
+    padding: 0.25rem 0;
+
+}
+
+.folder {
+
+    font-weight: 600;
+
+    color: var(--primary-dark);
+
+}
+
+.file {
+
+    color: var(--text);
+
+}
+
+.tree-indent {
+
+    margin-left: 1.5rem;
+
+    padding-left: 1rem;
+
+    border-left: 2px solid var(--border);
+
+}
+
+
+/* ==========================================================
+   Project Structure
+========================================================== */
+
+.project-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+
+    gap: 1.5rem;
+
+    margin-top: 1.5rem;
+
+}
+
+.project-card {
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+    padding: 1.25rem;
+
+}
+
+.project-card h3 {
+
+    margin-top: 0;
+
+    color: var(--primary-dark);
+
+}
+
+.project-card ul {
+
+    margin: 0.75rem 0 0;
+
+    padding-left: 1.2rem;
+
+}
+
+.project-card li {
+
+    margin-bottom: 0.5rem;
 
 }

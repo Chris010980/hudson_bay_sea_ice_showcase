@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Methodology | Hudson Bay Sea Ice Analysis</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Methodology</h1>
+
+<p class="subtitle">
+
+Scientific methodology and processing concepts used throughout the Hudson Bay
+Sea Ice Analysis workflow.
+
+</p>
+
+<nav>
+
+<a href="../index.html">Home</a>
+
+<a href="pipeline.html">Pipeline</a>
+
+<a href="methodology.html">Methodology</a>
+
+<a href="regions.html">Regions</a>
+
+<a href="results.html">Results</a>
+
+<a href="roadmap.html">Roadmap</a>
+
+</nav>
+
+</header>
+
+<div class="container">
+
+<main>
+
+<section class="info-box">
+
+<h2>Overview</h2>
+
+<p>
+
+The objective of this project is to derive reproducible regional sea-ice
+statistics from the daily passive microwave sea-ice concentration products
+published by the National Snow and Ice Data Center (NSIDC).
+
+</p>
+
+<p>
+
+Rather than analysing the complete Arctic Ocean, the workflow focuses on
+the Hudson Bay system and several predefined subregions. Every processing
+step is fully deterministic and can be reproduced directly from the original
+GeoTIFF products.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Scientific Background</h2>
+
+<p>
+
+Hudson Bay is one of the world's largest seasonally ice-covered inland seas.
+Sea ice usually begins to form during autumn, reaches its maximum extent
+during late winter and melts again throughout spring and summer.
+
+</p>
+
+<p>
+
+Monitoring this seasonal cycle provides valuable information for climate
+research, marine ecosystems, operational ice forecasting and navigation.
+Long-term observations also reveal interannual variability and changing
+freeze-up and break-up behaviour.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Data Source</h2>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Dataset</h3>
+
+<p>
+
+NOAA / NSIDC Climate Data Record of Passive Microwave Sea Ice Concentration
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Projection</h3>
+
+<p>
+
+Polar Stereographic (EPSG:3411)
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Spatial Resolution</h3>
+
+<p>
+
+25 km × 25 km grid cells
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Temporal Coverage</h3>
+
+<p>
+
+1978 – present
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Processing Method</h2>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Data Validation</h3>
+
+<p>
+
+Each downloaded GeoTIFF is verified before processing. Metadata, projection
+information and raster dimensions are checked to ensure consistency.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Mask Generation</h3>
+
+<p>
+
+Polygon-based region masks determine which raster cells contribute to the
+statistics of each analysis region.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Sea Ice Concentration</h3>
+
+<p>
+
+Invalid values are removed and concentration values are converted to
+fractional sea-ice coverage before statistical analysis.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Statistics</h3>
+
+<p>
+
+Daily relative and absolute sea-ice coverage are calculated for every
+configured region.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Regional Analysis</h2>
+
+<p>
+
+Five configurable polygon regions are analysed independently. This allows
+the seasonal evolution of different parts of the Hudson Bay system to be
+studied separately while maintaining a consistent methodology.
+
+</p>
+
+<ul>
+
+<li>Hudson Bay Area</li>
+
+<li>Hudson Bay</li>
+
+<li>Foxe Basin</li>
+
+<li>Gulf of Boothia</li>
+
+<li>Hudson Strait</li>
+
+</ul>
+
+</section>
+
+<section>
+
+<h2>Sea Ice Statistics</h2>
+
+<p>
+
+For each region the workflow derives both relative and absolute sea-ice
+coverage. Historical observations are appended to a continuously growing
+time series, enabling long-term climatological analyses.
+
+</p>
+
+<p>
+
+The complete historical record is stored in a CSV database, while the most
+recent observation is exported separately for the website and automated
+dashboards.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Reproducibility</h2>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Raw Data</h3>
+
+<p>
+
+Original NSIDC GeoTIFF products remain unchanged.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Configuration</h3>
+
+<p>
+
+Region definitions and processing parameters are stored separately from the
+analysis code.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Derived Results</h3>
+
+<p>
+
+Statistics and figures can always be regenerated from the original data.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Current Limitations</h2>
+
+<ul>
+
+<li>Daily passive microwave observations only</li>
+
+<li>No climatological anomaly calculations yet</li>
+
+<li>No uncertainty estimates currently provided</li>
+
+<li>No atmospheric or oceanographic variables included</li>
+
+</ul>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+© <span id="year"></span> Christian Lurz
+
+</p>
+
+</footer>
+
+</div>
+
+<script>
+
+document.getElementById("year").textContent =
+new Date().getFullYear();
+
+</script>
+
+</body>
+
+</html>
