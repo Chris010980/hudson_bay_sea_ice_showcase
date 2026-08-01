@@ -772,3 +772,50 @@ section{
     margin-bottom: 0.5rem;
 
 }
+
+/* ==========================================================
+   Region Layout
+========================================================== */
+
+.region-layout {
+
+    display: grid;
+
+    grid-template-columns: 2fr 1fr;
+
+    gap: 2rem;
+
+    align-items: center;
+
+    margin-top: 1.5rem;
+
+}
+
+
+.region-image img {
+
+    width: 100%;
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+}
+
+
+.region-section {
+
+    margin-top: 3rem;
+
+}
+
+
+@media (max-width: 900px) {
+
+    .region-layout {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}

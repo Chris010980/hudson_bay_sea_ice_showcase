@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Regions | Hudson Bay Sea Ice Analysis</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Analysis Regions</h1>
+
+<p class="subtitle">
+
+The Hudson Bay Sea Ice Analysis workflow computes daily sea ice statistics
+for five predefined regions covering the complete Hudson Bay system.
+
+</p>
+
+<nav>
+
+<a href="../index.html">Home</a>
+
+<a href="pipeline.html">Pipeline</a>
+
+<a href="methodology.html">Methodology</a>
+
+<a href="regions.html">Regions</a>
+
+<a href="results.html">Results</a>
+
+<a href="roadmap.html">Roadmap</a>
+
+</nav>
+
+</header>
+
+<div class="container">
+
+<main>
+
+<section class="info-box">
+
+<h2>Overview</h2>
+
+<p>
+
+Rather than analysing the Arctic Ocean as a whole, this project focuses on
+the Hudson Bay system. Five configurable polygon regions allow different
+parts of the system to be analysed independently while maintaining a common
+processing workflow.
+
+</p>
+
+<p>
+
+Each region exhibits its own seasonal freeze-up and break-up characteristics.
+The subdivision therefore provides considerably more insight than analysing
+only a single aggregated sea ice extent.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Hudson Bay System</h2>
+
+<div class="region-layout">
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_regions.png"
+alt="Hudson Bay analysis regions">
+
+</div>
+
+<div class="info-card">
+
+<h3>Analysed Regions</h3>
+
+<ul>
+
+<li>Hudson Bay Area</li>
+
+<li>Hudson Bay</li>
+
+<li>Foxe Basin</li>
+
+<li>Gulf of Boothia</li>
+
+<li>Hudson Strait</li>
+
+</ul>
+
+<p>
+
+Region boundaries are defined using configurable GeoJSON polygons and remain
+independent of the processing code.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Individual Regions</h2>
+
+</section>
+
+<section class="region-section">
+
+<div class="region-layout">
+
+<div>
+
+<h3>Hudson Bay Area</h3>
+
+<p>
+
+The Hudson Bay Area represents the complete study area and includes all
+individual subregions analysed by the workflow. It provides an overall
+indicator of the seasonal evolution of sea ice throughout the Hudson Bay
+system.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Purpose</h3>
+
+<p>
+
+Complete analysis domain
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Contains</h3>
+
+<p>
+
+All subregions
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_hudson_bay_area.png"
+alt="Hudson Bay Area">
+
+</div>
+
+</div>
+
+</section>
+
+<section class="region-section">
+
+<div class="region-layout">
+
+<div>
+
+<h3>Hudson Bay</h3>
+
+<p>
+
+Hudson Bay forms the central basin of the study area and experiences a
+pronounced annual freeze-up and melt cycle. It represents the largest
+individual water body analysed within the project.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Characteristics</h3>
+
+<p>
+
+Largest basin
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Focus</h3>
+
+<p>
+
+Seasonal ice evolution
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_hudson_bay.png"
+alt="Hudson Bay">
+
+</div>
+
+</div>
+
+</section>
+
+<section class="region-section">
+
+<div class="region-layout">
+
+<div>
+
+<h3>Foxe Basin</h3>
+
+<p>
+
+Foxe Basin is located north of Hudson Bay and generally exhibits a longer
+ice season than the central basin. The region provides an important
+comparison for analysing regional differences in sea ice persistence.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Characteristics</h3>
+
+<p>
+
+Long ice season
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Focus</h3>
+
+<p>
+
+Northern comparison region
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_foxe_basin.png"
+alt="Foxe Basin">
+
+</div>
+
+</div>
+
+</section>
+
+<section class="region-section">
+
+<div class="region-layout">
+
+<div>
+
+<h3>Gulf of Boothia</h3>
+
+<p>
+
+The Gulf of Boothia connects the northern Hudson Bay system with the
+Canadian Arctic Archipelago. Persistent sea ice conditions make this region
+particularly interesting for long-term observations.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Characteristics</h3>
+
+<p>
+
+High ice persistence
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Focus</h3>
+
+<p>
+
+Northern gateway
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_gulf_of_boothia.png"
+alt="Gulf of Boothia">
+
+</div>
+
+</div>
+
+</section>
+
+<section class="region-section">
+
+<div class="region-layout">
+
+<div>
+
+<h3>Hudson Strait</h3>
+
+<p>
+
+Hudson Strait forms the connection between Hudson Bay and the Labrador Sea.
+Its dynamic ice conditions strongly influence the exchange between the
+interior basin and the North Atlantic.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Characteristics</h3>
+
+<p>
+
+Marine outlet
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Focus</h3>
+
+<p>
+
+Ice export pathway
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="region-image plot">
+
+<img
+class="plot-image"
+src="../../output/plots/sea_ice_geotiff_overview_hudson_strait.png"
+alt="Hudson Strait">
+
+</div>
+
+</div>
+
+</section>
+
+<section class="info-box">
+
+<h2>Region Definitions</h2>
+
+<p>
+
+All analysis regions are defined by configurable GeoJSON polygons.
+During processing these polygons are converted into raster masks that are
+subsequently used for the daily computation of regional sea ice statistics.
+
+</p>
+
+<p>
+
+Separating the region definitions from the processing code makes it easy to
+modify existing regions or introduce additional study areas without changing
+the underlying analysis workflow.
+
+</p>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+© <span id="year"></span> Christian Lurz
+
+</p>
+
+</footer>
+
+</div>
+
+<script>
+
+document.getElementById("year").textContent =
+new Date().getFullYear();
+
+</script>
+
+<div id="lightbox" class="lightbox" aria-hidden="true">
+
+<img id="lightbox-img" alt="">
+
+</div>
+
+<script>
+
+const lightbox =
+document.getElementById("lightbox");
+
+const lightboxImg =
+document.getElementById("lightbox-img");
+
+document.querySelectorAll(".plot img").forEach(img => {
+
+img.addEventListener("click", () => {
+
+lightboxImg.src = img.src;
+
+lightbox.classList.add("active");
+
+});
+
+});
+
+lightbox.addEventListener("click", () => {
+
+lightbox.classList.remove("active");
+
+});
+
+</script>
+
+</body>
+
+</html>
