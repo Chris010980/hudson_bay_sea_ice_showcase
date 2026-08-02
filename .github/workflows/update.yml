@@ -56,10 +56,6 @@ jobs:
             git push
           fi
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build
 
   deploy:
     needs: update
