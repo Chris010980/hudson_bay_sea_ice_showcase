@@ -27,6 +27,12 @@ def parse_args(argv: Sequence[str] | None = None):
     )
 
     parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Delete existing build directory before building.",
+    )
+
+    parser.add_argument(
         "--log-level",
         default="INFO",
     )
