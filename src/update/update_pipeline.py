@@ -15,6 +15,7 @@ from src.data_download import downloader
 from src.data_download.downloader import NSIDCDownloader
 from src.analysis.process_data import main as process_data
 from src.visualization.generate_plots import main as generate_plots
+from src.update.build_pages import main as build_pages
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,16 @@ def main(argv=None):
             args.log_level,
             "--log-file",
             args.log_file,
+        ]
+    )
+
+    logger.info(
+        "Building GitHub Pages website."
+    )
+
+    build_pages(
+        [
+            "--clean",
         ]
     )
 

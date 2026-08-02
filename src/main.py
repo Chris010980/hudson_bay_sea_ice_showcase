@@ -16,6 +16,7 @@ from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
 from src.data_download.download_data import main as download_data
 from src.visualization.generate_plots import main as generate_plots
 from src.update.update_pipeline import main as update_pipeline
+from src.update.build_pages import main as build_pages
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ STAGES = {
     "download": download_data,
     "process": process_data,
     "plots": generate_plots,
+    "build": build_pages,
     "update": update_pipeline,
 }
 
@@ -126,6 +128,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
 
     # -------------------------------------------------------------
+    # build
+    # -------------------------------------------------------------
+
+    build_parser = subparsers.add_parser(
+        "build",
+        help="Build the GitHub Pages website.",
+    )
+
+    _add_common_arguments(build_parser)
+
+    # -------------------------------------------------------------
     # update
     # -------------------------------------------------------------
 
@@ -189,6 +202,14 @@ def main(argv: Sequence[str] | None = None) -> None:
         )
 
         generate_plots(
+            [
+                "--log-level",
+                args.log_level,
+                "--log-file",
+                args.log_file,
+            ]
+        )
+        build_pages(
             [
                 "--log-level",
                 args.log_level,

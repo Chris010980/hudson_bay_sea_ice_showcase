@@ -17,6 +17,11 @@ LOG_DIR = PROJECT_ROOT / "logs"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 """Default directory for generated plot and analysis outputs."""
 
+DOCS_DIR = PROJECT_ROOT / "docs"
+"""Default directory for static website files."""
+
+BUILD_DIR = PROJECT_ROOT / "build"
+"""Default directory for the built GitHub Pages website."""
 
 def resolve_project_path(path: str | Path, base_dir: Path = PROJECT_ROOT) -> Path:
     """Return an absolute path, resolving relative inputs below ``base_dir``."""

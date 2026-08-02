@@ -4,3 +4,4 @@ logs/
 src/playground/
 __pycache__/
 *.pyc
+build/

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Roadmap | Hudson Bay Sea Ice Analysis</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Project Roadmap</h1>
+
+<p class="subtitle">
+
+Planned developments and future extensions of the Hudson Bay Sea Ice
+Analysis project.
+
+</p>
+
+<nav>
+
+<a href="../index.html">Home</a>
+
+<a href="pipeline.html">Pipeline</a>
+
+<a href="methodology.html">Methodology</a>
+
+<a href="regions.html">Regions</a>
+
+<a href="results.html">Results</a>
+
+<a href="roadmap.html">Roadmap</a>
+
+</nav>
+
+</header>
+
+<div class="container">
+
+<main>
+
+<section class="info-box">
+
+<h2>Project Vision</h2>
+
+<p>
+
+The current workflow already provides an automated and reproducible pipeline
+for downloading, analysing and visualising daily sea ice concentration data.
+Future development will focus on extending the scientific capabilities of
+the project while maintaining a transparent and reproducible workflow.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Near-Term Development</h2>
+
+<div class="stats-grid">
+
+<div class="info-card">
+
+<h3>Trend Analysis</h3>
+
+<p>
+
+Long-term trends will be derived from the historical daily observations.
+Besides linear trend estimates, annual mean sea ice concentration,
+moving averages and measures of interannual variability will be added.
+
+</p>
+
+<p>
+
+A particularly useful indicator is the annual mean sea ice concentration.
+Although a single annual value does not describe the seasonal cycle, the
+resulting long-term time series provides an intuitive measure of the
+progressive decline in regional sea ice coverage.
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Climatological Reference</h3>
+
+<p>
+
+A daily climatology based on the 1981–2010 reference period will be
+computed for every analysis region.
+
+</p>
+
+<p>
+
+To reduce short-term weather-related variability, climatological values
+will be smoothed using a centred moving average over several days. This
+produces considerably smoother seasonal curves and makes interannual
+differences easier to interpret.
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Seasonal Metrics</h3>
+
+<p>
+
+Additional indicators describing the seasonal evolution of sea ice
+will be introduced.
+
+</p>
+
+<ul>
+
+<li>Freeze-up date (90 % coverage)</li>
+
+<li>Break-up date (10 % coverage)</li>
+
+<li>50 % transition dates</li>
+
+<li>Season duration</li>
+
+<li>Maximum annual coverage</li>
+
+</ul>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Future Extensions</h2>
+
+<div class="stats-grid">
+
+<div class="info-card">
+
+<h3>Sea Ice Thickness</h3>
+
+<p>
+
+Future versions will complement sea ice concentration with estimates of
+sea ice thickness and ice volume where suitable observational products
+are available.
+
+</p>
+
+<p>
+
+Potential data source:
+
+<br><br>
+
+Polar Portal – Sea Ice Thickness and Volume
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Higher Spatial Resolution</h3>
+
+<p>
+
+The current workflow uses the long-term NSIDC Climate Data Record with
+25 km spatial resolution.
+
+</p>
+
+<p>
+
+Future versions may additionally process higher-resolution HDF products
+covering shorter time periods in order to investigate smaller-scale
+regional structures.
+
+</p>
+
+<p>
+
+Potential data source:
+
+<br><br>
+
+Meereisportal
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Interactive Region Explorer</h3>
+
+<p>
+
+The GitHub Pages showcase will gradually evolve towards an interactive
+web application.
+
+</p>
+
+<ul>
+
+<li>Region picker</li>
+
+<li>Dynamic figure selection</li>
+
+<li>Interactive comparison</li>
+
+<li>Responsive dashboards</li>
+
+</ul>
+
+</div>
+
+<div class="info-card">
+
+<h3>Oceanographic Context</h3>
+
+<p>
+
+Sea ice evolution is strongly influenced by ocean circulation and
+atmospheric forcing.
+
+</p>
+
+<p>
+
+Future work will investigate the integration of additional datasets,
+including dominant surface currents, ocean temperature and atmospheric
+indices.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Long-Term Vision</h2>
+
+<p>
+
+The long-term objective is to develop the project into a comprehensive
+regional sea ice analysis framework rather than a pure visualisation
+pipeline.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Climate Anomalies</h3>
+
+<p>
+
+Deviation from daily climatology
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Multi-Dataset Analysis</h3>
+
+<p>
+
+Combine concentration, thickness and environmental data
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Automated Reports</h3>
+
+<p>
+
+Scientific summaries and dashboards
+
+</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Interactive Website</h3>
+
+<p>
+
+Scientific exploration in the browser
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="info-box">
+
+<h2>Guiding Principles</h2>
+
+<p>
+
+Future developments will continue to follow the same principles that
+define the current project:
+
+</p>
+
+<ul>
+
+<li>Reproducible scientific workflows</li>
+
+<li>Transparent data processing</li>
+
+<li>Automated daily updates</li>
+
+<li>Publication-quality visualisations</li>
+
+<li>Open and well-documented software</li>
+
+</ul>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+© <span id="year"></span> Christian Lurz
+
+</p>
+
+</footer>
+
+</div>
+
+<script>
+
+document.getElementById("year").textContent =
+new Date().getFullYear();
+
+</script>
+
+</body>
+
+</html>
