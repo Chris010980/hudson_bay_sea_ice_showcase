@@ -155,29 +155,76 @@ Polar Stereographic (EPSG:3411)
 
 <h2>Processing Method</h2>
 
+<p>
+
+The complete processing workflow transforms daily NSIDC GeoTIFF products
+into reproducible regional sea ice statistics. Each processing stage is
+fully deterministic and can therefore be reproduced directly from the
+original satellite observations.
+
+</p>
+
+<div class="workflow">
+
+<div class="workflow-box">
+Read GeoTIFF
+</div>
+
+<div class="workflow-arrow">↓</div>
+
+<div class="workflow-box">
+Validate Metadata
+</div>
+
+<div class="workflow-arrow">↓</div>
+
+<div class="workflow-box">
+Mask Invalid Values
+</div>
+
+<div class="workflow-arrow">↓</div>
+
+<div class="workflow-box">
+Apply Region Masks
+</div>
+
+<div class="workflow-arrow">↓</div>
+
+<div class="workflow-box">
+Compute Statistics
+</div>
+
+<div class="workflow-arrow">↓</div>
+
+<div class="workflow-box">
+Export Results
+</div>
+
+</div>
+
+</section>
+<section>
+
+<h2>Sea Ice Concentration Processing</h2>
+
+<p>
+
+The NSIDC Climate Data Record stores sea ice concentration as scaled integer
+values together with several special classification codes. Prior to any
+statistical analysis these values are converted into physically meaningful
+fractional sea ice concentrations.
+
+</p>
+
 <div class="stats-grid">
 
-<div class="info-card">
+<div class="stat-card">
 
-<h3>Data Validation</h3>
-
-<p>
-
-Each downloaded GeoTIFF is verified before processing. Metadata, projection
-information and raster dimensions are checked to ensure consistency.
-
-</p>
-
-</div>
-
-<div class="info-card">
-
-<h3>Mask Generation</h3>
+<h3>Valid Range</h3>
 
 <p>
 
-Polygon-based region masks determine which raster cells contribute to the
-statistics of each analysis region.
+0–1000
 
 </p>
 
@@ -185,12 +232,11 @@ statistics of each analysis region.
 
 <div class="stat-card">
 
-<h3>Sea Ice Concentration</h3>
+<h3>Scaling</h3>
 
 <p>
 
-Invalid values are removed and concentration values are converted to
-fractional sea-ice coverage before statistical analysis.
+Value ÷ 1000
 
 </p>
 
@@ -198,12 +244,182 @@ fractional sea-ice coverage before statistical analysis.
 
 <div class="stat-card">
 
-<h3>Statistics</h3>
+<h3>Output Range</h3>
 
 <p>
 
-Daily relative and absolute sea-ice coverage are calculated for every
-configured region.
+0.0 – 1.0
+
+</p>
+
+</div>
+
+</div>
+
+<table class="method-table">
+
+<tr>
+
+<th>Value</th>
+
+<th>Meaning</th>
+
+</tr>
+
+<tr>
+
+<td>2510</td>
+
+<td>Pole hole</td>
+
+</tr>
+
+<tr>
+
+<td>2530</td>
+
+<td>Coast</td>
+
+</tr>
+
+<tr>
+
+<td>2540</td>
+
+<td>Land</td>
+
+</tr>
+
+<tr>
+
+<td>2550</td>
+
+<td>Missing data</td>
+
+</tr>
+
+</table>
+
+<details>
+
+<summary>Processing logic</summary>
+
+<pre><code>ice[ice > 1000] = np.nan
+
+ice /= 1000.0</code></pre>
+
+</details>
+
+</section>
+<section>
+
+<h2>Processing Stages</h2>
+
+<div class="command-grid">
+
+<div class="command-card">
+
+<h3>1. Reading the Dataset</h3>
+
+<p>
+
+Daily observations are provided as GeoTIFF raster files in the NSIDC Polar
+Stereographic projection (EPSG:3411). Rasterio is used to access both the
+pixel values and all associated spatial metadata.
+
+</p>
+
+<details>
+
+<summary>Implementation</summary>
+
+<pre><code>with rasterio.open(filename) as src:
+
+    ice = src.read(1)
+
+    transform = src.transform
+
+    profile = src.profile</code></pre>
+
+</details>
+
+</div>
+
+<div class="command-card">
+
+<h3>2. Metadata Validation</h3>
+
+<p>
+
+Each dataset is validated before further processing. Raster dimensions,
+projection information and affine transformations are verified to ensure
+that all observations are spatially consistent throughout the historical
+time series.
+
+</p>
+
+</div>
+
+<div class="command-card">
+
+<h3>3. Data Cleaning</h3>
+
+<p>
+
+Special NSIDC classification values representing land, coastlines,
+missing observations and the polar data gap are removed before numerical
+processing begins.
+
+</p>
+
+<details>
+
+<summary>Implementation</summary>
+
+<pre><code>ice[ice > 1000] = np.nan
+
+ice /= 1000.0</code></pre>
+
+</details>
+
+</div>
+
+<div class="command-card">
+
+<h3>4. Regional Analysis</h3>
+
+<p>
+
+Configurable GeoJSON polygons are converted into raster masks. These masks
+identify all pixels belonging to each analysis region and allow efficient
+daily processing without repeatedly evaluating polygon geometries.
+
+</p>
+
+</div>
+
+<div class="command-card">
+
+<h3>5. Statistical Analysis</h3>
+
+<p>
+
+Relative sea ice concentration and absolute ice-covered area are computed
+for every configured region before the historical database is updated.
+
+</p>
+
+</div>
+
+<div class="command-card">
+
+<h3>6. Export</h3>
+
+<p>
+
+Results are written to a continuously growing CSV archive and the newest
+observation is exported separately as a compact JSON document used by the
+GitHub Pages showcase.
 
 </p>
 
@@ -240,26 +456,122 @@ studied separately while maintaining a consistent methodology.
 </ul>
 
 </section>
-
 <section>
 
-<h2>Sea Ice Statistics</h2>
+<h2>Region Mask Generation</h2>
 
 <p>
 
-For each region the workflow derives both relative and absolute sea-ice
-coverage. Historical observations are appended to a continuously growing
-time series, enabling long-term climatological analyses.
+Each analysis region is defined by a configurable GeoJSON polygon rather
+than hard-coded raster indices. During processing these polygons are
+transformed into raster masks matching the NSIDC grid.
 
 </p>
+
+<div class="project-grid">
+
+<div class="project-card">
+
+<h3>Input</h3>
+
+<ul>
+
+<li>GeoJSON polygons</li>
+
+<li>EPSG:3411 projection</li>
+
+<li>Raster geometry</li>
+
+</ul>
+
+</div>
+
+<div class="project-card">
+
+<h3>Output</h3>
+
+<ul>
+
+<li>Boolean raster mask</li>
+
+<li>Pixel lookup</li>
+
+<li>Reusable cache</li>
+
+</ul>
+
+</div>
+
+</div>
 
 <p>
 
-The complete historical record is stored in a CSV database, while the most
-recent observation is exported separately for the website and automated
-dashboards.
+The generated masks are cached and reused for all subsequent observations,
+making daily processing essentially independent of polygon complexity.
 
 </p>
+
+</section>
+<section>
+
+<h2>Regional Statistics</h2>
+
+<p>
+
+Two complementary quantities are computed for every analysis region.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Relative Coverage</h3>
+
+<p>
+
+Mean fractional sea ice concentration across all valid pixels.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Absolute Coverage</h3>
+
+<p>
+
+Fractional concentration multiplied by the area represented by every raster
+cell (625 km²).
+
+</p>
+
+</div>
+
+</div>
+
+<details>
+
+<summary>Concept</summary>
+
+<pre><code>relative coverage
+
+↓
+
+mean concentration
+
+↓
+
+absolute coverage
+
+=
+
+concentration × pixel area
+
+(pixel area = 625 km²)</code></pre>
+
+</details>
 
 </section>
 

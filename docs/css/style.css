@@ -205,6 +205,9 @@ section{
         5px solid
         var(--primary);
 
+    padding:1rem 0.5rem 0.5rem 1rem;
+
+    border-radius:var(--radius);
 }
 
 /* ==========================================================
@@ -819,3 +822,54 @@ section{
     }
 
 }
+
+/* ==========================================================
+   Command Cards
+========================================================== */
+
+.command-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(320px,1fr)
+        );
+
+    gap:1.5rem;
+
+    margin-top:2rem;
+
+}
+
+.command-card{
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:var(--radius);
+
+    padding:1.5rem;
+
+    box-shadow:var(--shadow);
+
+    transition:.25s;
+
+}
+
+.command-card:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.command-card h3{
+
+    margin-top:0;
+
+    color:var(--primary);
+
+}
+

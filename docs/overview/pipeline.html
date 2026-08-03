@@ -68,42 +68,196 @@ published by the National Snow and Ice Data Center (NSIDC).
 
 <section>
 
-<h2>Pipeline Overview</h2>
+<h2>Processing Pipeline</h2>
+
+<p>
+
+The application is organised into a small number of command-line stages that
+can be executed independently or combined into a fully automated update
+workflow.
+
+</p>
 
 <div class="workflow">
 
 <div class="workflow-box">
-Download missing observations
+Download
 </div>
 
 <div class="workflow-arrow">↓</div>
 
 <div class="workflow-box">
-Validate GeoTIFF metadata
+Process
 </div>
 
 <div class="workflow-arrow">↓</div>
 
 <div class="workflow-box">
-Generate regional masks
+Generate Plots
 </div>
 
 <div class="workflow-arrow">↓</div>
 
 <div class="workflow-box">
-Compute regional sea-ice statistics
+Update Website
 </div>
 
-<div class="workflow-arrow">↓</div>
-
-<div class="workflow-box">
-Generate figures
 </div>
 
-<div class="workflow-arrow">↓</div>
+<div class="info-box">
 
-<div class="workflow-box">
-Update GitHub Pages showcase
+<strong>Recommended workflow</strong>
+
+<p>
+
+For routine operation the <code>update</code> stage performs the complete
+incremental workflow automatically. Individual stages are mainly intended
+for development, debugging and testing.
+
+</p>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Command Line Interface</h2>
+
+<p>
+
+The processing pipeline is divided into a small number of independent
+command-line stages. Each stage can be executed individually during
+development or combined into a fully automated workflow using the
+<code>update</code> command.
+
+</p>
+
+<div class="command-grid">
+
+<div class="command-card">
+
+<h3>⬇ Download</h3>
+
+<pre><code>python src/main.py download</code></pre>
+
+<p>
+
+Synchronises the local archive with the NSIDC data repository and downloads
+only observations that are not yet available locally.
+
+</p>
+
+<details>
+
+<summary>Typical use</summary>
+
+<ul>
+
+<li>Initial download of the complete dataset</li>
+
+<li>Synchronise with newly published observations</li>
+
+<li>Verify local data availability</li>
+
+</ul>
+
+</details>
+
+</div>
+
+<div class="command-card">
+
+<h3>⚙ Process</h3>
+
+<pre><code>python src/main.py process</code></pre>
+
+<p>
+
+Processes all newly downloaded GeoTIFF files and updates the historical
+sea-ice database.
+
+</p>
+
+<details>
+
+<summary>Generated files</summary>
+
+<ul>
+
+<li>output/analysis/ice_coverage_summary.csv</li>
+
+<li>output/analysis/latest.json</li>
+
+</ul>
+
+</details>
+
+</div>
+
+<div class="command-card">
+
+<h3>📈 Plots</h3>
+
+<pre><code>python src/main.py plots all</code></pre>
+
+<p>
+
+Generates publication-quality figures for every analysis region.
+
+</p>
+
+<details>
+
+<summary>Examples</summary>
+
+<pre><code>python src/main.py plots overview
+
+python src/main.py plots timeseries
+
+python src/main.py plots polar
+
+python src/main.py plots all</code></pre>
+
+</details>
+
+</div>
+
+<div class="command-card">
+
+<h3>🔄 Update</h3>
+
+<pre><code>python src/main.py update</code></pre>
+
+<p>
+
+Recommended command for daily operation.
+
+Runs the complete incremental workflow, regenerates all figures and rebuilds
+the GitHub Pages website.
+
+</p>
+
+<details>
+
+<summary>Executed stages</summary>
+
+<ul>
+
+<li>Download missing observations</li>
+
+<li>Process new GeoTIFF files</li>
+
+<li>Update CSV database</li>
+
+<li>Generate all plots</li>
+
+<li>Build GitHub Pages</li>
+
+</ul>
+
+</details>
+
 </div>
 
 </div>
@@ -112,56 +266,46 @@ Update GitHub Pages showcase
 
 <section>
 
-<h2>Pipeline Stages</h2>
+<h2>Typical Workflows</h2>
 
-<div class="stats-grid">
+<div class="project-grid">
 
-<div class="stat-card">
-<h3>1. Download</h3>
+<div class="project-card">
+
+<h3>First Installation</h3>
+
+<pre><code>python src/main.py download
+
+python src/main.py process
+
+python src/main.py plots all
+
+python src/main.py build</code></pre>
+
 <p>
-Synchronises the local archive with the latest NSIDC GeoTIFF products and
-downloads only observations that are not yet available locally.
+
+Creates the complete local archive, computes all historical statistics,
+generates every figure and builds the website.
+
 </p>
+
 </div>
 
-<div class="stat-card">
-<h3>2. Validation</h3>
-<p>
-Each GeoTIFF is checked for projection, dimensions, metadata and data
-integrity before further processing.
-</p>
-</div>
+<div class="project-card">
 
-<div class="stat-card">
-<h3>3. Regional Analysis</h3>
-<p>
-Configurable polygon masks are applied to compute sea-ice concentration
-statistics for five Hudson Bay subregions.
-</p>
-</div>
+<h3>Daily Update</h3>
 
-<div class="stat-card">
-<h3>4. Results</h3>
-<p>
-Daily statistics are appended to a historical CSV database while the most
-recent observation is exported as a compact JSON file for dashboards.
-</p>
-</div>
+<pre><code>python src/main.py update</code></pre>
 
-<div class="stat-card">
-<h3>5. Visualisation</h3>
 <p>
-Publication-quality overview maps, seasonal time series and polar plots
-are generated automatically.
-</p>
-</div>
 
-<div class="stat-card">
-<h3>6. Publication</h3>
-<p>
-The generated figures and metadata are exported to the GitHub Pages
-showcase where the latest products become immediately available.
+For routine operation only this command is required.
+
+The update pipeline downloads only newly available observations, updates
+the analysis database and regenerates the website automatically.
+
 </p>
+
 </div>
 
 </div>
