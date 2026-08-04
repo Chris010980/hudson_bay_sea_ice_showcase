@@ -621,7 +621,274 @@ Statistics and figures can always be regenerated from the original data.
 </div>
 
 </section>
+<section>
 
+<h2>Quality Assurance</h2>
+
+<p>
+
+Reliable scientific analyses require more than producing visually appealing
+figures. Every processing stage therefore includes automated validation and
+consistency checks to ensure that all derived statistics remain reproducible
+throughout the complete historical time series.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Metadata Validation</h3>
+
+<p>
+
+Every downloaded GeoTIFF is checked for projection, raster dimensions,
+affine transformation and general metadata consistency before numerical
+processing begins.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Deterministic Processing</h3>
+
+<p>
+
+All calculations are fully deterministic. Running the processing pipeline
+multiple times on identical input data always produces identical numerical
+results and figures.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Automatic Logging</h3>
+
+<p>
+
+Every processing stage writes detailed log messages documenting downloads,
+processing steps, warnings and generated outputs, simplifying debugging and
+long-term maintenance.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Error Handling</h3>
+
+<p>
+
+Unexpected conditions such as incomplete downloads, corrupted files or
+missing datasets are detected automatically to prevent invalid analysis
+results from entering the historical database.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Reproducible Outputs</h3>
+
+<p>
+
+All derived CSV files, JSON summaries and publication-quality figures can
+be regenerated directly from the original NSIDC GeoTIFF archive at any
+time.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Version Separation</h3>
+
+<p>
+
+Raw observations, derived analysis results, generated figures and website
+content are stored separately, ensuring complete transparency throughout
+the entire workflow.
+
+</p>
+
+</div>
+
+</div>
+
+<details>
+
+<summary>Quality Assurance Strategy</summary>
+
+<pre><code>Download
+
+↓
+
+Metadata validation
+
+↓
+
+Data cleaning
+
+↓
+
+Regional analysis
+
+↓
+
+Consistency checks
+
+↓
+
+CSV / JSON export
+
+↓
+
+Figure generation</code></pre>
+
+</details>
+
+</section>
+<section>
+
+<h2>Computational Efficiency</h2>
+
+<p>
+
+Although the historical archive currently spans several decades of daily
+satellite observations, routine updates typically complete within only a
+few seconds. This is achieved through an incremental workflow that avoids
+reprocessing previously analysed datasets.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+
+<h3>Incremental Downloads</h3>
+
+<p>
+
+The download stage synchronises the local archive with the NSIDC repository
+and retrieves only observations that are not yet available locally.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Incremental Processing</h3>
+
+<p>
+
+Only newly downloaded GeoTIFF files are analysed. Previously processed
+observations remain unchanged and are never processed again.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Cached Region Masks</h3>
+
+<p>
+
+GeoJSON polygons are converted into raster masks only once. The resulting
+pixel masks are reused for every subsequent observation, avoiding repeated
+geometric calculations.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Incremental Database</h3>
+
+<p>
+
+Historical statistics are appended to the existing CSV database instead of
+rebuilding the complete time series after every update.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Selective Figure Generation</h3>
+
+<p>
+
+Visualisations are regenerated only after new observations have been added
+to the analysis database, avoiding unnecessary rendering work.
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Automated Website Build</h3>
+
+<p>
+
+Only the documentation together with the latest analysis products and
+figures are copied into the website build directory, keeping deployment
+fast and reproducible.
+
+</p>
+
+</div>
+
+</div>
+
+<details>
+
+<summary>Incremental Update Workflow</summary>
+
+<pre><code>Check latest processed date
+
+↓
+
+Search NSIDC archive
+
+↓
+
+Download only missing observations
+
+↓
+
+Process only new GeoTIFF files
+
+↓
+
+Append CSV database
+
+↓
+
+Update latest.json
+
+↓
+
+Generate figures
+
+↓
+
+Build GitHub Pages</code></pre>
+
+</details>
+
+</section>
 <section>
 
 <h2>Current Limitations</h2>

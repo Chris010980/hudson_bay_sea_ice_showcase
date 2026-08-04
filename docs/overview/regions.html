@@ -115,7 +115,95 @@ independent of the processing code.
 </div>
 
 </section>
+<section>
 
+<h2>Region Summary</h2>
+
+<table class="region-table">
+
+<thead>
+
+<tr>
+
+<th>Region</th>
+
+<th>Water Area</th>
+
+<th>Pixels</th>
+
+<th>Main Characteristic</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td>Hudson Bay Area</td>
+
+<td id="summary_area_area"></td>
+
+<td id="summary_area_pixels"></td>
+
+<td>Complete study domain</td>
+
+</tr>
+
+<tr>
+
+<td>Hudson Bay</td>
+
+<td id="summary_hudson_area"></td>
+
+<td id="summary_hudson_pixels"></td>
+
+<td>Largest basin</td>
+
+</tr>
+
+<tr>
+
+<td>Foxe Basin</td>
+
+<td id="summary_foxe_area"></td>
+
+<td id="summary_foxe_pixels"></td>
+
+<td>Long ice season</td>
+
+</tr>
+
+<tr>
+
+<td>Hudson Strait</td>
+
+<td id="summary_strait_area"></td>
+
+<td id="summary_strait_pixels"></td>
+
+<td>Atlantic connection</td>
+
+</tr>
+
+<tr>
+
+<td>Gulf of Boothia</td>
+
+<td id="summary_boothia_area"></td>
+
+<td id="summary_boothia_pixels"></td>
+
+<td>Persistent ice</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</section>
 <section>
 
 <h2>Individual Regions</h2>
@@ -143,25 +231,33 @@ system.
 
 <div class="metric-card">
 
-<h3>Purpose</h3>
+<h4>Water Area</h4>
 
-<p>
-
-Complete analysis domain
-
-</p>
+<p id="area_area"></p>
 
 </div>
 
 <div class="metric-card">
 
-<h3>Contains</h3>
+<h4>Current ice coverage</h4>
 
-<p>
+<p id="area_ice"></p>
 
-All subregions
+</div>
 
-</p>
+<div class="metric-card">
+
+<h4>Typical Break-up</h4>
+
+<p>May – August</p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Freeze-up</h4>
+
+<p>October – January</p>
 
 </div>
 
@@ -186,15 +282,17 @@ alt="Hudson Bay Area">
 
 <div class="region-layout">
 
-<div>
+<div class="region-content">
 
 <h3>Hudson Bay</h3>
 
 <p>
 
-Hudson Bay forms the central basin of the study area and experiences a
-pronounced annual freeze-up and melt cycle. It represents the largest
-individual water body analysed within the project.
+Hudson Bay forms the central basin of the study area and is by far the
+largest individual region analysed within the workflow. Owing to its large
+surface area, it dominates the seasonal evolution of the entire Hudson Bay
+system while still exhibiting substantial interannual variability in both
+freeze-up and break-up.
 
 </p>
 
@@ -202,27 +300,50 @@ individual water body analysed within the project.
 
 <div class="metric-card">
 
-<h3>Characteristics</h3>
+<h4>Water Area</h4>
 
-<p>
-
-Largest basin
-
-</p>
+<p id="hudson_area"></p>
 
 </div>
 
 <div class="metric-card">
 
-<h3>Focus</h3>
+<h4>Current ice coverage</h4>
+
+<p id="hudson_ice"></p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Break-up</h4>
+
+<p>June – July</p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Freeze-up</h4>
+
+<p>November – December</p>
+
+</div>
+
+</div>
+
+<div class="info-box">
+
+<h4>Scientific Relevance</h4>
 
 <p>
 
-Seasonal ice evolution
+Because Hudson Bay contains the largest fraction of the total water area,
+its seasonal sea-ice cycle is often used as an overall indicator of regional
+climate variability. Long-term observations reveal considerable changes in
+both the duration and intensity of the annual ice season.
 
 </p>
-
-</div>
 
 </div>
 
@@ -245,15 +366,17 @@ alt="Hudson Bay">
 
 <div class="region-layout">
 
-<div>
+<div class="region-content">
 
 <h3>Foxe Basin</h3>
 
 <p>
 
-Foxe Basin is located north of Hudson Bay and generally exhibits a longer
-ice season than the central basin. The region provides an important
-comparison for analysing regional differences in sea ice persistence.
+Foxe Basin is located north of Hudson Bay and is characterised by one of the
+longest sea-ice seasons within the study area. Owing to its northern
+location, freeze-up generally begins earlier and break-up occurs later than
+in the central Hudson Bay, making the basin particularly valuable for
+monitoring regional climate variability.
 
 </p>
 
@@ -261,27 +384,49 @@ comparison for analysing regional differences in sea ice persistence.
 
 <div class="metric-card">
 
-<h3>Characteristics</h3>
+<h4>Water Area</h4>
 
-<p>
-
-Long ice season
-
-</p>
+<p id="foxe_area"></p>
 
 </div>
 
 <div class="metric-card">
 
-<h3>Focus</h3>
+<h4>Current Ice Coverage</h4>
+
+<p id="foxe_ice"></p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Break-up</h4>
+
+<p>July – August</p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Freeze-up</h4>
+
+<p>October – November</p>
+
+</div>
+
+</div>
+
+<div class="info-box">
+
+<h4>Scientific Relevance</h4>
 
 <p>
 
-Northern comparison region
+Foxe Basin generally retains sea ice considerably longer than Hudson Bay and
+therefore serves as an important northern reference region when comparing
+seasonal ice persistence throughout the Hudson Bay system.
 
 </p>
-
-</div>
 
 </div>
 
@@ -304,15 +449,16 @@ alt="Foxe Basin">
 
 <div class="region-layout">
 
-<div>
+<div class="region-content">
 
 <h3>Gulf of Boothia</h3>
 
 <p>
 
-The Gulf of Boothia connects the northern Hudson Bay system with the
-Canadian Arctic Archipelago. Persistent sea ice conditions make this region
-particularly interesting for long-term observations.
+The Gulf of Boothia forms the northernmost study region and connects Hudson
+Bay with the Canadian Arctic Archipelago. It experiences persistent sea-ice
+conditions throughout much of the year and often remains ice covered well
+after southern regions have become ice free.
 
 </p>
 
@@ -320,27 +466,49 @@ particularly interesting for long-term observations.
 
 <div class="metric-card">
 
-<h3>Characteristics</h3>
+<h4>Water Area</h4>
 
-<p>
-
-High ice persistence
-
-</p>
+<p id="boothia_area"></p>
 
 </div>
 
 <div class="metric-card">
 
-<h3>Focus</h3>
+<h4>Current Ice Coverage</h4>
+
+<p id="boothia_ice"></p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Break-up</h4>
+
+<p>July – August</p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Freeze-up</h4>
+
+<p>October – November</p>
+
+</div>
+
+</div>
+
+<div class="info-box">
+
+<h4>Scientific Relevance</h4>
 
 <p>
 
-Northern gateway
+Persistent sea ice and the northern location make the Gulf of Boothia an
+excellent indicator of changes affecting the Canadian Arctic and the northern
+Hudson Bay system.
 
 </p>
-
-</div>
 
 </div>
 
@@ -358,20 +526,20 @@ alt="Gulf of Boothia">
 </div>
 
 </section>
-
 <section class="region-section">
 
 <div class="region-layout">
 
-<div>
+<div class="region-content">
 
 <h3>Hudson Strait</h3>
 
 <p>
 
-Hudson Strait forms the connection between Hudson Bay and the Labrador Sea.
-Its dynamic ice conditions strongly influence the exchange between the
-interior basin and the North Atlantic.
+Hudson Strait forms the only marine connection between Hudson Bay and the
+Labrador Sea. Sea-ice conditions are strongly influenced by ocean exchange
+with the North Atlantic, resulting in considerably more dynamic seasonal
+behaviour than in the enclosed Hudson Bay basin.
 
 </p>
 
@@ -379,27 +547,49 @@ interior basin and the North Atlantic.
 
 <div class="metric-card">
 
-<h3>Characteristics</h3>
+<h4>Water Area</h4>
 
-<p>
-
-Marine outlet
-
-</p>
+<p id="strait_area"></p>
 
 </div>
 
 <div class="metric-card">
 
-<h3>Focus</h3>
+<h4>Current Ice Coverage</h4>
+
+<p id="strait_ice"></p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Break-up</h4>
+
+<p>May – June</p>
+
+</div>
+
+<div class="metric-card">
+
+<h4>Typical Freeze-up</h4>
+
+<p>December</p>
+
+</div>
+
+</div>
+
+<div class="info-box">
+
+<h4>Scientific Relevance</h4>
 
 <p>
 
-Ice export pathway
+Hudson Strait represents the primary exchange pathway between Hudson Bay and
+the North Atlantic. Variations in sea-ice conditions therefore influence the
+transport of heat, freshwater and sea ice between both systems.
 
 </p>
-
-</div>
 
 </div>
 
@@ -417,7 +607,27 @@ alt="Hudson Strait">
 </div>
 
 </section>
+<section class="info-box">
 
+<h2>Regional Characteristics</h2>
+
+<p>
+
+Although all five regions belong to the Hudson Bay system, their seasonal
+sea-ice evolution differs considerably. Northern regions generally remain
+ice covered for substantially longer periods than the southern basin, while
+Hudson Strait exhibits the strongest influence of the North Atlantic.
+
+</p>
+
+<p>
+
+Analysing the regions separately therefore provides much more information
+than considering only the total sea-ice extent of the complete study area.
+
+</p>
+
+</section>
 <section class="info-box">
 
 <h2>Region Definitions</h2>
@@ -468,6 +678,52 @@ new Date().getFullYear();
 </div>
 
 <script>
+fetch("../output/analysis/latest.json")
+
+.then(response => response.json())
+
+.then(data => {
+
+    const regions = {};
+
+    data.regions.forEach(region => {
+
+        regions[region.region] = region;
+
+    });
+
+    function setRegion(prefix, name){
+
+        const r = regions[name];
+
+        if(!r) return;
+
+        console.log(prefix + "_area");
+        
+        document.getElementById(prefix + "_area").textContent =
+            r.water_area_km2.toLocaleString() + " km²";
+
+        document.getElementById(prefix + "_ice").innerHTML =
+            Math.round(r.relative_ice_area_km2).toLocaleString() +
+            " km²<br><small>" +
+            r.relative_coverage_percent.toFixed(2) +
+            " %</small>";
+
+        document.getElementById("summary_" + prefix + "_area").textContent =
+            r.water_area_km2.toLocaleString() + " km²";
+
+        document.getElementById("summary_" + prefix + "_pixels").textContent =
+            r.water_pixels.toLocaleString();
+
+    };
+
+    setRegion("area","Hudson Bay Area");
+    setRegion("hudson","Hudson Bay");
+    setRegion("foxe","Foxe Basin");
+    setRegion("boothia","Gulf of Boothia");
+    setRegion("strait","Hudson Strait");
+
+});
 
 const lightbox =
 document.getElementById("lightbox");
