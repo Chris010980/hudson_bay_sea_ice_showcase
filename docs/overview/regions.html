@@ -214,16 +214,17 @@ independent of the processing code.
 
 <div class="region-layout">
 
-<div>
+<div class="region-content">
 
 <h3>Hudson Bay Area</h3>
 
 <p>
 
-The Hudson Bay Area represents the complete study area and includes all
-individual subregions analysed by the workflow. It provides an overall
-indicator of the seasonal evolution of sea ice throughout the Hudson Bay
-system.
+The Hudson Bay Area represents the complete study domain of this project and
+combines all individual analysis regions into a single integrated dataset.
+It provides the most comprehensive indicator of the seasonal evolution of
+sea ice throughout the Hudson Bay system and serves as the primary reference
+for long-term comparisons.
 
 </p>
 
@@ -239,7 +240,7 @@ system.
 
 <div class="metric-card">
 
-<h4>Current ice coverage</h4>
+<h4>Current Ice Coverage</h4>
 
 <p id="area_ice"></p>
 
@@ -260,6 +261,22 @@ system.
 <p>October – January</p>
 
 </div>
+
+</div>
+
+<div class="info-box">
+
+<h4>Scientific Relevance</h4>
+
+<p>
+
+The Hudson Bay Area integrates all analysed subregions into a single study
+domain and therefore provides the best overall measure of seasonal sea-ice
+conditions. While individual regions exhibit distinct freeze-up and
+break-up characteristics, the combined analysis offers a robust indicator
+for long-term climate variability across the complete Hudson Bay system.
+
+</p>
 
 </div>
 
@@ -697,8 +714,6 @@ fetch("../output/analysis/latest.json")
         const r = regions[name];
 
         if(!r) return;
-
-        console.log(prefix + "_area");
         
         document.getElementById(prefix + "_area").textContent =
             r.water_area_km2.toLocaleString() + " km²";

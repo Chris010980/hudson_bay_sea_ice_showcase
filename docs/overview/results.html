@@ -102,7 +102,35 @@ of maps and time-series visualisations is updated without manual intervention.
 </div>
 
 </section>
+        <section>
 
+          <h2>Regional Summary</h2>
+
+          <table class="results-table">
+
+            <thead>
+
+              <tr>
+
+                <th>Region</th>
+
+                <th>Coverage</th>
+
+                <th>Ice Area</th>
+
+                <th>Ocean Area</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="regionTableBody">
+
+            </tbody>
+
+          </table>
+
+        </section>
 <section>
 
 <h2>Daily Overview Maps</h2>
@@ -365,6 +393,44 @@ fetch("../output/analysis/latest.json")
 .then(r => r.json())
 
 .then(data => {
+        const tbody =
+            document.getElementById("regionTableBody");
+
+        const regions = [...data.regions].sort((a, b) => {
+
+            if (a.region === "Hudson Bay Area") return 1;
+
+            if (b.region === "Hudson Bay Area") return -1;
+
+            return a.region.localeCompare(b.region);
+
+        });
+
+        regions.forEach(region => {
+
+            const classes = [];
+
+            if (region.region === "Hudson Bay") {
+                classes.push("highlight-row");
+            }
+
+            if (region.region === "Hudson Bay Area") {
+                classes.push("summary-row");
+            }
+
+            tbody.insertAdjacentHTML(
+                "beforeend",
+                `
+        <tr class="${classes.join(" ")}">
+            <td>${region.region}</td>
+            <td>${region.relative_coverage_percent.toFixed(1)} %</td>
+            <td>${Math.round(region.relative_ice_area_km2).toLocaleString()} km²</td>
+            <td>${Math.round(region.water_area_km2).toLocaleString()} km²</td>
+        </tr>
+        `
+            );
+
+        });
 
 document.getElementById("dataset").textContent = data.dataset;
 document.getElementById("date").textContent = data.date;
