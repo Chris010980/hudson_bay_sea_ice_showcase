@@ -1,10 +1,17 @@
 """
-Analyse historical regional sea-ice time series.
+Post-process historical regional sea-ice time series.
 
-This class operates on the complete
-ice_coverage_summary.csv produced by the processing pipeline
-and derives additional products such as interpolated calendars,
-moving averages, climatologies and long-term statistics.
+The analyzer enriches the daily statistics stored in
+ice_coverage_summary.csv with derived quantities such as
+
+- continuous daily calendar
+- interpolated gaps
+- moving averages
+- climatological mean
+- anomalies
+
+Additional products (freeze-up, break-up, trends, etc.)
+can be added without changing the processing pipeline.
 """
 
 from __future__ import annotations
@@ -12,12 +19,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
-
-from src.config.paths import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
+from src.config.paths import PROJECT_ROOT
 
 DEFAULT_RESULTS = (
     PROJECT_ROOT
@@ -26,37 +33,52 @@ DEFAULT_RESULTS = (
     / "ice_coverage_summary.csv"
 )
 
+DEFAULT_TIMESERIES = ( 
+    PROJECT_ROOT 
+    / "output" 
+    / "analysis" 
+    / "ice_coverage_timeseries.csv" 
+)
 
 class TimeSeriesAnalyzer:
-    """
-    Analyse historical sea-ice time series.
-
-    Notes
-    -----
-    The original CSV remains untouched.
-    Every derived product is calculated from the historical
-    observations and can be exported separately.
-    """
 
     def __init__(
         self,
         csv_path: str | Path = DEFAULT_RESULTS,
+        output_path: str | Path = DEFAULT_TIMESERIES,
     ):
 
         self.csv_path = Path(csv_path)
+        self.output_path = Path(output_path)
 
         self.df = pd.DataFrame()
-
-        self.interpolated = pd.DataFrame()
 
     # ---------------------------------------------------------
     # public API
     # ---------------------------------------------------------
 
-    def load(self) -> pd.DataFrame:
-        """
-        Load the historical CSV.
-        """
+    def analyze(self) -> pd.DataFrame:
+
+        self.load()
+
+        self.interpolate_calendar()
+
+        self.calculate_moving_average(window=3)
+
+        self.calculate_climatology(
+            start_year=1981,
+            end_year=2010,
+        )
+
+        self.calculate_anomalies()
+
+        return self.df
+
+    # ---------------------------------------------------------
+    # loading
+    # ---------------------------------------------------------
+
+    def load(self):
 
         logger.info(
             "Loading %s",
@@ -76,171 +98,206 @@ class TimeSeriesAnalyzer:
             inplace=True,
         )
 
-        return self.df
+    # ---------------------------------------------------------
+    # interpolation
+    # ---------------------------------------------------------
 
-    def interpolate_calendar(
-        self,
-        max_gap_days: int = 14,
-    ) -> pd.DataFrame:
-        """
-        Fill missing calendar days by linear interpolation.
+    def interpolate_calendar(self):
 
-        Only gaps up to max_gap_days are interpolated.
+        logger.info(
+            "Interpolating missing calendar days."
+        )
 
-        Larger gaps remain missing and therefore produce
-        visible breaks in later plots.
-        """
+        groups = []
 
-        if self.df.empty:
-            self.load()
+        for region, df_region in self.df.groupby("region"):
 
-        regions = []
-
-        for region, group in self.df.groupby("region"):
-
-            group = (
-                group
+            df_region = (
+                df_region
                 .set_index("date")
                 .sort_index()
             )
 
-            full = (
-                group
-                .asfreq("D")
+            full_index = pd.date_range(
+                df_region.index.min(),
+                df_region.index.max(),
+                freq="D",
             )
 
-            full["region"] = region
+            df_region = df_region.reindex(full_index)
 
-            numeric = full.select_dtypes("number").columns
+            df_region["region"] = region
 
-            full[numeric] = full[numeric].interpolate(
-                method="time",
-                limit=max_gap_days,
-                limit_area="inside",
+            numeric = df_region.select_dtypes(
+                include="number"
+            ).columns
+
+            df_region[numeric] = (
+                df_region[numeric]
+                .interpolate(
+                    method="time",
+                    limit_direction="both",
+                )
             )
 
-            regions.append(full.reset_index())
+            df_region.index.name = "date"
 
-        self.interpolated = pd.concat(
-            regions,
+            groups.append(
+                df_region.reset_index()
+            )
+
+        self.df = pd.concat(
+            groups,
             ignore_index=True,
         )
+
+    # ---------------------------------------------------------
+    # moving average
+    # ---------------------------------------------------------
+
+    def calculate_moving_average(
+        self,
+        window: int = 3,
+    ):
 
         logger.info(
-            "Interpolated calendar created."
+            "Calculating ±%d day moving averages.",
+            window,
         )
 
-        return self.interpolated
+        columns = [
+            "relative_coverage_percent",
+            "absolute_coverage_percent",
+            "relative_ice_area_km2",
+            "absolute_ice_area_km2",
+        ]
 
-    def moving_average(
-        self,
-        column: str,
-        window_days: int = 3,
-    ) -> pd.DataFrame:
-        """
-        Calculate centred moving average.
+        for column in columns:
 
-        Parameters
-        ----------
-        column
-            Column to smooth.
+            new_column = f"{column}_ma"
 
-        window_days
-            Number of days to either side.
-
-            1 -> 3-day average
-
-            2 -> 5-day average
-
-            3 -> 7-day average
-        """
-
-        if self.interpolated.empty:
-            self.interpolate_calendar()
-
-        df = self.interpolated.copy()
-
-        window = 2 * window_days + 1
-
-        smoothed = []
-
-        for _, group in df.groupby("region"):
-
-            group = group.sort_values("date")
-
-            group[f"{column}_smooth"] = (
-                group[column]
-                .rolling(
-                    window=window,
-                    center=True,
-                    min_periods=1,
+            self.df[new_column] = (
+                self.df
+                .groupby("region")[column]
+                .transform(
+                    lambda s:
+                    s.rolling(
+                        window=2 * window + 1,
+                        center=True,
+                        min_periods=1,
+                    ).mean()
                 )
-                .mean()
             )
 
-            smoothed.append(group)
+    # ---------------------------------------------------------
+    # climatology
+    # ---------------------------------------------------------
 
-        return pd.concat(
-            smoothed,
-            ignore_index=True,
-        )
-
-    def climatology(
+    def calculate_climatology(
         self,
-        column: str,
-        start_year: int = 1981,
-        end_year: int = 2010,
-    ) -> pd.DataFrame:
-        """
-        Compute daily climatology.
+        start_year: int,
+        end_year: int,
+    ):
 
-        Returns one mean value for every day-of-year.
-        """
-
-        if self.interpolated.empty:
-            self.interpolate_calendar()
-
-        df = self.interpolated.copy()
-
-        years = (
-            df.date.dt.year >= start_year
-        ) & (
-            df.date.dt.year <= end_year
+        logger.info(
+            "Calculating %d-%d climatology.",
+            start_year,
+            end_year,
         )
 
-        df = df[years]
+        climatology = self.df[
+            (
+                self.df["date"].dt.year >= start_year
+            )
+            &
+            (
+                self.df["date"].dt.year <= end_year
+            )
+        ].copy()
 
-        df["dayofyear"] = (
-            df.date.dt.dayofyear
+        climatology["dayofyear"] = (
+            climatology["date"]
+            .dt.dayofyear
         )
 
-        climatology = (
-            df.groupby(
+        mean = (
+
+            climatology
+
+            .groupby(
                 [
                     "region",
                     "dayofyear",
                 ]
-            )[column]
+            )[
+                "relative_coverage_percent"
+            ]
+
             .mean()
+
+            .rename("climatology")
+
             .reset_index()
+
         )
 
-        return climatology
-
-    def available_regions(self):
-
-        if self.df.empty:
-            self.load()
-
-        return sorted(
-            self.df.region.unique()
+        self.df["dayofyear"] = (
+            self.df["date"]
+            .dt.dayofyear
         )
 
-    def available_years(self):
-
-        if self.df.empty:
-            self.load()
-
-        return sorted(
-            self.df.date.dt.year.unique()
+        self.df = self.df.merge(
+            mean,
+            how="left",
+            on=[
+                "region",
+                "dayofyear",
+            ],
         )
+
+    # ---------------------------------------------------------
+    # anomalies
+    # ---------------------------------------------------------
+
+    def calculate_anomalies(self):
+
+        logger.info(
+            "Calculating anomalies."
+        )
+
+        self.df["anomaly"] = (
+
+            self.df["relative_coverage_percent"]
+
+            -
+
+            self.df["climatology"]
+
+        )
+
+    # ---------------------------------------------------------
+    # saving
+    # ---------------------------------------------------------
+
+    def save(self) -> Path: 
+        """ 
+        Save the derived time-series dataset. The original 
+        ice_coverage_summary.csv is never modified. 
+        """ 
+
+        self.output_path.parent.mkdir( 
+            parents=True, 
+            exist_ok=True, 
+        ) 
+
+        self.df.to_csv( 
+            self.output_path, 
+            index=False, 
+        ) 
+
+        logger.info( 
+            "Saved derived time series to %s", 
+            self.output_path, 
+        ) 
+
+        return self.output_path

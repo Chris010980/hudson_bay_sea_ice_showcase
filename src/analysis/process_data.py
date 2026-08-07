@@ -18,6 +18,7 @@ from src.analysis.reference_builder import ReferenceBuilder
 from src.analysis.reference_builder import ReferenceBuilder
 from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
+from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
 from src.config.paths import DATA_DIR
 
@@ -132,6 +133,27 @@ def main(argv=None):
             )
 
     results.save()
+
+    logger.info(
+        "Running time series analysis."
+    )
+
+    ts = TimeSeriesAnalyzer()
+
+    ts.load()
+
+    ts.interpolate_calendar()
+
+    ts.calculate_moving_average(
+        window=3,
+    )
+
+    ts.calculate_climatology(
+        start_year=1981,
+        end_year=2010,
+    )
+
+    ts.save()
 
     logger.info(summary)
 
