@@ -23,7 +23,7 @@ from matplotlib.dates import DateFormatter, MonthLocator
 
 from src.config.paths import PROJECT_ROOT
 
-RESULTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
+RESULTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
 OUTPUT_DIR = PROJECT_ROOT / "output" / "plots"
 
 logger = logging.getLogger(__name__)
@@ -89,6 +89,18 @@ class TimeSeriesPlotter:
 
         self.colorbar_fontsize = 10
         self.colorbar_ticksize = 8
+
+        # ------------------------------------------------------------- 
+        # Climatology 
+        # ------------------------------------------------------------- 
+        self.climatology_color = "0.25" 
+        self.climatology_linewidth = 2.2 
+        self.climatology_alpha = 0.95 
+
+        # ------------------------------------------------------------- 
+        # Current observation 
+        # ------------------------------------------------------------- 
+        self.current_marker_size = 45
 
         # Polar layout
         self.polar_left = 0.1
@@ -159,39 +171,18 @@ class TimeSeriesPlotter:
 
         self.cmap = mpl.colormaps["plasma"]
 
-    def _insert_gaps(
-        self,
-        df,
-    ):
-        """Insert NaN rows to prevent long gaps being connected."""
+    # ================================================================
+    #  Gap handling 
+    # ================================================================ 
+    def _prepare_year( self, df_year: pd.DataFrame, ) -> pd.DataFrame: 
+        """ 
+        Prepare one year's data for plotting. NaN values are 
+        deliberately retained. Matplotlib does not draw line segments 
+        across NaN values, which provides the desired behaviour for 
+        data gaps that were not interpolated by the TimeSeriesAnalyzer. 
+        """ 
+        return ( df_year .sort_values("date") .copy() )
 
-        df = df.sort_values("date").copy()
-
-        delta = df.date.diff().dt.days
-
-        breaks = delta > self.max_gap_days
-
-        if not breaks.any():
-
-            return df
-
-        rows = []
-
-        for i, row in df.iterrows():
-
-            rows.append(row)
-
-            if breaks.loc[i]:
-
-                nan = row.copy()
-
-                nan.iloc[:] = np.nan
-
-                nan["plot_date"] = row["plot_date"]
-
-                rows.append(nan)
-
-        return pd.DataFrame(rows)
 
     def _create_colorbar(
         self,
@@ -240,7 +231,7 @@ class TimeSeriesPlotter:
 
             self._plot_region(
                 region,
-                "relative_coverage_percent",
+                "relative_coverage_percent_ma",
                 "Relative ice coverage (%)",
                 "relative",
             )
@@ -264,8 +255,12 @@ class TimeSeriesPlotter:
 
         # Einzeljahre
         for year in self.unique_years:
-            df_year = df_region[df_region["year"] == year].sort_values("plot_date")
-            df_year = self._insert_gaps(df_year)
+            df_year = df_region[df_region["year"] == year].copy()
+
+            if df_year.empty: 
+                continue
+
+            df_year = self._prepare_year(df_year)
             ax.plot(
                 df_year["plot_date"],
                 df_year[column],
@@ -274,15 +269,40 @@ class TimeSeriesPlotter:
                 alpha=0.85
             )
 
-        ax.scatter(
-            df_year["plot_date"].iloc[-1],
-            df_year[column].iloc[-1],
-            s=45,
-            color="red",
-            edgecolor="black",
-            linewidth=0.8,
-            zorder=10,
+        # ------------------------------------------------------------- 
+        # 1981-2010 climatology 
+        # ------------------------------------------------------------- 
+        climatology = ( 
+            df_region[ [ "plot_date", "climatology", ] ] .dropna(subset=["climatology"]) .sort_values("plot_date") 
         )
+
+        if not climatology.empty: 
+            ax.plot( 
+                climatology["plot_date"], 
+                climatology["climatology"], 
+                color=self.climatology_color, 
+                linewidth=self.climatology_linewidth, 
+                alpha=self.climatology_alpha, 
+                zorder=8, 
+                label="1981–2010 climatology", 
+            )
+
+        # ------------------------------------------------------------- 
+        # Current observation 
+        # ------------------------------------------------------------- 
+        current = ( df_region .dropna(subset=[column]) .sort_values("date") ) 
+        if not current.empty: 
+            latest = current.iloc[-1] 
+
+            ax.scatter( 
+                latest["plot_date"], 
+                latest[column], 
+                s=self.current_marker_size, 
+                color="red", 
+                edgecolor="black", 
+                linewidth=0.8, 
+                zorder=10, 
+            )
 
         #ax.set_title(f"{label} – {region}", fontsize=11)
         ax.set_xlabel(
@@ -307,6 +327,16 @@ class TimeSeriesPlotter:
             color="0.6",
             alpha=0.3,
         )
+
+        # ------------------------------------------------------------- 
+        # Climatology legend 
+        # ------------------------------------------------------------- 
+        if not climatology.empty: 
+            ax.legend( 
+                loc="upper right", 
+                frameon=False, 
+                fontsize=self.legend_fontsize, 
+            )
 
         # Colorbar für Jahre
         self._create_colorbar(fig, ax,)
@@ -344,20 +374,27 @@ class TimeSeriesPlotter:
 
             self._plot_polar_region(
                 region,
-                "relative_coverage_percent",
+                "relative_coverage_percent_ma",
                 "Relative ice coverage (%)",
                 "relative",
             )
 
             self._plot_polar_region(
                 region,
-                "absolute_coverage_percent",
+                "absolute_coverage_percent_ma",
                 "Absolute ice coverage (%)",
                 "absolute",
             )
 
     def _plot_polar_region(self, region, column, ylabel, suffix):
         """Plot one quantity for one analysis region."""
+
+        if self.df is None: 
+            return 
+
+        if column not in self.df.columns: 
+            logger.warning( "Column %s not found. Skipping %s.", column, region, ) 
+            return
 
         df_region = self.df[self.df.region == region].copy()
 
@@ -368,7 +405,7 @@ class TimeSeriesPlotter:
         ax.spines["polar"].set_color("0.4")
         ax.spines["polar"].set_linewidth(0.8)
 
-        for i, year in enumerate(self.unique_years):
+        for year in self.unique_years:
             df_year = df_region[df_region["year"] == year].sort_values("theta")
             ax.plot(
                 df_year["theta"],
@@ -378,15 +415,37 @@ class TimeSeriesPlotter:
                 alpha=0.85
             )
 
-        ax.scatter(
-            df_year["theta"].iloc[-1],
-            df_year[column].iloc[-1],
-            s=45,
-            color="red",
-            edgecolor="black",
-            linewidth=0.8,
-            zorder=10,
-        )
+        # ------------------------------------------------------------- 
+        # Climatology 
+        # ------------------------------------------------------------- 
+        climatology = ( df_region[ [ "theta", "climatology", "day_of_year", ] ] .dropna(subset=["climatology"]) .sort_values("day_of_year") ) 
+
+        if not climatology.empty: 
+            ax.plot( climatology["theta"], 
+                climatology["climatology"], 
+                color=self.climatology_color, 
+                linewidth=self.climatology_linewidth, 
+                alpha=self.climatology_alpha, 
+                zorder=8, 
+                label="1981–2010 climatology", 
+            ) 
+
+        # ------------------------------------------------------------- 
+        # Current observation 
+        # ------------------------------------------------------------- 
+        current = ( df_region .dropna(subset=[column]) .sort_values("date") ) 
+
+        if not current.empty: 
+            latest = current.iloc[-1] 
+
+            ax.scatter( latest["theta"], 
+                latest[column], 
+                s=self.current_marker_size, 
+                color="red", 
+                edgecolor="black", 
+                linewidth=0.8, 
+                zorder=10, 
+            )
 
         ax.set_theta_zero_location("N")
         ax.set_theta_direction(-1)
@@ -412,6 +471,17 @@ class TimeSeriesPlotter:
             alpha=0.3,
         )
         ax.set_ylabel("")
+
+        # ------------------------------------------------------------- 
+        # Climatology legend 
+        # ------------------------------------------------------------- 
+        if not climatology.empty: 
+            ax.legend( 
+                loc="upper right", 
+                bbox_to_anchor=(1.15, 1.10), 
+                frameon=False, 
+                fontsize=self.legend_fontsize, 
+            )
 
         self._create_colorbar(
             fig,

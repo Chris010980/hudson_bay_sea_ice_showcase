@@ -150,7 +150,7 @@ def main(argv=None):
 
     ts.calculate_climatology(
         start_year=1981,
-        end_year=2010,
+        end_year=2000,
     )
 
     ts.save()
