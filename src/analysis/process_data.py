@@ -140,18 +140,7 @@ def main(argv=None):
 
     ts = TimeSeriesAnalyzer()
 
-    ts.load()
-
-    ts.interpolate_calendar()
-
-    ts.calculate_moving_average(
-        window=3,
-    )
-
-    ts.calculate_climatology(
-        start_year=1981,
-        end_year=2000,
-    )
+    ts.analyze()
 
     ts.save()
 
