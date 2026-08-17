@@ -913,8 +913,8 @@ class TimeSeriesPlotter:
                 trend_text = equation
 
             ax.text(
-                0.02,
-                0.97,
+                0.4,
+                0.95,
                 trend_text,
                 transform=ax.transAxes,
                 ha="left",
