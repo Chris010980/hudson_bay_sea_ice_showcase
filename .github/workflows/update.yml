@@ -7,6 +7,10 @@ on:
 
   workflow_dispatch:
 
+concurrency:
+  group: hudson-bay-sea-ice-update
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pages: write
@@ -19,6 +23,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -41,6 +48,11 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: build
+
+      - name: Sync with remote
+        run: |
+          git fetch origin master
+          git reset --hard origin/master
 
       - name: Commit updated results
         run: |
