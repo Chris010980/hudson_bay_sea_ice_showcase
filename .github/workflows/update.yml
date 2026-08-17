@@ -49,6 +49,10 @@ jobs:
         run: |
           python src/main.py update
 
+      - name: Build GitHub Pages
+        run: |
+          python src/main.py build
+
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
