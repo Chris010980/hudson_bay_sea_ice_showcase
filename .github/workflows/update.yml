@@ -40,6 +40,11 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Sync with remote
+        run: |
+          git fetch origin master
+          git reset --hard origin/master
+
       - name: Run update pipeline
         run: |
           python src/main.py update
@@ -48,11 +53,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: build
-
-      - name: Sync with remote
-        run: |
-          git fetch origin master
-          git reset --hard origin/master
 
       - name: Commit updated results
         run: |
