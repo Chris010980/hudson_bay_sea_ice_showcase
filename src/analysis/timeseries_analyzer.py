@@ -624,85 +624,25 @@ class TimeSeriesAnalyzer:
             return None
 
         # ---------------------------------------------------------
-        # Determine which side of the threshold is required
+        # Search for actual threshold crossings
         # ---------------------------------------------------------
 
-        if direction == "down":
-            condition = (
-                data[column] <= threshold
-            )
-
-        else:
-            condition = (
-                data[column] >= threshold
-            )
-
-        # ---------------------------------------------------------
-        # Find persistent sections
-        # ---------------------------------------------------------
-
-        # A new section starts whenever the threshold condition
-        # changes from True to False or vice versa.
-        groups = (
-            condition
-            .ne(condition.shift())
-            .cumsum()
-        )
-
-        for _, segment in data[
-            condition
-        ].groupby(groups[condition]):
-
-            if segment.empty:
-                continue
-
-            # -----------------------------------------------------
-            # Check actual calendar-day continuity
-            # -----------------------------------------------------
-
-            if len(segment) < persistence:
-                continue
-
-            segment_dates = segment["date"]
-
-            consecutive_days = (
-                segment_dates
-                .diff()
-                .dropna()
-                .eq(pd.Timedelta(days=1))
-            )
-
-            # For N observations we need N-1 consecutive
-            # one-day intervals.
-            if (
-                len(segment) > 1
-                and not consecutive_days.all()
-            ):
-                continue
-
-            # -----------------------------------------------------
-            # First persistent observation
-            # -----------------------------------------------------
-
-            first_idx = segment.index[0]
-
-            # If the first observation of the window is already
-            # beyond the threshold, no interpolation from an
-            # earlier observation inside this window is possible.
-            if first_idx == 0:
-                return segment.iloc[0]["date"]
+        for start_idx in range(
+            1,
+            len(data),
+        ):
 
             previous = data.iloc[
-                first_idx - 1
+                start_idx - 1
             ]
 
             current = data.iloc[
-                first_idx
+                start_idx
             ]
 
             # -----------------------------------------------------
-            # Make sure the preceding observation is the previous
-            # calendar day.
+            # The crossing itself must occur between consecutive
+            # calendar days.
             # -----------------------------------------------------
 
             if (
@@ -710,15 +650,111 @@ class TimeSeriesAnalyzer:
                 - previous["date"]
                 != pd.Timedelta(days=1)
             ):
-                # There is a data gap. We deliberately do not
-                # interpolate across it.
-                return current["date"]
+                continue
 
             y0 = previous[column]
             y1 = current[column]
 
             # -----------------------------------------------------
-            # Already exactly on the threshold
+            # Determine whether an actual crossing occurred.
+            #
+            # Strict inequality on the previous day is important:
+            #
+            # down:
+            #     previous > threshold
+            #     current  <= threshold
+            #
+            # up:
+            #     previous < threshold
+            #     current  >= threshold
+            #
+            # Thus, a window that already starts above/below the
+            # threshold does not create a fictitious event.
+            # -----------------------------------------------------
+
+            if direction == "down":
+
+                crossed = (
+                    y0 > threshold
+                    and y1 <= threshold
+                )
+
+            else:  # direction == "up"
+
+                crossed = (
+                    y0 < threshold
+                    and y1 >= threshold
+                )
+
+            if not crossed:
+                continue
+
+            # -----------------------------------------------------
+            # Check persistence.
+            #
+            # The crossing day itself counts as the first persistent
+            # day. Therefore we need `persistence - 1` additional
+            # consecutive calendar days after the crossing.
+            # -----------------------------------------------------
+
+            end_idx = (
+                start_idx
+                + persistence
+            )
+
+            if end_idx > len(data):
+                continue
+
+            persistent_segment = data.iloc[
+                start_idx:end_idx
+            ]
+
+            # -----------------------------------------------------
+            # Check calendar continuity.
+            # -----------------------------------------------------
+
+            if len(persistent_segment) < persistence:
+                continue
+
+            dates = (
+                persistent_segment["date"]
+                .diff()
+                .dropna()
+            )
+
+            if not dates.eq(
+                pd.Timedelta(days=1)
+            ).all():
+                continue
+
+            # -----------------------------------------------------
+            # Check that all persistence days remain on the target
+            # side of the threshold.
+            # -----------------------------------------------------
+
+            if direction == "down":
+
+                persistent = (
+                    persistent_segment[column]
+                    <= threshold
+                ).all()
+
+            else:
+
+                persistent = (
+                    persistent_segment[column]
+                    >= threshold
+                ).all()
+
+            if not persistent:
+                continue
+
+            # -----------------------------------------------------
+            # We now have a valid persistent crossing.
+            #
+            # Determine the exact crossing date by linear
+            # interpolation between the previous and current
+            # observations.
             # -----------------------------------------------------
 
             if y0 == threshold:
@@ -727,10 +763,10 @@ class TimeSeriesAnalyzer:
             if y1 == threshold:
                 return current["date"]
 
-            # -----------------------------------------------------
-            # Linear interpolation
-            # -----------------------------------------------------
-
+            # This should normally not happen because an actual
+            # crossing has already been established, but protects
+            # against division by zero and unexpected numerical
+            # input.
             if y1 == y0:
                 return current["date"]
 
@@ -740,10 +776,9 @@ class TimeSeriesAnalyzer:
                 y1 - y0
             )
 
-            # Numerical safety: only interpolate if the threshold
-            # actually lies between the two observations.
+            # Numerical safety.
             if not 0.0 <= fraction <= 1.0:
-                return current["date"]
+                continue
 
             delta = (
                 current["date"]
@@ -805,74 +840,50 @@ class TimeSeriesAnalyzer:
 
     def calculate_threshold_events(
         self,
-        column: str = "relative_coverage_percent_ma",
-        persistence: int | None = None,
-    ):
+        thresholds: tuple[float, ...] = (
+            10.0,
+            50.0,
+            90.0,
+        ),
+        persistence: int = 7,
+        column: str = "relative_coverage_percent",
+    ) -> pd.DataFrame:
         """
-        Determine seasonal break-up and freeze-up threshold dates.
+        Calculate break-up and freeze-up threshold events.
 
-        Break-up is evaluated from March 16 through September 15.
-        Freeze-up is evaluated from September 16 through March 15
+        Break-up events are searched between March 16 and September 15.
+        Freeze-up events are searched between September 16 and March 15
         of the following year.
 
-        Thresholds:
-            Break-up: 90 %, 50 %, 10 % (downward crossings)
-            Freeze-up: 10 %, 50 %, 90 % (upward crossings)
-
-        A threshold crossing is only accepted if the sea-ice
-        coverage remains on the respective side of the threshold
-        for at least ``persistence`` consecutive days.
-
-        The crossing date is linearly interpolated between the two
-        daily observations surrounding the threshold.
-
-        Results are stored in ``self.events_df``.
+        A freeze-up event is only valid if the corresponding threshold
+        was crossed during the preceding break-up season.
         """
 
-        if persistence is None:
-            persistence = self.threshold_persistence
-
-        if persistence < 1:
-            raise ValueError(
-                "persistence must be at least 1."
-            )
-
-        if self.df.empty:
-            logger.warning(
-                "Cannot calculate threshold events: "
-                "dataframe is empty."
-            )
-
-            self.events_df = pd.DataFrame()
-
-            return
-
-        if column not in self.df.columns:
-            raise ValueError(
-                f"Column '{column}' not found in dataframe."
-            )
-
         logger.info(
-            "Calculating threshold events using '%s' "
-            "with %d-day persistence.",
-            column,
+            "Calculating threshold events "
+            "(thresholds=%s, persistence=%d days).",
+            thresholds,
             persistence,
         )
 
-        thresholds = {
-            "break-up": {
-                90: "down",
-                50: "down",
-                10: "down",
-            },
-            "freeze-up": {
-                10: "up",
-                50: "up",
-                90: "up",
-            },
-        }
+        if self.df.empty:
+            logger.warning(
+                "Cannot calculate threshold events: dataframe is empty."
+            )
 
-        records = []
+            self.threshold_events_df = pd.DataFrame(
+                columns=[
+                    "region",
+                    "event_type",
+                    "event_year",
+                    "threshold_percent",
+                    "event_date",
+                ]
+            )
+
+            return self.threshold_events_df
+
+        events = []
 
         for region, df_region in self.df.groupby("region"):
 
@@ -882,130 +893,118 @@ class TimeSeriesAnalyzer:
                 .reset_index(drop=True)
             )
 
-            # ---------------------------------------------------------
-            # Break-up
-            # ---------------------------------------------------------
+            min_year = df_region["date"].dt.year.min()
+            max_year = df_region["date"].dt.year.max()
 
-            break_up_years = (
-                df_region["date"]
-                .dt.year
-                .dropna()
-                .unique()
-            )
+            for event_year in range(
+                min_year,
+                max_year + 1,
+            ):
 
-            for year in break_up_years:
+                # -------------------------------------------------
+                # Break-up window
+                # -------------------------------------------------
 
-                window = self._get_event_window(
-                    df_region,
-                    int(year),
-                    "break-up",
+                breakup_window = self._get_event_window(
+                    df_region=df_region,
+                    event_year=event_year,
+                    event_type="break-up",
                 )
 
-                if window.empty:
-                    continue
+                # -------------------------------------------------
+                # Freeze-up window
+                # -------------------------------------------------
 
-                for threshold, direction in thresholds["break-up"].items():
+                freezeup_window = self._get_event_window(
+                    df_region=df_region,
+                    event_year=event_year,
+                    event_type="freeze-up",
+                )
 
-                    date = self._find_threshold_crossing(
-                        window,
+                for threshold in thresholds:
+
+                    # =============================================
+                    # BREAK-UP
+                    # =============================================
+
+                    breakup_date = self._find_threshold_crossing(
+                        df=breakup_window,
                         column=column,
                         threshold=threshold,
-                        direction=direction,
+                        direction="down",
                         persistence=persistence,
                     )
 
-                    records.append(
+                    events.append(
                         {
                             "region": region,
                             "event_type": "break-up",
-                            "year": int(year),
+                            "event_year": event_year,
                             "threshold_percent": threshold,
-                            "date": date,
+                            "event_date": breakup_date,
                         }
                     )
 
-            # ---------------------------------------------------------
-            # Freeze-up
-            # ---------------------------------------------------------
+                    # =============================================
+                    # FREEZE-UP
+                    # =============================================
 
-            freeze_up_years = (
-                df_region["date"]
-                .dt.year
-                .dropna()
-                .unique()
-            )
+                    # A freeze-up crossing is physically meaningful
+                    # only if the threshold was crossed downward
+                    # during the preceding melt season.
+                    if breakup_date is None:
 
-            for year in freeze_up_years:
+                        freezeup_date = None
 
-                window = self._get_event_window(
-                    df_region,
-                    int(year),
-                    "freeze-up",
-                )
+                        logger.debug(
+                            "Skipping freeze-up for %s / %d / %.1f%%: "
+                            "threshold was not crossed during break-up.",
+                            region,
+                            event_year,
+                            threshold,
+                        )
 
-                if window.empty:
-                    continue
+                    else:
 
-                for threshold, direction in thresholds["freeze-up"].items():
+                        freezeup_date = (
+                            self._find_threshold_crossing(
+                                df=freezeup_window,
+                                column=column,
+                                threshold=threshold,
+                                direction="up",
+                                persistence=persistence,
+                            )
+                        )
 
-                    date = self._find_threshold_crossing(
-                        window,
-                        column=column,
-                        threshold=threshold,
-                        direction=direction,
-                        persistence=persistence,
-                    )
-
-                    records.append(
+                    events.append(
                         {
                             "region": region,
                             "event_type": "freeze-up",
-                            "year": int(year),
+                            "event_year": event_year,
                             "threshold_percent": threshold,
-                            "date": date,
+                            "event_date": freezeup_date,
                         }
                     )
 
-        # ---------------------------------------------------------
-        # Create result dataframe
-        # ---------------------------------------------------------
-
-        self.events_df = pd.DataFrame(
-            records,
-            columns=[
-                "region",
-                "event_type",
-                "year",
-                "threshold_percent",
-                "date",
-            ],
-        )
-
-        if not self.events_df.empty:
-
-            self.events_df["date"] = pd.to_datetime(
-                self.events_df["date"],
-            )
-
-            self.events_df.sort_values(
+        self.threshold_events_df = (
+            pd.DataFrame(events)
+            .sort_values(
                 [
                     "region",
-                    "year",
+                    "event_year",
                     "event_type",
                     "threshold_percent",
-                ],
-                inplace=True,
+                ]
             )
-
-            self.events_df.reset_index(
-                drop=True,
-                inplace=True,
-            )
+            .reset_index(drop=True)
+        )
 
         logger.info(
-            "Calculated %d threshold-event records.",
-            len(self.events_df),
+            "Calculated %d threshold event records.",
+            len(self.threshold_events_df),
         )
+
+        return self.threshold_events_df
 
     # ---------------------------------------------------------
     # saving
