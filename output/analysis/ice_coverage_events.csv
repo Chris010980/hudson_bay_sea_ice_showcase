@@ -1,1 +1,1471 @@
-
+region,event_type,event_year,threshold_percent,event_date
+Foxe Basin,break-up,1978,10.0,
+Foxe Basin,break-up,1978,50.0,
+Foxe Basin,break-up,1978,90.0,
+Foxe Basin,freeze-up,1978,10.0,
+Foxe Basin,freeze-up,1978,50.0,
+Foxe Basin,freeze-up,1978,90.0,
+Foxe Basin,break-up,1979,10.0,1979-09-02 21:53:59.728438
+Foxe Basin,break-up,1979,50.0,1979-07-23 07:10:40.562466
+Foxe Basin,break-up,1979,90.0,1979-06-14 01:59:23.529725
+Foxe Basin,freeze-up,1979,10.0,1979-10-17 20:14:50.648193
+Foxe Basin,freeze-up,1979,50.0,1979-10-31 00:48:52.772604
+Foxe Basin,freeze-up,1979,90.0,1979-12-10 15:09:48.235294
+Foxe Basin,break-up,1980,10.0,1980-08-19 04:41:52.266613
+Foxe Basin,break-up,1980,50.0,1980-07-19 23:56:09.477054
+Foxe Basin,break-up,1980,90.0,1980-06-05 00:55:03.361898
+Foxe Basin,freeze-up,1980,10.0,1980-10-21 14:13:59.702233
+Foxe Basin,freeze-up,1980,50.0,1980-11-09 04:01:22.788357
+Foxe Basin,freeze-up,1980,90.0,1980-12-19 17:30:00.837598
+Foxe Basin,break-up,1981,10.0,1981-08-06 21:38:28.599508
+Foxe Basin,break-up,1981,50.0,1981-07-11 08:35:41.682974
+Foxe Basin,break-up,1981,90.0,1981-05-16 08:47:57.883908
+Foxe Basin,freeze-up,1981,10.0,1981-11-03 18:59:28.695652
+Foxe Basin,freeze-up,1981,50.0,1981-11-14 14:24:24.052894
+Foxe Basin,freeze-up,1981,90.0,1981-12-29 13:32:23.470887
+Foxe Basin,break-up,1982,10.0,1982-08-20 08:26:27.174348
+Foxe Basin,break-up,1982,50.0,1982-07-17 02:49:35.346767
+Foxe Basin,break-up,1982,90.0,1982-06-12 05:46:22.354694
+Foxe Basin,freeze-up,1982,10.0,1982-10-20 18:59:03.928625
+Foxe Basin,freeze-up,1982,50.0,1982-11-07 14:13:15.152850
+Foxe Basin,freeze-up,1982,90.0,1982-12-07 08:06:11.134020
+Foxe Basin,break-up,1983,10.0,
+Foxe Basin,break-up,1983,50.0,1983-08-08 09:02:05.799256
+Foxe Basin,break-up,1983,90.0,1983-06-16 16:46:35.760915
+Foxe Basin,freeze-up,1983,10.0,
+Foxe Basin,freeze-up,1983,50.0,1983-10-27 15:19:10.061199
+Foxe Basin,freeze-up,1983,90.0,1983-12-05 10:47:07.855153
+Foxe Basin,break-up,1984,10.0,1984-08-23 01:45:27.887323
+Foxe Basin,break-up,1984,50.0,1984-07-22 04:31:28.762160
+Foxe Basin,break-up,1984,90.0,1984-06-09 18:42:53.617021
+Foxe Basin,freeze-up,1984,10.0,1984-10-22 04:49:27.493670
+Foxe Basin,freeze-up,1984,50.0,1984-11-02 03:15:59.984302
+Foxe Basin,freeze-up,1984,90.0,1984-12-11 03:08:21.893287
+Foxe Basin,break-up,1985,10.0,1985-08-19 06:11:43.652517
+Foxe Basin,break-up,1985,50.0,1985-07-11 08:35:53.739130
+Foxe Basin,break-up,1985,90.0,1985-06-04 16:20:25.531914
+Foxe Basin,freeze-up,1985,10.0,1985-10-27 08:02:23.332761
+Foxe Basin,freeze-up,1985,50.0,1985-11-10 09:33:10.956521
+Foxe Basin,freeze-up,1985,90.0,1986-01-03 13:12:04.971231
+Foxe Basin,break-up,1986,10.0,1986-08-25 18:12:31.898734
+Foxe Basin,break-up,1986,50.0,1986-07-20 18:45:55.555555
+Foxe Basin,break-up,1986,90.0,1986-05-14 00:37:19.246045
+Foxe Basin,freeze-up,1986,10.0,1986-10-05 23:16:02.790697
+Foxe Basin,freeze-up,1986,50.0,1986-10-21 10:24:17.922450
+Foxe Basin,freeze-up,1986,90.0,1986-11-21 21:31:49.234828
+Foxe Basin,break-up,1987,10.0,
+Foxe Basin,break-up,1987,50.0,1987-07-27 11:52:25.718577
+Foxe Basin,break-up,1987,90.0,1987-06-19 17:37:25.018450
+Foxe Basin,freeze-up,1987,10.0,
+Foxe Basin,freeze-up,1987,50.0,1987-11-10 02:51:06.270591
+Foxe Basin,freeze-up,1987,90.0,1987-11-29 20:53:00.541388
+Foxe Basin,break-up,1988,10.0,1988-08-24 16:07:16.504353
+Foxe Basin,break-up,1988,50.0,1988-07-19 10:49:51.326209
+Foxe Basin,break-up,1988,90.0,1988-06-06 06:57:42.020905
+Foxe Basin,freeze-up,1988,10.0,1988-10-29 12:11:48.923076
+Foxe Basin,freeze-up,1988,50.0,1988-11-09 06:34:28.413530
+Foxe Basin,freeze-up,1988,90.0,1988-12-05 08:38:10.526315
+Foxe Basin,break-up,1989,10.0,1989-08-27 22:12:01.295740
+Foxe Basin,break-up,1989,50.0,1989-07-21 05:07:24.444444
+Foxe Basin,break-up,1989,90.0,1989-06-14 09:21:09.484655
+Foxe Basin,freeze-up,1989,10.0,1989-10-16 15:43:58.914027
+Foxe Basin,freeze-up,1989,50.0,1989-10-27 13:12:14.379457
+Foxe Basin,freeze-up,1989,90.0,1989-12-03 07:23:34.443084
+Foxe Basin,break-up,1990,10.0,
+Foxe Basin,break-up,1990,50.0,1990-07-29 22:56:19.495578
+Foxe Basin,break-up,1990,90.0,1990-06-22 12:41:44.042864
+Foxe Basin,freeze-up,1990,10.0,
+Foxe Basin,freeze-up,1990,50.0,1990-10-19 18:24:09.092344
+Foxe Basin,freeze-up,1990,90.0,1990-12-08 07:50:30.830039
+Foxe Basin,break-up,1991,10.0,1991-09-04 18:34:54.753577
+Foxe Basin,break-up,1991,50.0,1991-07-19 09:18:56.659156
+Foxe Basin,break-up,1991,90.0,1991-06-10 19:28:03.147540
+Foxe Basin,freeze-up,1991,10.0,1991-10-13 03:17:27.272727
+Foxe Basin,freeze-up,1991,50.0,1991-11-01 14:52:22.495687
+Foxe Basin,freeze-up,1991,90.0,1991-12-07 23:13:43.182297
+Foxe Basin,break-up,1992,10.0,1992-09-04 15:21:51.091703
+Foxe Basin,break-up,1992,50.0,1992-07-30 03:06:17.002053
+Foxe Basin,break-up,1992,90.0,1992-06-13 07:35:16.886227
+Foxe Basin,freeze-up,1992,10.0,1992-10-24 03:26:04.868479
+Foxe Basin,freeze-up,1992,50.0,1992-11-02 15:41:39.419137
+Foxe Basin,freeze-up,1992,90.0,1992-12-17 01:44:21.573033
+Foxe Basin,break-up,1993,10.0,1993-09-05 07:12:18.728323
+Foxe Basin,break-up,1993,50.0,1993-07-13 00:29:03.986543
+Foxe Basin,break-up,1993,90.0,1993-06-04 08:25:45.365853
+Foxe Basin,freeze-up,1993,10.0,1993-10-28 09:00:53.731343
+Foxe Basin,freeze-up,1993,50.0,1993-11-05 08:12:30.488599
+Foxe Basin,freeze-up,1993,90.0,1993-12-20 00:39:27.799029
+Foxe Basin,break-up,1994,10.0,1994-08-15 01:59:05.864661
+Foxe Basin,break-up,1994,50.0,1994-07-11 14:20:13.129102
+Foxe Basin,break-up,1994,90.0,1994-05-20 17:59:42.367346
+Foxe Basin,freeze-up,1994,10.0,1994-10-23 23:51:23.793876
+Foxe Basin,freeze-up,1994,50.0,1994-11-18 02:52:50.942111
+Foxe Basin,freeze-up,1994,90.0,1995-01-03 17:37:36.912948
+Foxe Basin,break-up,1995,10.0,1995-08-17 17:38:40.686695
+Foxe Basin,break-up,1995,50.0,1995-07-10 05:43:55.842771
+Foxe Basin,break-up,1995,90.0,1995-06-06 22:34:51.516709
+Foxe Basin,freeze-up,1995,10.0,1995-10-27 15:38:48.311688
+Foxe Basin,freeze-up,1995,50.0,1995-11-16 08:09:21.768530
+Foxe Basin,freeze-up,1995,90.0,1995-12-12 06:44:15.737704
+Foxe Basin,break-up,1996,10.0,1996-08-22 04:53:25.139972
+Foxe Basin,break-up,1996,50.0,1996-07-14 17:56:35.951417
+Foxe Basin,break-up,1996,90.0,1996-05-31 21:05:31.221719
+Foxe Basin,freeze-up,1996,10.0,1996-10-22 09:26:08.693119
+Foxe Basin,freeze-up,1996,50.0,1996-11-11 10:34:12.603706
+Foxe Basin,freeze-up,1996,90.0,1996-12-23 12:54:54.321254
+Foxe Basin,break-up,1997,10.0,1997-08-06 11:41:58.577075
+Foxe Basin,break-up,1997,50.0,1997-07-09 18:45:44.394618
+Foxe Basin,break-up,1997,90.0,1997-05-26 13:18:17.223151
+Foxe Basin,freeze-up,1997,10.0,1997-10-19 04:38:05.419354
+Foxe Basin,freeze-up,1997,50.0,1997-11-08 04:48:09.171974
+Foxe Basin,freeze-up,1997,90.0,1997-12-17 12:18:16.446700
+Foxe Basin,break-up,1998,10.0,1998-08-17 12:29:22.711864
+Foxe Basin,break-up,1998,50.0,1998-07-08 03:27:48.740438
+Foxe Basin,break-up,1998,90.0,1998-05-28 14:22:31.156812
+Foxe Basin,freeze-up,1998,10.0,1998-11-04 05:04:08.275862
+Foxe Basin,freeze-up,1998,50.0,1998-11-22 14:32:53.221757
+Foxe Basin,freeze-up,1998,90.0,1999-01-09 09:07:57.876106
+Foxe Basin,break-up,1999,10.0,1999-08-21 11:43:47.072208
+Foxe Basin,break-up,1999,50.0,1999-07-13 05:24:47.425149
+Foxe Basin,break-up,1999,90.0,1999-05-21 01:05:53.252480
+Foxe Basin,freeze-up,1999,10.0,1999-10-20 09:29:02.430703
+Foxe Basin,freeze-up,1999,50.0,1999-11-08 08:26:53.913043
+Foxe Basin,freeze-up,1999,90.0,1999-12-27 03:54:53.617021
+Foxe Basin,break-up,2000,10.0,2000-08-11 02:52:10.434782
+Foxe Basin,break-up,2000,50.0,2000-07-11 17:24:29.572506
+Foxe Basin,break-up,2000,90.0,2000-06-01 05:17:36.343526
+Foxe Basin,freeze-up,2000,10.0,2000-10-25 13:07:07.364185
+Foxe Basin,freeze-up,2000,50.0,2000-11-09 14:07:18.152783
+Foxe Basin,freeze-up,2000,90.0,2000-12-27 23:36:33.851717
+Foxe Basin,break-up,2001,10.0,2001-08-19 03:29:21.373390
+Foxe Basin,break-up,2001,50.0,2001-07-12 04:43:33.266583
+Foxe Basin,break-up,2001,90.0,2001-04-30 11:25:41.174064
+Foxe Basin,freeze-up,2001,10.0,2001-10-29 02:03:41.134825
+Foxe Basin,freeze-up,2001,50.0,2001-11-14 11:06:47.217210
+Foxe Basin,freeze-up,2001,90.0,2001-12-09 00:13:47.359781
+Foxe Basin,break-up,2002,10.0,2002-08-12 23:12:27.523892
+Foxe Basin,break-up,2002,50.0,2002-07-12 19:45:52.941176
+Foxe Basin,break-up,2002,90.0,2002-06-10 06:10:01.284796
+Foxe Basin,freeze-up,2002,10.0,2002-11-08 19:35:35.270805
+Foxe Basin,freeze-up,2002,50.0,2002-11-22 01:09:58.006644
+Foxe Basin,freeze-up,2002,90.0,2002-12-24 03:46:09.388920
+Foxe Basin,break-up,2003,10.0,2003-08-08 19:09:26.037735
+Foxe Basin,break-up,2003,50.0,2003-07-06 05:23:36.683022
+Foxe Basin,break-up,2003,90.0,2003-05-05 00:32:12.569558
+Foxe Basin,freeze-up,2003,10.0,2003-11-02 02:54:07.058823
+Foxe Basin,freeze-up,2003,50.0,2003-11-28 11:38:07.559961
+Foxe Basin,freeze-up,2003,90.0,2003-12-30 01:35:26.896551
+Foxe Basin,break-up,2004,10.0,2004-08-19 13:41:16.867418
+Foxe Basin,break-up,2004,50.0,2004-07-13 18:08:09.672544
+Foxe Basin,break-up,2004,90.0,2004-06-08 02:30:33.780160
+Foxe Basin,freeze-up,2004,10.0,2004-10-28 02:20:37.082818
+Foxe Basin,freeze-up,2004,50.0,2004-11-06 08:53:43.699713
+Foxe Basin,freeze-up,2004,90.0,2004-12-16 07:41:33.067947
+Foxe Basin,break-up,2005,10.0,2005-07-30 22:06:12.752043
+Foxe Basin,break-up,2005,50.0,2005-07-06 15:29:35.944218
+Foxe Basin,break-up,2005,90.0,2005-05-19 17:40:46.975088
+Foxe Basin,freeze-up,2005,10.0,2005-11-03 11:12:14.004862
+Foxe Basin,freeze-up,2005,50.0,2005-11-19 23:04:27.768595
+Foxe Basin,freeze-up,2005,90.0,2005-12-22 00:33:17.890466
+Foxe Basin,break-up,2006,10.0,2006-07-27 17:25:03.235747
+Foxe Basin,break-up,2006,50.0,2006-06-18 10:30:20.156090
+Foxe Basin,break-up,2006,90.0,2006-04-29 01:56:16.661742
+Foxe Basin,freeze-up,2006,10.0,2006-11-10 08:18:45.131195
+Foxe Basin,freeze-up,2006,50.0,2006-11-30 01:42:53.105134
+Foxe Basin,freeze-up,2006,90.0,2007-01-05 16:51:37.358490
+Foxe Basin,break-up,2007,10.0,2007-08-14 17:38:15.302013
+Foxe Basin,break-up,2007,50.0,2007-07-08 01:57:18.202247
+Foxe Basin,break-up,2007,90.0,2007-05-04 04:08:46.765664
+Foxe Basin,freeze-up,2007,10.0,2007-10-30 02:56:32.876712
+Foxe Basin,freeze-up,2007,50.0,2007-11-12 13:04:00.988671
+Foxe Basin,freeze-up,2007,90.0,2007-12-15 00:21:57.647058
+Foxe Basin,break-up,2008,10.0,2008-08-19 10:32:15.894039
+Foxe Basin,break-up,2008,50.0,2008-07-12 09:54:26.385846
+Foxe Basin,break-up,2008,90.0,2008-06-06 09:31:26.285952
+Foxe Basin,freeze-up,2008,10.0,2008-10-28 06:37:24.389027
+Foxe Basin,freeze-up,2008,50.0,2008-11-07 03:11:18.070973
+Foxe Basin,freeze-up,2008,90.0,2008-12-11 04:22:58.124999
+Foxe Basin,break-up,2009,10.0,2009-08-06 06:03:40.408163
+Foxe Basin,break-up,2009,50.0,2009-07-05 18:09:12.931461
+Foxe Basin,break-up,2009,90.0,2009-05-23 23:22:00.000000
+Foxe Basin,freeze-up,2009,10.0,2009-10-23 12:48:12.203389
+Foxe Basin,freeze-up,2009,50.0,2009-11-06 01:24:18.859784
+Foxe Basin,freeze-up,2009,90.0,2010-01-21 13:26:05.767878
+Foxe Basin,break-up,2010,10.0,2010-08-04 13:02:35.725190
+Foxe Basin,break-up,2010,50.0,2010-07-04 17:56:31.991890
+Foxe Basin,break-up,2010,90.0,2010-05-08 16:07:29.234259
+Foxe Basin,freeze-up,2010,10.0,2010-11-21 03:58:21.873935
+Foxe Basin,freeze-up,2010,50.0,2010-12-09 04:57:26.971307
+Foxe Basin,freeze-up,2010,90.0,2011-01-27 23:16:21.818181
+Foxe Basin,break-up,2011,10.0,2011-08-11 04:40:31.815561
+Foxe Basin,break-up,2011,50.0,2011-07-06 15:17:17.480314
+Foxe Basin,break-up,2011,90.0,2011-05-12 02:00:24.790949
+Foxe Basin,freeze-up,2011,10.0,2011-11-03 01:45:00.994475
+Foxe Basin,freeze-up,2011,50.0,2011-11-22 19:24:23.020948
+Foxe Basin,freeze-up,2011,90.0,2011-12-28 11:32:58.156996
+Foxe Basin,break-up,2012,10.0,2012-08-11 08:58:15.596133
+Foxe Basin,break-up,2012,50.0,2012-07-08 09:37:44.900662
+Foxe Basin,break-up,2012,90.0,2012-05-14 18:40:29.179331
+Foxe Basin,freeze-up,2012,10.0,2012-11-05 13:33:15.180722
+Foxe Basin,freeze-up,2012,50.0,2012-11-19 08:39:48.593155
+Foxe Basin,freeze-up,2012,90.0,2012-12-31 02:52:18.461538
+Foxe Basin,break-up,2013,10.0,2013-08-14 16:18:29.399075
+Foxe Basin,break-up,2013,50.0,2013-07-09 17:54:11.880276
+Foxe Basin,break-up,2013,90.0,2013-05-27 10:43:35.510204
+Foxe Basin,freeze-up,2013,10.0,2013-10-26 21:22:03.472668
+Foxe Basin,freeze-up,2013,50.0,2013-11-11 12:56:09.435637
+Foxe Basin,freeze-up,2013,90.0,2013-12-17 05:40:41.201716
+Foxe Basin,break-up,2014,10.0,2014-08-10 12:12:02.408026
+Foxe Basin,break-up,2014,50.0,2014-07-13 04:28:25.458290
+Foxe Basin,break-up,2014,90.0,2014-06-07 03:55:42.276281
+Foxe Basin,freeze-up,2014,10.0,2014-10-23 12:35:25.714285
+Foxe Basin,freeze-up,2014,50.0,2014-11-12 13:01:48.584686
+Foxe Basin,freeze-up,2014,90.0,2014-12-15 23:50:38.353196
+Foxe Basin,break-up,2015,10.0,2015-08-30 22:27:23.729903
+Foxe Basin,break-up,2015,50.0,2015-07-16 05:18:45.831373
+Foxe Basin,break-up,2015,90.0,2015-05-17 02:36:15.766423
+Foxe Basin,freeze-up,2015,10.0,2015-10-25 00:53:42.647283
+Foxe Basin,freeze-up,2015,50.0,2015-11-03 05:09:07.976878
+Foxe Basin,freeze-up,2015,90.0,2015-12-03 18:51:16.834532
+Foxe Basin,break-up,2016,10.0,2016-08-05 20:12:01.535181
+Foxe Basin,break-up,2016,50.0,2016-07-05 02:05:47.327249
+Foxe Basin,break-up,2016,90.0,2016-05-06 07:01:33.913043
+Foxe Basin,freeze-up,2016,10.0,2016-10-26 12:34:34.670797
+Foxe Basin,freeze-up,2016,50.0,2016-11-20 01:30:45.569620
+Foxe Basin,freeze-up,2016,90.0,2016-12-20 10:25:52.461799
+Foxe Basin,break-up,2017,10.0,2017-08-03 12:55:09.923664
+Foxe Basin,break-up,2017,50.0,2017-07-04 13:04:41.739130
+Foxe Basin,break-up,2017,90.0,2017-05-14 02:25:44.939271
+Foxe Basin,freeze-up,2017,10.0,2017-10-27 17:57:27.032967
+Foxe Basin,freeze-up,2017,50.0,2017-11-24 11:30:34.229508
+Foxe Basin,freeze-up,2017,90.0,2017-12-21 02:08:01.918081
+Foxe Basin,break-up,2018,10.0,2018-08-18 17:45:32.009237
+Foxe Basin,break-up,2018,50.0,2018-07-11 09:15:58.427635
+Foxe Basin,break-up,2018,90.0,2018-05-17 04:25:15.789473
+Foxe Basin,freeze-up,2018,10.0,2018-10-16 15:37:34.945054
+Foxe Basin,freeze-up,2018,50.0,2018-11-03 17:23:17.665712
+Foxe Basin,freeze-up,2018,90.0,2018-12-23 21:55:51.724137
+Foxe Basin,break-up,2019,10.0,2019-07-19 20:50:32.239326
+Foxe Basin,break-up,2019,50.0,2019-06-27 01:01:55.345699
+Foxe Basin,break-up,2019,90.0,2019-04-30 03:50:37.499999
+Foxe Basin,freeze-up,2019,10.0,2019-11-13 21:50:07.058823
+Foxe Basin,freeze-up,2019,50.0,2019-12-03 01:16:27.133041
+Foxe Basin,freeze-up,2019,90.0,2020-01-04 02:00:29.032258
+Foxe Basin,break-up,2020,10.0,2020-08-07 14:44:18.012170
+Foxe Basin,break-up,2020,50.0,2020-07-03 07:44:17.248338
+Foxe Basin,break-up,2020,90.0,2020-05-08 21:05:13.588850
+Foxe Basin,freeze-up,2020,10.0,2020-11-04 03:28:01.504702
+Foxe Basin,freeze-up,2020,50.0,2020-11-19 21:42:46.389024
+Foxe Basin,freeze-up,2020,90.0,2021-01-01 07:07:11.022782
+Foxe Basin,break-up,2021,10.0,2021-08-10 10:55:27.654164
+Foxe Basin,break-up,2021,50.0,2021-07-12 05:14:21.064147
+Foxe Basin,break-up,2021,90.0,2021-05-17 20:04:58.961937
+Foxe Basin,freeze-up,2021,10.0,2021-11-09 07:54:59.892202
+Foxe Basin,freeze-up,2021,50.0,2021-11-29 04:18:31.480214
+Foxe Basin,freeze-up,2021,90.0,2022-01-08 03:50:57.998289
+Foxe Basin,break-up,2022,10.0,2022-07-29 12:00:56.668124
+Foxe Basin,break-up,2022,50.0,2022-07-04 01:45:28.382502
+Foxe Basin,break-up,2022,90.0,2022-05-06 22:03:38.181818
+Foxe Basin,freeze-up,2022,10.0,2022-10-31 22:22:54.009819
+Foxe Basin,freeze-up,2022,50.0,2022-11-15 06:12:36.035328
+Foxe Basin,freeze-up,2022,90.0,2022-12-31 02:20:45.923460
+Foxe Basin,break-up,2023,10.0,2023-08-14 06:54:00.733197
+Foxe Basin,break-up,2023,50.0,2023-06-24 13:32:25.945945
+Foxe Basin,break-up,2023,90.0,2023-05-11 14:48:53.333333
+Foxe Basin,freeze-up,2023,10.0,2023-11-05 02:38:39.327731
+Foxe Basin,freeze-up,2023,50.0,2023-12-10 01:38:38.878589
+Foxe Basin,freeze-up,2023,90.0,2024-01-21 16:04:08.867699
+Foxe Basin,break-up,2024,10.0,2024-07-27 06:30:30.113329
+Foxe Basin,break-up,2024,50.0,2024-07-02 20:59:55.629299
+Foxe Basin,break-up,2024,90.0,2024-05-25 02:45:19.809637
+Foxe Basin,freeze-up,2024,10.0,2024-11-23 13:02:19.320531
+Foxe Basin,freeze-up,2024,50.0,2024-12-04 15:46:36.441568
+Foxe Basin,freeze-up,2024,90.0,2025-02-03 03:15:04.433497
+Foxe Basin,break-up,2025,10.0,2025-08-01 15:06:21.993569
+Foxe Basin,break-up,2025,50.0,2025-06-27 00:42:55.609756
+Foxe Basin,break-up,2025,90.0,2025-05-08 07:31:46.468350
+Foxe Basin,freeze-up,2025,10.0,2025-11-24 19:27:06.293706
+Foxe Basin,freeze-up,2025,50.0,2025-12-12 11:33:37.433777
+Foxe Basin,freeze-up,2025,90.0,2026-01-28 05:21:06.101694
+Foxe Basin,break-up,2026,10.0,2026-07-23 02:45:50.095969
+Foxe Basin,break-up,2026,50.0,2026-06-26 18:26:26.832597
+Foxe Basin,break-up,2026,90.0,2026-05-05 02:23:12.592592
+Foxe Basin,freeze-up,2026,10.0,
+Foxe Basin,freeze-up,2026,50.0,
+Foxe Basin,freeze-up,2026,90.0,
+Gulf of Boothia,break-up,1978,10.0,
+Gulf of Boothia,break-up,1978,50.0,
+Gulf of Boothia,break-up,1978,90.0,
+Gulf of Boothia,freeze-up,1978,10.0,
+Gulf of Boothia,freeze-up,1978,50.0,
+Gulf of Boothia,freeze-up,1978,90.0,
+Gulf of Boothia,break-up,1979,10.0,
+Gulf of Boothia,break-up,1979,50.0,
+Gulf of Boothia,break-up,1979,90.0,1979-07-02 19:18:20.244498
+Gulf of Boothia,freeze-up,1979,10.0,
+Gulf of Boothia,freeze-up,1979,50.0,
+Gulf of Boothia,freeze-up,1979,90.0,1979-10-12 10:22:02.740814
+Gulf of Boothia,break-up,1980,10.0,
+Gulf of Boothia,break-up,1980,50.0,1980-08-20 17:43:18.595110
+Gulf of Boothia,break-up,1980,90.0,1980-07-05 17:48:23.225806
+Gulf of Boothia,freeze-up,1980,10.0,
+Gulf of Boothia,freeze-up,1980,50.0,1980-09-15 03:09:12.215680
+Gulf of Boothia,freeze-up,1980,90.0,1980-10-08 05:14:25.960665
+Gulf of Boothia,break-up,1981,10.0,
+Gulf of Boothia,break-up,1981,50.0,1981-08-05 20:05:31.327433
+Gulf of Boothia,break-up,1981,90.0,1981-06-26 09:19:13.398058
+Gulf of Boothia,freeze-up,1981,10.0,
+Gulf of Boothia,freeze-up,1981,50.0,1981-10-11 14:42:27.739333
+Gulf of Boothia,freeze-up,1981,90.0,1981-11-20 01:13:52.326071
+Gulf of Boothia,break-up,1982,10.0,
+Gulf of Boothia,break-up,1982,50.0,1982-09-02 16:16:06.442953
+Gulf of Boothia,break-up,1982,90.0,1982-06-18 23:14:15.162454
+Gulf of Boothia,freeze-up,1982,10.0,
+Gulf of Boothia,freeze-up,1982,50.0,1982-09-20 23:12:49.592608
+Gulf of Boothia,freeze-up,1982,90.0,1982-11-04 09:30:00.000000
+Gulf of Boothia,break-up,1983,10.0,
+Gulf of Boothia,break-up,1983,50.0,1983-08-31 08:26:27.651598
+Gulf of Boothia,break-up,1983,90.0,1983-06-14 18:12:27.143412
+Gulf of Boothia,freeze-up,1983,10.0,
+Gulf of Boothia,freeze-up,1983,50.0,1983-10-02 15:49:04.119646
+Gulf of Boothia,freeze-up,1983,90.0,1983-11-10 05:36:33.103448
+Gulf of Boothia,break-up,1984,10.0,
+Gulf of Boothia,break-up,1984,50.0,1984-08-12 16:27:55.778078
+Gulf of Boothia,break-up,1984,90.0,1984-06-16 17:39:27.699339
+Gulf of Boothia,freeze-up,1984,10.0,
+Gulf of Boothia,freeze-up,1984,50.0,1984-09-29 11:05:03.433922
+Gulf of Boothia,freeze-up,1984,90.0,1984-11-13 06:22:37.714285
+Gulf of Boothia,break-up,1985,10.0,
+Gulf of Boothia,break-up,1985,50.0,1985-07-27 17:37:47.189030
+Gulf of Boothia,break-up,1985,90.0,1985-06-09 21:31:23.274021
+Gulf of Boothia,freeze-up,1985,10.0,
+Gulf of Boothia,freeze-up,1985,50.0,1985-10-12 13:32:30.295192
+Gulf of Boothia,freeze-up,1985,90.0,1985-11-18 07:52:50.149253
+Gulf of Boothia,break-up,1986,10.0,
+Gulf of Boothia,break-up,1986,50.0,1986-09-04 12:05:08.571428
+Gulf of Boothia,break-up,1986,90.0,1986-06-25 14:07:28.211920
+Gulf of Boothia,freeze-up,1986,10.0,
+Gulf of Boothia,freeze-up,1986,50.0,1986-09-29 00:09:28.694814
+Gulf of Boothia,freeze-up,1986,90.0,1986-10-17 19:54:25.116279
+Gulf of Boothia,break-up,1987,10.0,
+Gulf of Boothia,break-up,1987,50.0,
+Gulf of Boothia,break-up,1987,90.0,1987-07-12 07:09:38.360655
+Gulf of Boothia,freeze-up,1987,10.0,
+Gulf of Boothia,freeze-up,1987,50.0,
+Gulf of Boothia,freeze-up,1987,90.0,1987-10-18 03:34:36.190476
+Gulf of Boothia,break-up,1988,10.0,
+Gulf of Boothia,break-up,1988,50.0,1988-08-06 12:45:38.838572
+Gulf of Boothia,break-up,1988,90.0,1988-06-26 11:58:16.568236
+Gulf of Boothia,freeze-up,1988,10.0,
+Gulf of Boothia,freeze-up,1988,50.0,1988-10-13 19:24:54.212818
+Gulf of Boothia,freeze-up,1988,90.0,1988-11-03 18:40:27.846265
+Gulf of Boothia,break-up,1989,10.0,
+Gulf of Boothia,break-up,1989,50.0,1989-08-06 14:57:15.866261
+Gulf of Boothia,break-up,1989,90.0,1989-06-18 12:48:08.252148
+Gulf of Boothia,freeze-up,1989,10.0,
+Gulf of Boothia,freeze-up,1989,50.0,1989-10-11 12:23:46.661296
+Gulf of Boothia,freeze-up,1989,90.0,1989-11-01 15:52:58.700994
+Gulf of Boothia,break-up,1990,10.0,
+Gulf of Boothia,break-up,1990,50.0,1990-08-25 00:43:12.000000
+Gulf of Boothia,break-up,1990,90.0,1990-07-16 03:53:28.888888
+Gulf of Boothia,freeze-up,1990,10.0,
+Gulf of Boothia,freeze-up,1990,50.0,1990-10-01 04:29:45.263157
+Gulf of Boothia,freeze-up,1990,90.0,1990-10-28 04:17:34.647887
+Gulf of Boothia,break-up,1991,10.0,
+Gulf of Boothia,break-up,1991,50.0,1991-08-08 13:50:04.089581
+Gulf of Boothia,break-up,1991,90.0,1991-06-12 04:49:16.800000
+Gulf of Boothia,freeze-up,1991,10.0,
+Gulf of Boothia,freeze-up,1991,50.0,1991-10-01 19:52:49.987452
+Gulf of Boothia,freeze-up,1991,90.0,1991-11-06 10:34:18.189216
+Gulf of Boothia,break-up,1992,10.0,
+Gulf of Boothia,break-up,1992,50.0,
+Gulf of Boothia,break-up,1992,90.0,1992-06-26 16:52:40.282087
+Gulf of Boothia,freeze-up,1992,10.0,
+Gulf of Boothia,freeze-up,1992,50.0,
+Gulf of Boothia,freeze-up,1992,90.0,1992-11-05 07:45:16.564417
+Gulf of Boothia,break-up,1993,10.0,
+Gulf of Boothia,break-up,1993,50.0,1993-08-21 10:54:32.727272
+Gulf of Boothia,break-up,1993,90.0,1993-06-22 23:45:59.533073
+Gulf of Boothia,freeze-up,1993,10.0,
+Gulf of Boothia,freeze-up,1993,50.0,1993-10-06 03:30:57.935627
+Gulf of Boothia,freeze-up,1993,90.0,1993-11-05 16:45:42.857142
+Gulf of Boothia,break-up,1994,10.0,
+Gulf of Boothia,break-up,1994,50.0,1994-08-05 22:06:03.701385
+Gulf of Boothia,break-up,1994,90.0,1994-06-13 13:09:45.382436
+Gulf of Boothia,freeze-up,1994,10.0,
+Gulf of Boothia,freeze-up,1994,50.0,1994-10-07 13:33:45.000000
+Gulf of Boothia,freeze-up,1994,90.0,1994-11-19 09:47:03.791821
+Gulf of Boothia,break-up,1995,10.0,
+Gulf of Boothia,break-up,1995,50.0,1995-08-06 10:04:43.257090
+Gulf of Boothia,break-up,1995,90.0,1995-06-13 20:42:00.000000
+Gulf of Boothia,freeze-up,1995,10.0,
+Gulf of Boothia,freeze-up,1995,50.0,1995-09-29 11:50:56.914285
+Gulf of Boothia,freeze-up,1995,90.0,1995-11-15 22:55:03.978779
+Gulf of Boothia,break-up,1996,10.0,
+Gulf of Boothia,break-up,1996,50.0,1996-07-24 20:39:04.186046
+Gulf of Boothia,break-up,1996,90.0,1996-06-18 02:29:55.925758
+Gulf of Boothia,freeze-up,1996,10.0,
+Gulf of Boothia,freeze-up,1996,50.0,1996-10-08 13:25:47.806396
+Gulf of Boothia,freeze-up,1996,90.0,1996-11-26 01:50:40.000000
+Gulf of Boothia,break-up,1997,10.0,
+Gulf of Boothia,break-up,1997,50.0,1997-07-28 16:03:35.614973
+Gulf of Boothia,break-up,1997,90.0,1997-06-06 14:31:06.666666
+Gulf of Boothia,freeze-up,1997,10.0,
+Gulf of Boothia,freeze-up,1997,50.0,1997-10-08 00:08:36.651333
+Gulf of Boothia,freeze-up,1997,90.0,1997-10-22 08:29:13.159851
+Gulf of Boothia,break-up,1998,10.0,1998-09-01 02:04:56.329254
+Gulf of Boothia,break-up,1998,50.0,1998-07-19 09:49:59.089529
+Gulf of Boothia,break-up,1998,90.0,1998-06-05 10:08:48.252938
+Gulf of Boothia,freeze-up,1998,10.0,1998-10-16 00:16:36.276743
+Gulf of Boothia,freeze-up,1998,50.0,1998-10-22 22:53:29.508048
+Gulf of Boothia,freeze-up,1998,90.0,1998-12-18 17:35:41.479099
+Gulf of Boothia,break-up,1999,10.0,
+Gulf of Boothia,break-up,1999,50.0,1999-07-30 00:13:43.837902
+Gulf of Boothia,break-up,1999,90.0,1999-06-18 02:01:39.017681
+Gulf of Boothia,freeze-up,1999,10.0,
+Gulf of Boothia,freeze-up,1999,50.0,1999-10-14 12:05:35.345868
+Gulf of Boothia,freeze-up,1999,90.0,1999-11-14 02:41:13.282442
+Gulf of Boothia,break-up,2000,10.0,
+Gulf of Boothia,break-up,2000,50.0,2000-07-31 18:58:51.558935
+Gulf of Boothia,break-up,2000,90.0,2000-06-08 06:06:40.390243
+Gulf of Boothia,freeze-up,2000,10.0,
+Gulf of Boothia,freeze-up,2000,50.0,2000-10-11 13:03:08.610478
+Gulf of Boothia,freeze-up,2000,90.0,2000-11-15 05:17:14.999999
+Gulf of Boothia,break-up,2001,10.0,2001-08-30 00:47:31.485148
+Gulf of Boothia,break-up,2001,50.0,2001-07-30 11:02:33.846153
+Gulf of Boothia,break-up,2001,90.0,2001-06-20 08:36:43.059805
+Gulf of Boothia,freeze-up,2001,10.0,2001-10-08 04:44:39.599367
+Gulf of Boothia,freeze-up,2001,50.0,2001-10-17 20:36:03.951034
+Gulf of Boothia,freeze-up,2001,90.0,2001-11-11 18:44:35.358539
+Gulf of Boothia,break-up,2002,10.0,
+Gulf of Boothia,break-up,2002,50.0,2002-08-12 02:00:51.798561
+Gulf of Boothia,break-up,2002,90.0,2002-06-15 14:30:00.736799
+Gulf of Boothia,freeze-up,2002,10.0,
+Gulf of Boothia,freeze-up,2002,50.0,2002-10-05 22:04:31.347444
+Gulf of Boothia,freeze-up,2002,90.0,2002-11-20 06:11:48.196721
+Gulf of Boothia,break-up,2003,10.0,
+Gulf of Boothia,break-up,2003,50.0,2003-08-28 04:14:20.176991
+Gulf of Boothia,break-up,2003,90.0,2003-06-21 23:55:21.739130
+Gulf of Boothia,freeze-up,2003,10.0,
+Gulf of Boothia,freeze-up,2003,50.0,2003-09-28 01:58:06.661143
+Gulf of Boothia,freeze-up,2003,90.0,2003-12-05 13:11:22.758620
+Gulf of Boothia,break-up,2004,10.0,
+Gulf of Boothia,break-up,2004,50.0,2004-08-20 01:23:45.503355
+Gulf of Boothia,break-up,2004,90.0,2004-06-23 05:34:43.774453
+Gulf of Boothia,freeze-up,2004,10.0,
+Gulf of Boothia,freeze-up,2004,50.0,2004-09-27 19:17:12.983794
+Gulf of Boothia,freeze-up,2004,90.0,2004-11-21 00:42:17.783711
+Gulf of Boothia,break-up,2005,10.0,
+Gulf of Boothia,break-up,2005,50.0,2005-08-05 17:07:24.394110
+Gulf of Boothia,break-up,2005,90.0,2005-05-24 22:17:01.453287
+Gulf of Boothia,freeze-up,2005,10.0,
+Gulf of Boothia,freeze-up,2005,50.0,2005-10-04 23:42:14.976887
+Gulf of Boothia,freeze-up,2005,90.0,2005-11-29 22:25:34.426229
+Gulf of Boothia,break-up,2006,10.0,2006-09-05 06:23:16.813495
+Gulf of Boothia,break-up,2006,50.0,2006-07-26 07:00:22.489187
+Gulf of Boothia,break-up,2006,90.0,2006-06-16 05:08:51.255728
+Gulf of Boothia,freeze-up,2006,10.0,2006-10-12 09:45:55.862068
+Gulf of Boothia,freeze-up,2006,50.0,2006-11-03 15:26:16.799999
+Gulf of Boothia,freeze-up,2006,90.0,2006-12-03 22:46:20.562659
+Gulf of Boothia,break-up,2007,10.0,2007-08-17 04:22:43.975155
+Gulf of Boothia,break-up,2007,50.0,2007-07-23 06:47:04.336134
+Gulf of Boothia,break-up,2007,90.0,2007-06-11 14:00:41.811846
+Gulf of Boothia,freeze-up,2007,10.0,2007-10-16 09:44:07.288503
+Gulf of Boothia,freeze-up,2007,50.0,2007-10-23 21:43:16.946564
+Gulf of Boothia,freeze-up,2007,90.0,2007-11-21 23:38:18.973305
+Gulf of Boothia,break-up,2008,10.0,2008-08-25 01:19:10.152718
+Gulf of Boothia,break-up,2008,50.0,2008-07-28 06:33:58.122332
+Gulf of Boothia,break-up,2008,90.0,2008-06-12 22:09:37.724550
+Gulf of Boothia,freeze-up,2008,10.0,2008-10-10 01:05:24.058919
+Gulf of Boothia,freeze-up,2008,50.0,2008-10-19 18:07:25.280289
+Gulf of Boothia,freeze-up,2008,90.0,2008-11-16 17:55:11.999999
+Gulf of Boothia,break-up,2009,10.0,
+Gulf of Boothia,break-up,2009,50.0,2009-08-04 07:41:17.630553
+Gulf of Boothia,break-up,2009,90.0,2009-06-12 11:11:59.999999
+Gulf of Boothia,freeze-up,2009,10.0,
+Gulf of Boothia,freeze-up,2009,50.0,2009-10-14 02:31:44.384724
+Gulf of Boothia,freeze-up,2009,90.0,2009-11-19 12:20:05.286343
+Gulf of Boothia,break-up,2010,10.0,
+Gulf of Boothia,break-up,2010,50.0,2010-08-07 01:30:00.000000
+Gulf of Boothia,break-up,2010,90.0,2010-07-06 00:13:48.644501
+Gulf of Boothia,freeze-up,2010,10.0,
+Gulf of Boothia,freeze-up,2010,50.0,2010-10-26 11:44:28.801210
+Gulf of Boothia,freeze-up,2010,90.0,2010-12-03 18:22:03.766816
+Gulf of Boothia,break-up,2011,10.0,2011-08-26 07:10:03.121748
+Gulf of Boothia,break-up,2011,50.0,2011-07-19 21:20:59.363957
+Gulf of Boothia,break-up,2011,90.0,2011-06-09 13:22:53.549000
+Gulf of Boothia,freeze-up,2011,10.0,2011-10-16 20:56:25.835694
+Gulf of Boothia,freeze-up,2011,50.0,2011-10-23 03:58:48.165026
+Gulf of Boothia,freeze-up,2011,90.0,2011-11-18 22:32:49.102296
+Gulf of Boothia,break-up,2012,10.0,2012-09-07 13:05:45.735392
+Gulf of Boothia,break-up,2012,50.0,2012-07-25 20:32:49.650826
+Gulf of Boothia,break-up,2012,90.0,2012-06-08 08:47:52.412495
+Gulf of Boothia,freeze-up,2012,10.0,2012-10-10 14:40:14.735226
+Gulf of Boothia,freeze-up,2012,50.0,2012-10-20 22:26:04.660539
+Gulf of Boothia,freeze-up,2012,90.0,2012-11-20 01:42:28.069644
+Gulf of Boothia,break-up,2013,10.0,
+Gulf of Boothia,break-up,2013,50.0,2013-08-01 20:14:43.900385
+Gulf of Boothia,break-up,2013,90.0,2013-06-21 05:21:06.898954
+Gulf of Boothia,freeze-up,2013,10.0,
+Gulf of Boothia,freeze-up,2013,50.0,2013-10-18 03:50:04.958677
+Gulf of Boothia,freeze-up,2013,90.0,2013-11-20 01:00:48.868778
+Gulf of Boothia,break-up,2014,10.0,
+Gulf of Boothia,break-up,2014,50.0,2014-08-04 13:49:49.018302
+Gulf of Boothia,break-up,2014,90.0,2014-06-18 02:32:52.920696
+Gulf of Boothia,freeze-up,2014,10.0,
+Gulf of Boothia,freeze-up,2014,50.0,2014-10-02 18:51:38.270600
+Gulf of Boothia,freeze-up,2014,90.0,2014-11-18 07:10:14.046822
+Gulf of Boothia,break-up,2015,10.0,
+Gulf of Boothia,break-up,2015,50.0,2015-08-03 09:55:18.072289
+Gulf of Boothia,break-up,2015,90.0,2015-06-10 22:23:02.043343
+Gulf of Boothia,freeze-up,2015,10.0,
+Gulf of Boothia,freeze-up,2015,50.0,2015-10-17 03:19:13.765323
+Gulf of Boothia,freeze-up,2015,90.0,2015-11-22 04:53:02.372002
+Gulf of Boothia,break-up,2016,10.0,2016-08-22 12:43:47.737226
+Gulf of Boothia,break-up,2016,50.0,2016-07-18 12:44:10.110864
+Gulf of Boothia,break-up,2016,90.0,2016-06-11 09:38:05.672727
+Gulf of Boothia,freeze-up,2016,10.0,2016-10-10 12:49:37.777777
+Gulf of Boothia,freeze-up,2016,50.0,2016-10-22 00:56:07.955801
+Gulf of Boothia,freeze-up,2016,90.0,2016-11-20 02:12:18.461538
+Gulf of Boothia,break-up,2017,10.0,
+Gulf of Boothia,break-up,2017,50.0,2017-07-21 21:38:16.277602
+Gulf of Boothia,break-up,2017,90.0,2017-06-18 01:47:21.131105
+Gulf of Boothia,freeze-up,2017,10.0,
+Gulf of Boothia,freeze-up,2017,50.0,2017-10-14 18:48:34.488973
+Gulf of Boothia,freeze-up,2017,90.0,2017-11-05 12:11:52.871287
+Gulf of Boothia,break-up,2018,10.0,
+Gulf of Boothia,break-up,2018,50.0,2018-07-28 03:05:55.263157
+Gulf of Boothia,break-up,2018,90.0,2018-06-11 20:23:56.317135
+Gulf of Boothia,freeze-up,2018,10.0,
+Gulf of Boothia,freeze-up,2018,50.0,2018-10-10 13:14:35.463467
+Gulf of Boothia,freeze-up,2018,90.0,2018-10-27 03:23:25.204460
+Gulf of Boothia,break-up,2019,10.0,2019-08-16 18:51:16.923076
+Gulf of Boothia,break-up,2019,50.0,2019-07-26 21:25:32.432432
+Gulf of Boothia,break-up,2019,90.0,2019-06-09 03:56:31.792472
+Gulf of Boothia,freeze-up,2019,10.0,2019-10-23 00:41:04.394488
+Gulf of Boothia,freeze-up,2019,50.0,2019-11-02 11:29:17.808528
+Gulf of Boothia,freeze-up,2019,90.0,2019-11-22 05:37:49.794721
+Gulf of Boothia,break-up,2020,10.0,2020-08-15 18:11:23.927855
+Gulf of Boothia,break-up,2020,50.0,2020-07-22 04:10:40.527182
+Gulf of Boothia,break-up,2020,90.0,2020-06-14 03:52:18.038496
+Gulf of Boothia,freeze-up,2020,10.0,2020-10-22 13:13:59.455220
+Gulf of Boothia,freeze-up,2020,50.0,2020-10-28 19:49:00.305414
+Gulf of Boothia,freeze-up,2020,90.0,2020-11-18 22:18:16.780394
+Gulf of Boothia,break-up,2021,10.0,
+Gulf of Boothia,break-up,2021,50.0,2021-07-25 17:21:35.736505
+Gulf of Boothia,break-up,2021,90.0,2021-06-15 17:14:33.298429
+Gulf of Boothia,freeze-up,2021,10.0,
+Gulf of Boothia,freeze-up,2021,50.0,2021-11-02 17:51:26.085075
+Gulf of Boothia,freeze-up,2021,90.0,2021-12-15 09:52:35.555555
+Gulf of Boothia,break-up,2022,10.0,2022-08-23 12:01:03.936852
+Gulf of Boothia,break-up,2022,50.0,2022-07-28 14:17:28.261964
+Gulf of Boothia,break-up,2022,90.0,2022-06-17 11:12:55.119617
+Gulf of Boothia,freeze-up,2022,10.0,2022-10-20 13:04:52.239072
+Gulf of Boothia,freeze-up,2022,50.0,2022-10-24 19:25:32.035770
+Gulf of Boothia,freeze-up,2022,90.0,2022-11-17 06:17:50.270270
+Gulf of Boothia,break-up,2023,10.0,2023-09-04 02:14:53.676814
+Gulf of Boothia,break-up,2023,50.0,2023-07-24 03:51:54.013206
+Gulf of Boothia,break-up,2023,90.0,2023-05-24 08:19:46.984815
+Gulf of Boothia,freeze-up,2023,10.0,2023-10-25 05:44:35.438092
+Gulf of Boothia,freeze-up,2023,50.0,2023-11-05 08:51:10.551936
+Gulf of Boothia,freeze-up,2023,90.0,2023-12-14 10:49:47.107438
+Gulf of Boothia,break-up,2024,10.0,2024-09-06 18:09:56.685082
+Gulf of Boothia,break-up,2024,50.0,2024-07-19 07:53:06.444572
+Gulf of Boothia,break-up,2024,90.0,2024-06-15 09:01:59.942056
+Gulf of Boothia,freeze-up,2024,10.0,2024-11-02 19:16:59.653179
+Gulf of Boothia,freeze-up,2024,50.0,2024-11-08 23:53:12.452830
+Gulf of Boothia,freeze-up,2024,90.0,2024-11-30 21:43:31.764705
+Gulf of Boothia,break-up,2025,10.0,2025-08-28 11:05:00.593589
+Gulf of Boothia,break-up,2025,50.0,2025-07-14 18:06:45.000000
+Gulf of Boothia,break-up,2025,90.0,2025-05-29 09:09:49.850169
+Gulf of Boothia,freeze-up,2025,10.0,2025-11-01 19:46:55.686274
+Gulf of Boothia,freeze-up,2025,50.0,2025-11-19 04:23:15.404595
+Gulf of Boothia,freeze-up,2025,90.0,2025-12-12 10:18:24.678998
+Gulf of Boothia,break-up,2026,10.0,2026-08-04 04:35:35.885167
+Gulf of Boothia,break-up,2026,50.0,2026-07-14 08:17:33.320500
+Gulf of Boothia,break-up,2026,90.0,2026-06-10 02:08:53.422728
+Gulf of Boothia,freeze-up,2026,10.0,
+Gulf of Boothia,freeze-up,2026,50.0,
+Gulf of Boothia,freeze-up,2026,90.0,
+Hudson Bay,break-up,1978,10.0,
+Hudson Bay,break-up,1978,50.0,
+Hudson Bay,break-up,1978,90.0,
+Hudson Bay,freeze-up,1978,10.0,
+Hudson Bay,freeze-up,1978,50.0,
+Hudson Bay,freeze-up,1978,90.0,
+Hudson Bay,break-up,1979,10.0,1979-07-09 04:44:48.205402
+Hudson Bay,break-up,1979,50.0,1979-06-23 23:49:08.542138
+Hudson Bay,break-up,1979,90.0,1979-03-21 14:17:59.244449
+Hudson Bay,freeze-up,1979,10.0,1979-11-08 16:53:28.458691
+Hudson Bay,freeze-up,1979,50.0,1979-12-04 23:42:29.011657
+Hudson Bay,freeze-up,1979,90.0,1980-01-04 04:54:24.000000
+Hudson Bay,break-up,1980,10.0,1980-07-11 06:06:30.465525
+Hudson Bay,break-up,1980,50.0,1980-06-22 02:19:28.904423
+Hudson Bay,break-up,1980,90.0,1980-05-01 10:14:46.052871
+Hudson Bay,freeze-up,1980,10.0,1980-11-18 08:15:45.753949
+Hudson Bay,freeze-up,1980,50.0,1980-11-27 05:02:42.769157
+Hudson Bay,freeze-up,1980,90.0,1980-12-20 21:19:46.606208
+Hudson Bay,break-up,1981,10.0,1981-07-17 06:38:32.937631
+Hudson Bay,break-up,1981,50.0,1981-06-27 08:59:06.878547
+Hudson Bay,break-up,1981,90.0,1981-05-21 03:39:34.637600
+Hudson Bay,freeze-up,1981,10.0,1981-11-16 19:52:19.309471
+Hudson Bay,freeze-up,1981,50.0,1981-12-11 14:12:51.387513
+Hudson Bay,freeze-up,1981,90.0,1981-12-27 02:14:03.322178
+Hudson Bay,break-up,1982,10.0,1982-07-16 18:13:45.544267
+Hudson Bay,break-up,1982,50.0,1982-06-24 19:58:38.798831
+Hudson Bay,break-up,1982,90.0,1982-05-03 05:59:55.980896
+Hudson Bay,freeze-up,1982,10.0,1982-11-11 16:59:17.054709
+Hudson Bay,freeze-up,1982,50.0,1982-11-25 09:11:02.550120
+Hudson Bay,freeze-up,1982,90.0,1982-12-18 05:16:12.995980
+Hudson Bay,break-up,1983,10.0,1983-07-21 21:08:17.071129
+Hudson Bay,break-up,1983,50.0,1983-06-30 19:31:10.054502
+Hudson Bay,break-up,1983,90.0,1983-05-20 20:11:51.014650
+Hudson Bay,freeze-up,1983,10.0,1983-11-13 01:37:33.241103
+Hudson Bay,freeze-up,1983,50.0,1983-12-02 19:10:15.023625
+Hudson Bay,freeze-up,1983,90.0,1983-12-12 17:01:02.134554
+Hudson Bay,break-up,1984,10.0,1984-07-12 17:02:33.872196
+Hudson Bay,break-up,1984,50.0,1984-06-21 21:35:13.664174
+Hudson Bay,break-up,1984,90.0,1984-04-10 23:47:02.112181
+Hudson Bay,freeze-up,1984,10.0,1984-11-07 09:26:07.149382
+Hudson Bay,freeze-up,1984,50.0,1984-11-29 15:38:36.208209
+Hudson Bay,freeze-up,1984,90.0,1984-12-19 04:35:36.238385
+Hudson Bay,break-up,1985,10.0,1985-07-23 08:36:28.044735
+Hudson Bay,break-up,1985,50.0,1985-06-21 21:54:13.851114
+Hudson Bay,break-up,1985,90.0,1985-04-22 17:50:04.316546
+Hudson Bay,freeze-up,1985,10.0,1985-11-10 23:06:40.339315
+Hudson Bay,freeze-up,1985,50.0,1985-11-23 15:09:48.832041
+Hudson Bay,freeze-up,1985,90.0,1985-12-12 03:19:20.676787
+Hudson Bay,break-up,1986,10.0,1986-07-17 09:58:30.382858
+Hudson Bay,break-up,1986,50.0,1986-06-27 03:21:31.946833
+Hudson Bay,break-up,1986,90.0,1986-05-10 03:04:16.398378
+Hudson Bay,freeze-up,1986,10.0,1986-11-03 04:29:00.485903
+Hudson Bay,freeze-up,1986,50.0,1986-11-12 21:21:52.620440
+Hudson Bay,freeze-up,1986,90.0,1986-12-08 20:57:48.408226
+Hudson Bay,break-up,1987,10.0,1987-07-16 03:50:32.710978
+Hudson Bay,break-up,1987,50.0,1987-06-28 04:09:43.645413
+Hudson Bay,break-up,1987,90.0,1987-04-13 23:39:54.586801
+Hudson Bay,freeze-up,1987,10.0,1987-11-13 04:57:20.996602
+Hudson Bay,freeze-up,1987,50.0,1987-11-30 13:10:17.263652
+Hudson Bay,freeze-up,1987,90.0,1988-01-06 11:35:02.278206
+Hudson Bay,break-up,1988,10.0,1988-07-14 01:22:08.824166
+Hudson Bay,break-up,1988,50.0,1988-06-19 23:13:10.722027
+Hudson Bay,break-up,1988,90.0,1988-04-19 09:47:59.552517
+Hudson Bay,freeze-up,1988,10.0,1988-11-18 07:22:17.964419
+Hudson Bay,freeze-up,1988,50.0,1988-12-05 09:58:29.370629
+Hudson Bay,freeze-up,1988,90.0,1988-12-24 07:09:36.228209
+Hudson Bay,break-up,1989,10.0,1989-07-14 08:32:44.663907
+Hudson Bay,break-up,1989,50.0,1989-06-20 22:25:51.125401
+Hudson Bay,break-up,1989,90.0,1989-05-17 05:08:55.273002
+Hudson Bay,freeze-up,1989,10.0,1989-11-15 15:53:21.207704
+Hudson Bay,freeze-up,1989,50.0,1989-11-23 19:48:02.542173
+Hudson Bay,freeze-up,1989,90.0,1989-12-09 13:32:57.721518
+Hudson Bay,break-up,1990,10.0,1990-07-15 20:02:22.895805
+Hudson Bay,break-up,1990,50.0,1990-06-24 02:58:59.341570
+Hudson Bay,break-up,1990,90.0,1990-04-18 14:11:40.643695
+Hudson Bay,freeze-up,1990,10.0,1990-11-13 22:46:09.230769
+Hudson Bay,freeze-up,1990,50.0,1990-12-05 13:25:25.779967
+Hudson Bay,freeze-up,1990,90.0,1990-12-13 22:07:20.910548
+Hudson Bay,break-up,1991,10.0,1991-07-05 08:42:37.907128
+Hudson Bay,break-up,1991,50.0,1991-06-17 23:07:51.164537
+Hudson Bay,break-up,1991,90.0,1991-05-10 03:37:45.629053
+Hudson Bay,freeze-up,1991,10.0,1991-11-07 02:14:16.158766
+Hudson Bay,freeze-up,1991,50.0,1991-11-29 01:38:24.181464
+Hudson Bay,freeze-up,1991,90.0,1991-12-19 04:50:36.668905
+Hudson Bay,break-up,1992,10.0,1992-08-04 21:14:31.550762
+Hudson Bay,break-up,1992,50.0,1992-07-06 21:15:15.976331
+Hudson Bay,break-up,1992,90.0,1992-05-05 16:53:47.034237
+Hudson Bay,freeze-up,1992,10.0,1992-11-12 10:28:04.020296
+Hudson Bay,freeze-up,1992,50.0,1992-11-25 13:09:49.620905
+Hudson Bay,freeze-up,1992,90.0,1992-12-19 11:50:05.733487
+Hudson Bay,break-up,1993,10.0,1993-07-06 14:28:14.509855
+Hudson Bay,break-up,1993,50.0,1993-06-19 20:38:53.553186
+Hudson Bay,break-up,1993,90.0,1993-05-06 03:53:35.400273
+Hudson Bay,freeze-up,1993,10.0,1993-11-04 07:27:43.048558
+Hudson Bay,freeze-up,1993,50.0,1993-11-19 08:21:03.864333
+Hudson Bay,freeze-up,1993,90.0,1993-12-20 02:05:46.058775
+Hudson Bay,break-up,1994,10.0,1994-07-18 16:34:56.235209
+Hudson Bay,break-up,1994,50.0,1994-06-25 17:25:53.616974
+Hudson Bay,break-up,1994,90.0,1994-05-07 10:02:49.864737
+Hudson Bay,freeze-up,1994,10.0,1994-11-25 04:17:20.221495
+Hudson Bay,freeze-up,1994,50.0,1994-12-07 13:50:58.734451
+Hudson Bay,freeze-up,1994,90.0,1995-01-04 23:23:06.304712
+Hudson Bay,break-up,1995,10.0,1995-07-10 17:40:14.234482
+Hudson Bay,break-up,1995,50.0,1995-06-16 02:12:01.535181
+Hudson Bay,break-up,1995,90.0,1995-05-02 12:51:59.242902
+Hudson Bay,freeze-up,1995,10.0,1995-11-17 01:29:18.321983
+Hudson Bay,freeze-up,1995,50.0,1995-11-26 17:05:43.326238
+Hudson Bay,freeze-up,1995,90.0,1995-12-26 01:23:33.180515
+Hudson Bay,break-up,1996,10.0,1996-07-16 04:52:08.275862
+Hudson Bay,break-up,1996,50.0,1996-06-27 10:04:47.336914
+Hudson Bay,break-up,1996,90.0,1996-04-20 23:59:43.898620
+Hudson Bay,freeze-up,1996,10.0,1996-11-23 04:47:55.299238
+Hudson Bay,freeze-up,1996,50.0,1996-12-10 02:14:56.694070
+Hudson Bay,freeze-up,1996,90.0,1996-12-24 12:17:50.255390
+Hudson Bay,break-up,1997,10.0,1997-07-10 17:57:37.615357
+Hudson Bay,break-up,1997,50.0,1997-06-16 13:42:44.243614
+Hudson Bay,break-up,1997,90.0,1997-05-11 08:16:26.932781
+Hudson Bay,freeze-up,1997,10.0,1997-11-18 09:18:39.377304
+Hudson Bay,freeze-up,1997,50.0,1997-12-04 18:47:42.650602
+Hudson Bay,freeze-up,1997,90.0,1997-12-24 17:39:47.574931
+Hudson Bay,break-up,1998,10.0,1998-06-25 01:39:08.652931
+Hudson Bay,break-up,1998,50.0,1998-06-08 05:12:19.022552
+Hudson Bay,break-up,1998,90.0,1998-04-12 08:04:24.999035
+Hudson Bay,freeze-up,1998,10.0,1998-12-06 05:48:22.808034
+Hudson Bay,freeze-up,1998,50.0,1998-12-19 23:19:08.500517
+Hudson Bay,freeze-up,1998,90.0,1999-01-08 10:28:00.990429
+Hudson Bay,break-up,1999,10.0,1999-06-20 15:43:48.177339
+Hudson Bay,break-up,1999,50.0,1999-06-05 06:39:18.294272
+Hudson Bay,break-up,1999,90.0,1999-04-12 22:33:38.410041
+Hudson Bay,freeze-up,1999,10.0,1999-11-25 01:59:48.906009
+Hudson Bay,freeze-up,1999,50.0,1999-12-16 18:00:30.320699
+Hudson Bay,freeze-up,1999,90.0,2000-01-04 08:23:36.961981
+Hudson Bay,break-up,2000,10.0,2000-07-22 01:10:20.128628
+Hudson Bay,break-up,2000,50.0,2000-06-18 16:26:14.144486
+Hudson Bay,break-up,2000,90.0,2000-03-19 15:52:52.428419
+Hudson Bay,freeze-up,2000,10.0,2000-11-17 20:37:07.688973
+Hudson Bay,freeze-up,2000,50.0,2000-12-06 05:12:39.329814
+Hudson Bay,freeze-up,2000,90.0,2000-12-20 12:56:44.154302
+Hudson Bay,break-up,2001,10.0,2001-06-26 04:00:50.821821
+Hudson Bay,break-up,2001,50.0,2001-06-07 19:36:19.615305
+Hudson Bay,break-up,2001,90.0,2001-04-25 08:17:52.427515
+Hudson Bay,freeze-up,2001,10.0,2001-11-21 21:47:31.948051
+Hudson Bay,freeze-up,2001,50.0,2001-12-16 14:47:29.853257
+Hudson Bay,freeze-up,2001,90.0,2002-01-09 21:13:56.227123
+Hudson Bay,break-up,2002,10.0,2002-07-13 00:20:08.160137
+Hudson Bay,break-up,2002,50.0,2002-06-23 01:24:19.989236
+Hudson Bay,break-up,2002,90.0,2002-04-13 19:26:48.261359
+Hudson Bay,freeze-up,2002,10.0,2002-11-20 05:38:26.102583
+Hudson Bay,freeze-up,2002,50.0,2002-11-29 23:44:38.769579
+Hudson Bay,freeze-up,2002,90.0,2003-01-13 01:36:56.788732
+Hudson Bay,break-up,2003,10.0,2003-07-10 12:04:59.999999
+Hudson Bay,break-up,2003,50.0,2003-06-17 22:06:07.448275
+Hudson Bay,break-up,2003,90.0,2003-04-25 22:19:17.126625
+Hudson Bay,freeze-up,2003,10.0,2003-11-26 00:12:30.715760
+Hudson Bay,freeze-up,2003,50.0,2003-12-10 21:32:56.409366
+Hudson Bay,freeze-up,2003,90.0,2004-01-02 05:50:56.033578
+Hudson Bay,break-up,2004,10.0,2004-07-26 06:21:00.125126
+Hudson Bay,break-up,2004,50.0,2004-06-30 03:36:13.559322
+Hudson Bay,break-up,2004,90.0,2004-03-28 06:34:02.055959
+Hudson Bay,freeze-up,2004,10.0,2004-11-18 21:37:47.900092
+Hudson Bay,freeze-up,2004,50.0,2004-12-01 16:10:01.464898
+Hudson Bay,freeze-up,2004,90.0,2004-12-15 20:06:43.658896
+Hudson Bay,break-up,2005,10.0,2005-07-03 02:13:22.125640
+Hudson Bay,break-up,2005,50.0,2005-06-15 04:55:00.917863
+Hudson Bay,break-up,2005,90.0,2005-03-29 14:31:04.581416
+Hudson Bay,freeze-up,2005,10.0,2005-11-23 08:15:54.727908
+Hudson Bay,freeze-up,2005,50.0,2005-12-07 16:35:22.032417
+Hudson Bay,freeze-up,2005,90.0,2005-12-28 03:38:30.167279
+Hudson Bay,break-up,2006,10.0,2006-06-27 23:38:03.048498
+Hudson Bay,break-up,2006,50.0,2006-06-10 05:02:28.692686
+Hudson Bay,break-up,2006,90.0,2006-04-11 02:57:24.218491
+Hudson Bay,freeze-up,2006,10.0,2006-11-30 10:48:19.479708
+Hudson Bay,freeze-up,2006,50.0,2006-12-08 11:14:45.245901
+Hudson Bay,freeze-up,2006,90.0,2007-01-10 09:33:25.767250
+Hudson Bay,break-up,2007,10.0,2007-07-02 13:30:42.742367
+Hudson Bay,break-up,2007,50.0,2007-06-15 08:51:52.851063
+Hudson Bay,break-up,2007,90.0,2007-03-24 21:28:14.566768
+Hudson Bay,freeze-up,2007,10.0,2007-11-19 19:34:11.324645
+Hudson Bay,freeze-up,2007,50.0,2007-12-04 20:18:58.547538
+Hudson Bay,freeze-up,2007,90.0,2007-12-26 06:02:26.326211
+Hudson Bay,break-up,2008,10.0,2008-07-12 06:46:18.292882
+Hudson Bay,break-up,2008,50.0,2008-06-13 12:00:34.323332
+Hudson Bay,break-up,2008,90.0,2008-04-22 09:25:57.109864
+Hudson Bay,freeze-up,2008,10.0,2008-11-26 03:06:25.463984
+Hudson Bay,freeze-up,2008,50.0,2008-12-07 21:05:54.673403
+Hudson Bay,freeze-up,2008,90.0,2008-12-16 23:17:28.955543
+Hudson Bay,break-up,2009,10.0,2009-07-20 11:17:07.595554
+Hudson Bay,break-up,2009,50.0,2009-06-27 03:31:21.229561
+Hudson Bay,break-up,2009,90.0,2009-05-05 20:21:41.971447
+Hudson Bay,freeze-up,2009,10.0,2009-12-01 11:36:40.381159
+Hudson Bay,freeze-up,2009,50.0,2009-12-13 05:58:51.387300
+Hudson Bay,freeze-up,2009,90.0,2009-12-31 17:23:38.023255
+Hudson Bay,break-up,2010,10.0,2010-06-25 11:21:36.000000
+Hudson Bay,break-up,2010,50.0,2010-06-08 21:46:24.427417
+Hudson Bay,break-up,2010,90.0,2010-03-29 16:56:28.863481
+Hudson Bay,freeze-up,2010,10.0,2010-12-02 08:41:23.483337
+Hudson Bay,freeze-up,2010,50.0,2010-12-24 21:41:07.798497
+Hudson Bay,freeze-up,2010,90.0,2011-01-22 07:42:40.146252
+Hudson Bay,break-up,2011,10.0,2011-07-03 07:20:32.345013
+Hudson Bay,break-up,2011,50.0,2011-06-12 03:01:04.526886
+Hudson Bay,break-up,2011,90.0,2011-04-30 06:06:54.659685
+Hudson Bay,freeze-up,2011,10.0,2011-12-01 16:27:44.913406
+Hudson Bay,freeze-up,2011,50.0,2011-12-09 14:44:08.841718
+Hudson Bay,freeze-up,2011,90.0,2011-12-27 06:16:38.717516
+Hudson Bay,break-up,2012,10.0,2012-07-04 05:27:44.537354
+Hudson Bay,break-up,2012,50.0,2012-06-13 10:42:04.008908
+Hudson Bay,break-up,2012,90.0,2012-04-24 11:19:41.697225
+Hudson Bay,freeze-up,2012,10.0,2012-11-24 09:46:14.725848
+Hudson Bay,freeze-up,2012,50.0,2012-12-07 03:14:16.295249
+Hudson Bay,freeze-up,2012,90.0,2012-12-29 05:17:25.284015
+Hudson Bay,break-up,2013,10.0,2013-07-03 12:48:12.012513
+Hudson Bay,break-up,2013,50.0,2013-06-18 10:34:15.476941
+Hudson Bay,break-up,2013,90.0,2013-04-28 08:40:42.167013
+Hudson Bay,freeze-up,2013,10.0,2013-11-19 23:48:40.640269
+Hudson Bay,freeze-up,2013,50.0,2013-12-02 23:07:50.986380
+Hudson Bay,freeze-up,2013,90.0,2013-12-17 01:33:11.726196
+Hudson Bay,break-up,2014,10.0,2014-07-03 19:09:14.904458
+Hudson Bay,break-up,2014,50.0,2014-06-14 07:04:56.743913
+Hudson Bay,break-up,2014,90.0,2014-05-08 04:51:16.061072
+Hudson Bay,freeze-up,2014,10.0,2014-11-20 06:46:32.832929
+Hudson Bay,freeze-up,2014,50.0,2014-11-30 00:50:33.524979
+Hudson Bay,freeze-up,2014,90.0,2015-01-08 06:48:19.678456
+Hudson Bay,break-up,2015,10.0,2015-07-17 18:48:51.341256
+Hudson Bay,break-up,2015,50.0,2015-06-17 12:27:27.794117
+Hudson Bay,break-up,2015,90.0,2015-04-11 18:51:50.637907
+Hudson Bay,freeze-up,2015,10.0,2015-11-20 21:15:10.634888
+Hudson Bay,freeze-up,2015,50.0,2015-12-11 21:44:58.452722
+Hudson Bay,freeze-up,2015,90.0,2016-01-06 19:02:47.102298
+Hudson Bay,break-up,2016,10.0,2016-07-10 14:05:37.948425
+Hudson Bay,break-up,2016,50.0,2016-06-16 10:39:38.600089
+Hudson Bay,break-up,2016,90.0,2016-05-01 18:54:31.071767
+Hudson Bay,freeze-up,2016,10.0,2016-12-06 23:06:24.920376
+Hudson Bay,freeze-up,2016,50.0,2016-12-15 07:44:15.147200
+Hudson Bay,freeze-up,2016,90.0,2016-12-31 22:15:39.576286
+Hudson Bay,break-up,2017,10.0,2017-06-29 04:32:50.765987
+Hudson Bay,break-up,2017,50.0,2017-06-06 12:11:51.807907
+Hudson Bay,break-up,2017,90.0,2017-04-07 05:07:17.628774
+Hudson Bay,freeze-up,2017,10.0,2017-11-21 13:16:26.191536
+Hudson Bay,freeze-up,2017,50.0,2017-12-06 17:14:49.771936
+Hudson Bay,freeze-up,2017,90.0,2017-12-21 23:28:50.551415
+Hudson Bay,break-up,2018,10.0,2018-07-15 09:11:48.238039
+Hudson Bay,break-up,2018,50.0,2018-06-20 19:42:10.068601
+Hudson Bay,break-up,2018,90.0,2018-05-06 08:24:25.884930
+Hudson Bay,freeze-up,2018,10.0,2018-11-16 02:24:59.586206
+Hudson Bay,freeze-up,2018,50.0,2018-12-02 21:17:03.457985
+Hudson Bay,freeze-up,2018,90.0,2018-12-24 08:36:01.439214
+Hudson Bay,break-up,2019,10.0,2019-07-12 22:36:40.162356
+Hudson Bay,break-up,2019,50.0,2019-06-21 08:06:36.572827
+Hudson Bay,break-up,2019,90.0,2019-05-11 12:02:24.240400
+Hudson Bay,freeze-up,2019,10.0,2019-11-25 17:49:14.906465
+Hudson Bay,freeze-up,2019,50.0,2019-12-06 16:14:29.508534
+Hudson Bay,freeze-up,2019,90.0,2019-12-31 23:19:38.780158
+Hudson Bay,break-up,2020,10.0,2020-07-12 06:26:23.034831
+Hudson Bay,break-up,2020,50.0,2020-06-19 10:55:43.973752
+Hudson Bay,break-up,2020,90.0,2020-05-06 02:18:29.763190
+Hudson Bay,freeze-up,2020,10.0,2020-11-18 06:19:05.935772
+Hudson Bay,freeze-up,2020,50.0,2020-12-04 20:10:41.791713
+Hudson Bay,freeze-up,2020,90.0,2020-12-31 07:09:25.872203
+Hudson Bay,break-up,2021,10.0,2021-07-05 02:07:43.629422
+Hudson Bay,break-up,2021,50.0,2021-06-16 02:02:28.965517
+Hudson Bay,break-up,2021,90.0,2021-04-09 03:16:47.663059
+Hudson Bay,freeze-up,2021,10.0,2021-12-04 10:56:16.900607
+Hudson Bay,freeze-up,2021,50.0,2021-12-18 17:02:21.150604
+Hudson Bay,freeze-up,2021,90.0,2021-12-31 19:56:55.787831
+Hudson Bay,break-up,2022,10.0,2022-07-08 07:07:58.682263
+Hudson Bay,break-up,2022,50.0,2022-06-11 18:26:59.738751
+Hudson Bay,break-up,2022,90.0,2022-05-02 05:36:18.372491
+Hudson Bay,freeze-up,2022,10.0,2022-11-26 03:20:12.565445
+Hudson Bay,freeze-up,2022,50.0,2022-12-07 07:12:29.102437
+Hudson Bay,freeze-up,2022,90.0,2023-01-04 11:09:00.112429
+Hudson Bay,break-up,2023,10.0,2023-06-25 21:36:18.004167
+Hudson Bay,break-up,2023,50.0,2023-06-07 14:48:51.286725
+Hudson Bay,break-up,2023,90.0,2023-04-30 07:46:41.937046
+Hudson Bay,freeze-up,2023,10.0,2023-11-28 14:12:43.882618
+Hudson Bay,freeze-up,2023,50.0,2023-12-18 03:15:37.263647
+Hudson Bay,freeze-up,2023,90.0,2024-01-06 12:55:00.904003
+Hudson Bay,break-up,2024,10.0,2024-07-04 13:14:57.686375
+Hudson Bay,break-up,2024,50.0,2024-06-02 05:19:52.569659
+Hudson Bay,break-up,2024,90.0,2024-04-13 13:08:06.895585
+Hudson Bay,freeze-up,2024,10.0,2024-12-04 10:55:06.641544
+Hudson Bay,freeze-up,2024,50.0,2025-01-02 09:25:46.780166
+Hudson Bay,freeze-up,2024,90.0,2025-01-24 04:21:03.229849
+Hudson Bay,break-up,2025,10.0,2025-06-26 19:05:31.917670
+Hudson Bay,break-up,2025,50.0,2025-06-09 15:25:54.997274
+Hudson Bay,break-up,2025,90.0,2025-05-06 04:00:18.398034
+Hudson Bay,freeze-up,2025,10.0,2025-12-07 02:43:07.264873
+Hudson Bay,freeze-up,2025,50.0,2025-12-17 16:40:06.786724
+Hudson Bay,freeze-up,2025,90.0,2026-01-07 15:43:17.468354
+Hudson Bay,break-up,2026,10.0,2026-06-28 09:59:12.795989
+Hudson Bay,break-up,2026,50.0,2026-06-08 15:19:22.200790
+Hudson Bay,break-up,2026,90.0,2026-04-30 01:07:09.162561
+Hudson Bay,freeze-up,2026,10.0,
+Hudson Bay,freeze-up,2026,50.0,
+Hudson Bay,freeze-up,2026,90.0,
+Hudson Bay Area,break-up,1978,10.0,
+Hudson Bay Area,break-up,1978,50.0,
+Hudson Bay Area,break-up,1978,90.0,
+Hudson Bay Area,freeze-up,1978,10.0,
+Hudson Bay Area,freeze-up,1978,50.0,
+Hudson Bay Area,freeze-up,1978,90.0,
+Hudson Bay Area,break-up,1979,10.0,1979-08-17 10:38:03.502787
+Hudson Bay Area,break-up,1979,50.0,1979-06-26 19:14:00.491515
+Hudson Bay Area,break-up,1979,90.0,1979-04-19 09:39:36.935896
+Hudson Bay Area,freeze-up,1979,10.0,1979-10-18 15:29:53.943101
+Hudson Bay Area,freeze-up,1979,50.0,1979-12-03 03:11:12.449979
+Hudson Bay Area,freeze-up,1979,90.0,1980-01-05 10:15:20.195121
+Hudson Bay Area,break-up,1980,10.0,1980-08-06 21:16:34.524639
+Hudson Bay Area,break-up,1980,50.0,1980-06-26 05:17:06.935312
+Hudson Bay Area,break-up,1980,90.0,1980-05-01 22:23:36.371433
+Hudson Bay Area,freeze-up,1980,10.0,1980-10-26 01:20:06.209573
+Hudson Bay Area,freeze-up,1980,50.0,1980-11-26 09:34:42.124782
+Hudson Bay Area,freeze-up,1980,90.0,1980-12-21 21:04:08.991354
+Hudson Bay Area,break-up,1981,10.0,1981-07-29 12:12:12.543554
+Hudson Bay Area,break-up,1981,50.0,1981-06-28 05:32:55.177239
+Hudson Bay Area,break-up,1981,90.0,1981-05-16 11:40:19.443772
+Hudson Bay Area,freeze-up,1981,10.0,1981-11-05 15:07:01.052631
+Hudson Bay Area,freeze-up,1981,50.0,1981-12-08 12:58:01.557500
+Hudson Bay Area,freeze-up,1981,90.0,1981-12-29 15:10:25.876010
+Hudson Bay Area,break-up,1982,10.0,1982-08-03 21:13:55.811836
+Hudson Bay Area,break-up,1982,50.0,1982-06-30 16:15:52.671755
+Hudson Bay Area,break-up,1982,90.0,1982-05-03 12:54:18.693222
+Hudson Bay Area,freeze-up,1982,10.0,1982-10-22 21:42:57.826154
+Hudson Bay Area,freeze-up,1982,50.0,1982-11-23 08:05:10.419161
+Hudson Bay Area,freeze-up,1982,90.0,1982-12-11 23:50:35.253104
+Hudson Bay Area,break-up,1983,10.0,1983-08-22 20:25:06.836369
+Hudson Bay Area,break-up,1983,50.0,1983-07-06 21:08:42.678185
+Hudson Bay Area,break-up,1983,90.0,1983-05-21 09:58:24.249575
+Hudson Bay Area,freeze-up,1983,10.0,1983-10-15 14:27:13.810143
+Hudson Bay Area,freeze-up,1983,50.0,1983-11-29 08:56:28.235294
+Hudson Bay Area,freeze-up,1983,90.0,1983-12-12 23:07:11.218367
+Hudson Bay Area,break-up,1984,10.0,1984-08-03 16:02:41.245735
+Hudson Bay Area,break-up,1984,50.0,1984-06-28 09:11:00.527480
+Hudson Bay Area,break-up,1984,90.0,1984-04-27 15:26:52.680631
+Hudson Bay Area,freeze-up,1984,10.0,1984-10-25 17:32:28.284282
+Hudson Bay Area,freeze-up,1984,50.0,1984-11-26 19:06:12.337821
+Hudson Bay Area,freeze-up,1984,90.0,1984-12-18 06:58:58.690333
+Hudson Bay Area,break-up,1985,10.0,1985-07-31 08:17:07.080313
+Hudson Bay Area,break-up,1985,50.0,1985-06-29 09:33:56.255754
+Hudson Bay Area,break-up,1985,90.0,1985-05-07 08:09:13.072625
+Hudson Bay Area,freeze-up,1985,10.0,1985-11-02 12:22:09.369897
+Hudson Bay Area,freeze-up,1985,50.0,1985-11-22 15:14:26.613868
+Hudson Bay Area,freeze-up,1985,90.0,1985-12-29 04:12:56.347826
+Hudson Bay Area,break-up,1986,10.0,1986-08-09 19:22:24.262295
+Hudson Bay Area,break-up,1986,50.0,1986-06-28 07:43:25.924643
+Hudson Bay Area,break-up,1986,90.0,1986-05-09 16:04:22.397169
+Hudson Bay Area,freeze-up,1986,10.0,1986-10-12 00:19:17.753684
+Hudson Bay Area,freeze-up,1986,50.0,1986-11-11 21:40:38.072089
+Hudson Bay Area,freeze-up,1986,90.0,1986-12-08 18:52:27.402505
+Hudson Bay Area,break-up,1987,10.0,1987-08-12 04:46:30.847913
+Hudson Bay Area,break-up,1987,50.0,1987-07-03 22:03:03.376110
+Hudson Bay Area,break-up,1987,90.0,1987-04-16 15:15:55.495978
+Hudson Bay Area,freeze-up,1987,10.0,1987-10-18 16:11:04.393179
+Hudson Bay Area,freeze-up,1987,50.0,1987-11-26 10:31:27.378640
+Hudson Bay Area,freeze-up,1987,90.0,1988-01-04 18:52:39.981330
+Hudson Bay Area,break-up,1988,10.0,1988-07-30 18:58:50.969788
+Hudson Bay Area,break-up,1988,50.0,1988-06-27 10:46:20.779180
+Hudson Bay Area,break-up,1988,90.0,1988-05-01 01:13:59.971516
+Hudson Bay Area,freeze-up,1988,10.0,1988-11-02 23:40:58.675078
+Hudson Bay Area,freeze-up,1988,50.0,1988-12-03 21:21:08.354100
+Hudson Bay Area,freeze-up,1988,90.0,1988-12-24 16:05:02.759526
+Hudson Bay Area,break-up,1989,10.0,1989-08-03 23:10:41.095890
+Hudson Bay Area,break-up,1989,50.0,1989-06-29 00:26:01.445783
+Hudson Bay Area,break-up,1989,90.0,1989-05-13 01:28:11.531114
+Hudson Bay Area,freeze-up,1989,10.0,1989-10-21 20:32:40.318609
+Hudson Bay Area,freeze-up,1989,50.0,1989-11-23 03:04:21.840744
+Hudson Bay Area,freeze-up,1989,90.0,1989-12-09 22:37:12.361136
+Hudson Bay Area,break-up,1990,10.0,1990-08-15 00:23:40.588235
+Hudson Bay Area,break-up,1990,50.0,1990-06-30 21:53:22.628671
+Hudson Bay Area,break-up,1990,90.0,1990-04-23 05:09:04.849144
+Hudson Bay Area,freeze-up,1990,10.0,1990-10-15 10:44:06.983676
+Hudson Bay Area,freeze-up,1990,50.0,1990-12-01 04:55:08.139723
+Hudson Bay Area,freeze-up,1990,90.0,1990-12-13 21:01:18.558558
+Hudson Bay Area,break-up,1991,10.0,1991-08-03 22:28:11.528384
+Hudson Bay Area,break-up,1991,50.0,1991-06-23 11:46:46.879661
+Hudson Bay Area,break-up,1991,90.0,1991-05-10 09:46:24.728287
+Hudson Bay Area,freeze-up,1991,10.0,1991-10-26 13:00:30.741573
+Hudson Bay Area,freeze-up,1991,50.0,1991-11-28 07:55:31.372668
+Hudson Bay Area,freeze-up,1991,90.0,1991-12-21 07:58:26.272189
+Hudson Bay Area,break-up,1992,10.0,1992-08-19 17:43:56.020462
+Hudson Bay Area,break-up,1992,50.0,1992-07-10 16:57:15.867467
+Hudson Bay Area,break-up,1992,90.0,1992-05-10 02:45:29.929929
+Hudson Bay Area,freeze-up,1992,10.0,1992-10-27 23:07:00.596054
+Hudson Bay Area,freeze-up,1992,50.0,1992-11-18 11:57:17.776662
+Hudson Bay Area,freeze-up,1992,90.0,1992-12-19 04:26:00.532150
+Hudson Bay Area,break-up,1993,10.0,1993-07-31 23:03:08.960159
+Hudson Bay Area,break-up,1993,50.0,1993-06-24 08:21:17.815699
+Hudson Bay Area,break-up,1993,90.0,1993-05-08 05:30:28.177833
+Hudson Bay Area,freeze-up,1993,10.0,1993-10-30 13:20:47.087676
+Hudson Bay Area,freeze-up,1993,50.0,1993-11-18 09:59:01.070551
+Hudson Bay Area,freeze-up,1993,90.0,1993-12-20 06:09:46.965166
+Hudson Bay Area,break-up,1994,10.0,1994-07-28 14:34:15.616031
+Hudson Bay Area,break-up,1994,50.0,1994-06-26 19:27:13.441108
+Hudson Bay Area,break-up,1994,90.0,1994-05-07 14:52:43.150074
+Hudson Bay Area,freeze-up,1994,10.0,1994-11-05 20:46:36.224663
+Hudson Bay Area,freeze-up,1994,50.0,1994-12-03 09:46:47.067137
+Hudson Bay Area,freeze-up,1994,90.0,1995-01-05 04:08:43.557256
+Hudson Bay Area,break-up,1995,10.0,1995-07-28 21:09:52.895586
+Hudson Bay Area,break-up,1995,50.0,1995-06-21 00:36:04.539208
+Hudson Bay Area,break-up,1995,90.0,1995-05-02 15:25:21.203007
+Hudson Bay Area,freeze-up,1995,10.0,1995-11-06 04:12:42.255466
+Hudson Bay Area,freeze-up,1995,50.0,1995-11-26 16:15:29.952285
+Hudson Bay Area,freeze-up,1995,90.0,1995-12-27 06:29:44.275129
+Hudson Bay Area,break-up,1996,10.0,1996-07-29 01:47:19.267886
+Hudson Bay Area,break-up,1996,50.0,1996-06-29 01:00:52.623278
+Hudson Bay Area,break-up,1996,90.0,1996-04-25 10:44:30.660792
+Hudson Bay Area,freeze-up,1996,10.0,1996-11-06 20:26:02.078395
+Hudson Bay Area,freeze-up,1996,50.0,1996-12-08 02:31:49.827287
+Hudson Bay Area,freeze-up,1996,90.0,1996-12-24 23:56:17.256960
+Hudson Bay Area,break-up,1997,10.0,1997-07-27 04:48:13.484198
+Hudson Bay Area,break-up,1997,50.0,1997-06-23 16:40:35.235086
+Hudson Bay Area,break-up,1997,90.0,1997-05-11 09:13:02.378465
+Hudson Bay Area,freeze-up,1997,10.0,1997-10-23 18:14:30.402964
+Hudson Bay Area,freeze-up,1997,50.0,1997-11-29 00:36:47.883917
+Hudson Bay Area,freeze-up,1997,90.0,1997-12-25 16:55:50.192190
+Hudson Bay Area,break-up,1998,10.0,1998-07-17 11:12:17.957911
+Hudson Bay Area,break-up,1998,50.0,1998-06-09 13:35:10.182224
+Hudson Bay Area,break-up,1998,90.0,1998-04-12 12:11:55.050866
+Hudson Bay Area,freeze-up,1998,10.0,1998-11-13 23:41:10.314769
+Hudson Bay Area,freeze-up,1998,50.0,1998-12-18 23:05:35.330762
+Hudson Bay Area,freeze-up,1998,90.0,1999-01-09 00:44:33.024185
+Hudson Bay Area,break-up,1999,10.0,1999-07-26 08:52:43.488686
+Hudson Bay Area,break-up,1999,50.0,1999-06-09 15:36:46.039076
+Hudson Bay Area,break-up,1999,90.0,1999-04-13 13:17:20.483383
+Hudson Bay Area,freeze-up,1999,10.0,1999-10-29 15:00:46.252676
+Hudson Bay Area,freeze-up,1999,50.0,1999-12-13 05:39:10.221266
+Hudson Bay Area,freeze-up,1999,90.0,2000-01-04 04:56:48.412625
+Hudson Bay Area,break-up,2000,10.0,2000-07-28 23:43:47.305218
+Hudson Bay Area,break-up,2000,50.0,2000-06-22 17:10:58.259773
+Hudson Bay Area,break-up,2000,90.0,2000-03-20 09:21:24.777678
+Hudson Bay Area,freeze-up,2000,10.0,2000-11-06 00:18:18.351164
+Hudson Bay Area,freeze-up,2000,50.0,2000-12-05 04:40:35.268137
+Hudson Bay Area,freeze-up,2000,90.0,2000-12-26 20:44:48.763890
+Hudson Bay Area,break-up,2001,10.0,2001-07-24 11:50:15.873015
+Hudson Bay Area,break-up,2001,50.0,2001-06-11 13:46:56.173000
+Hudson Bay Area,break-up,2001,90.0,2001-04-25 12:11:44.207561
+Hudson Bay Area,freeze-up,2001,10.0,2001-11-10 00:17:34.345598
+Hudson Bay Area,freeze-up,2001,50.0,2001-12-07 10:36:12.548389
+Hudson Bay Area,freeze-up,2001,90.0,2002-01-09 19:30:21.287779
+Hudson Bay Area,break-up,2002,10.0,2002-07-25 10:42:50.253508
+Hudson Bay Area,break-up,2002,50.0,2002-06-25 20:04:37.672930
+Hudson Bay Area,break-up,2002,90.0,2002-04-23 08:37:31.488788
+Hudson Bay Area,freeze-up,2002,10.0,2002-11-13 02:49:28.104312
+Hudson Bay Area,freeze-up,2002,50.0,2002-11-29 08:41:55.959004
+Hudson Bay Area,freeze-up,2002,90.0,2003-01-14 20:28:31.503579
+Hudson Bay Area,break-up,2003,10.0,2003-07-21 07:01:16.595744
+Hudson Bay Area,break-up,2003,50.0,2003-06-18 09:41:32.776867
+Hudson Bay Area,break-up,2003,90.0,2003-04-25 13:30:56.415072
+Hudson Bay Area,freeze-up,2003,10.0,2003-11-16 07:30:14.713896
+Hudson Bay Area,freeze-up,2003,50.0,2003-12-10 11:57:07.572601
+Hudson Bay Area,freeze-up,2003,90.0,2004-01-04 07:40:52.096606
+Hudson Bay Area,break-up,2004,10.0,2004-08-05 01:12:36.687898
+Hudson Bay Area,break-up,2004,50.0,2004-06-29 15:27:29.942160
+Hudson Bay Area,break-up,2004,90.0,2004-03-28 09:20:22.269717
+Hudson Bay Area,freeze-up,2004,10.0,2004-11-02 16:16:13.603238
+Hudson Bay Area,freeze-up,2004,50.0,2004-12-01 05:38:11.714799
+Hudson Bay Area,freeze-up,2004,90.0,2004-12-17 14:06:30.393187
+Hudson Bay Area,break-up,2005,10.0,2005-07-19 23:25:10.420865
+Hudson Bay Area,break-up,2005,50.0,2005-06-15 18:35:34.164552
+Hudson Bay Area,break-up,2005,90.0,2005-03-29 17:43:11.595903
+Hudson Bay Area,freeze-up,2005,10.0,2005-11-08 15:42:08.825021
+Hudson Bay Area,freeze-up,2005,50.0,2005-12-07 12:16:24.194552
+Hudson Bay Area,freeze-up,2005,90.0,2005-12-31 06:00:23.577108
+Hudson Bay Area,break-up,2006,10.0,2006-07-13 12:33:01.651376
+Hudson Bay Area,break-up,2006,50.0,2006-06-10 19:43:36.921776
+Hudson Bay Area,break-up,2006,90.0,2006-04-15 06:36:24.129189
+Hudson Bay Area,freeze-up,2006,10.0,2006-11-21 21:56:41.792573
+Hudson Bay Area,freeze-up,2006,50.0,2006-12-08 11:52:04.482988
+Hudson Bay Area,freeze-up,2006,90.0,2007-01-11 04:42:58.850866
+Hudson Bay Area,break-up,2007,10.0,2007-07-20 14:14:43.318623
+Hudson Bay Area,break-up,2007,50.0,2007-06-16 21:43:07.806411
+Hudson Bay Area,break-up,2007,90.0,2007-03-24 23:27:07.856225
+Hudson Bay Area,freeze-up,2007,10.0,2007-11-06 13:34:05.846116
+Hudson Bay Area,freeze-up,2007,50.0,2007-12-02 09:23:10.779014
+Hudson Bay Area,freeze-up,2007,90.0,2007-12-27 09:05:48.703956
+Hudson Bay Area,break-up,2008,10.0,2008-07-23 15:05:31.502423
+Hudson Bay Area,break-up,2008,50.0,2008-06-17 00:26:08.844821
+Hudson Bay Area,break-up,2008,90.0,2008-04-22 22:44:05.428143
+Hudson Bay Area,freeze-up,2008,10.0,2008-11-02 12:58:37.750439
+Hudson Bay Area,freeze-up,2008,50.0,2008-12-07 02:52:03.396468
+Hudson Bay Area,freeze-up,2008,90.0,2008-12-18 03:26:54.151624
+Hudson Bay Area,break-up,2009,10.0,2009-07-24 19:50:41.581185
+Hudson Bay Area,break-up,2009,50.0,2009-06-27 08:48:37.804295
+Hudson Bay Area,break-up,2009,90.0,2009-05-05 17:45:48.541340
+Hudson Bay Area,freeze-up,2009,10.0,2009-10-30 09:09:10.260635
+Hudson Bay Area,freeze-up,2009,50.0,2009-12-12 09:46:11.451330
+Hudson Bay Area,freeze-up,2009,90.0,2010-01-20 02:04:03.402399
+Hudson Bay Area,break-up,2010,10.0,2010-07-16 22:37:18.473129
+Hudson Bay Area,break-up,2010,50.0,2010-06-12 05:31:00.587984
+Hudson Bay Area,break-up,2010,90.0,2010-03-29 20:42:38.440407
+Hudson Bay Area,freeze-up,2010,10.0,2010-11-29 02:49:22.560162
+Hudson Bay Area,freeze-up,2010,50.0,2010-12-25 00:55:47.534049
+Hudson Bay Area,freeze-up,2010,90.0,2011-02-01 21:16:01.325966
+Hudson Bay Area,break-up,2011,10.0,2011-07-16 20:57:18.805970
+Hudson Bay Area,break-up,2011,50.0,2011-06-12 19:01:04.316205
+Hudson Bay Area,break-up,2011,90.0,2011-04-28 11:27:00.643842
+Hudson Bay Area,freeze-up,2011,10.0,2011-11-09 18:03:31.468531
+Hudson Bay Area,freeze-up,2011,50.0,2011-12-09 11:57:00.399596
+Hudson Bay Area,freeze-up,2011,90.0,2012-01-02 19:48:58.311315
+Hudson Bay Area,break-up,2012,10.0,2012-07-19 08:13:49.971181
+Hudson Bay Area,break-up,2012,50.0,2012-06-14 06:23:40.401753
+Hudson Bay Area,break-up,2012,90.0,2012-04-24 12:50:41.900898
+Hudson Bay Area,freeze-up,2012,10.0,2012-11-08 22:47:01.621621
+Hudson Bay Area,freeze-up,2012,50.0,2012-12-05 03:46:00.432682
+Hudson Bay Area,freeze-up,2012,90.0,2012-12-30 16:01:00.079651
+Hudson Bay Area,break-up,2013,10.0,2013-07-23 06:14:50.238611
+Hudson Bay Area,break-up,2013,50.0,2013-06-20 03:33:02.291706
+Hudson Bay Area,break-up,2013,90.0,2013-04-28 10:41:39.163394
+Hudson Bay Area,freeze-up,2013,10.0,2013-11-04 12:51:20.213903
+Hudson Bay Area,freeze-up,2013,50.0,2013-11-30 22:58:36.713203
+Hudson Bay Area,freeze-up,2013,90.0,2013-12-19 01:58:46.956521
+Hudson Bay Area,break-up,2014,10.0,2014-07-23 05:39:33.883778
+Hudson Bay Area,break-up,2014,50.0,2014-06-18 16:42:10.553651
+Hudson Bay Area,break-up,2014,90.0,2014-05-08 21:36:18.275475
+Hudson Bay Area,freeze-up,2014,10.0,2014-11-03 20:57:35.860228
+Hudson Bay Area,freeze-up,2014,50.0,2014-11-28 19:18:52.913873
+Hudson Bay Area,freeze-up,2014,90.0,2015-01-07 03:18:22.406639
+Hudson Bay Area,break-up,2015,10.0,2015-07-29 18:01:09.364161
+Hudson Bay Area,break-up,2015,50.0,2015-06-20 22:17:30.533807
+Hudson Bay Area,break-up,2015,90.0,2015-04-28 00:43:28.360128
+Hudson Bay Area,freeze-up,2015,10.0,2015-10-28 11:19:13.274336
+Hudson Bay Area,freeze-up,2015,50.0,2015-12-01 19:05:33.593929
+Hudson Bay Area,freeze-up,2015,90.0,2016-01-05 14:31:53.424657
+Hudson Bay Area,break-up,2016,10.0,2016-07-18 12:30:37.367088
+Hudson Bay Area,break-up,2016,50.0,2016-06-17 08:09:17.130979
+Hudson Bay Area,break-up,2016,90.0,2016-05-01 19:53:27.604562
+Hudson Bay Area,freeze-up,2016,10.0,2016-11-08 08:42:44.596050
+Hudson Bay Area,freeze-up,2016,50.0,2016-12-14 03:26:17.570750
+Hudson Bay Area,freeze-up,2016,90.0,2017-01-29 00:16:54.610340
+Hudson Bay Area,break-up,2017,10.0,2017-07-17 00:30:59.882583
+Hudson Bay Area,break-up,2017,50.0,2017-06-13 20:26:03.701023
+Hudson Bay Area,break-up,2017,90.0,2017-04-07 17:12:16.880072
+Hudson Bay Area,freeze-up,2017,10.0,2017-11-03 01:00:23.225806
+Hudson Bay Area,freeze-up,2017,50.0,2017-12-06 14:45:07.887717
+Hudson Bay Area,freeze-up,2017,90.0,2017-12-24 14:47:07.197346
+Hudson Bay Area,break-up,2018,10.0,2018-07-23 18:16:08.631914
+Hudson Bay Area,break-up,2018,50.0,2018-06-25 01:21:22.227815
+Hudson Bay Area,break-up,2018,90.0,2018-04-28 07:09:07.268408
+Hudson Bay Area,freeze-up,2018,10.0,2018-10-23 10:25:24.283935
+Hudson Bay Area,freeze-up,2018,50.0,2018-11-30 15:50:24.000000
+Hudson Bay Area,freeze-up,2018,90.0,2018-12-27 14:21:08.367103
+Hudson Bay Area,break-up,2019,10.0,2019-07-17 05:44:48.474970
+Hudson Bay Area,break-up,2019,50.0,2019-06-20 15:33:47.839388
+Hudson Bay Area,break-up,2019,90.0,2019-04-20 00:39:53.176190
+Hudson Bay Area,freeze-up,2019,10.0,2019-11-15 06:17:07.744270
+Hudson Bay Area,freeze-up,2019,50.0,2019-12-06 12:49:29.249768
+Hudson Bay Area,freeze-up,2019,90.0,2020-01-06 20:12:46.863905
+Hudson Bay Area,break-up,2020,10.0,2020-07-16 03:50:41.536788
+Hudson Bay Area,break-up,2020,50.0,2020-06-19 18:33:10.887012
+Hudson Bay Area,break-up,2020,90.0,2020-04-25 19:11:15.608436
+Hudson Bay Area,freeze-up,2020,10.0,2020-11-08 00:25:47.567677
+Hudson Bay Area,freeze-up,2020,50.0,2020-12-04 21:27:53.038892
+Hudson Bay Area,freeze-up,2020,90.0,2021-01-23 15:42:58.815080
+Hudson Bay Area,break-up,2021,10.0,2021-07-21 02:56:07.040552
+Hudson Bay Area,break-up,2021,50.0,2021-06-16 23:18:20.348245
+Hudson Bay Area,break-up,2021,90.0,2021-04-09 01:10:23.870532
+Hudson Bay Area,freeze-up,2021,10.0,2021-11-19 04:03:51.355273
+Hudson Bay Area,freeze-up,2021,50.0,2021-12-18 09:11:09.000410
+Hudson Bay Area,freeze-up,2021,90.0,2022-01-07 18:48:07.032791
+Hudson Bay Area,break-up,2022,10.0,2022-07-19 21:36:24.656706
+Hudson Bay Area,break-up,2022,50.0,2022-06-13 08:54:38.757567
+Hudson Bay Area,break-up,2022,90.0,2022-05-02 02:23:11.639871
+Hudson Bay Area,freeze-up,2022,10.0,2022-11-06 17:19:34.476071
+Hudson Bay Area,freeze-up,2022,50.0,2022-12-06 07:26:36.711380
+Hudson Bay Area,freeze-up,2022,90.0,2023-01-04 20:29:50.066802
+Hudson Bay Area,break-up,2023,10.0,2023-07-13 15:33:48.699551
+Hudson Bay Area,break-up,2023,50.0,2023-06-10 02:34:34.353513
+Hudson Bay Area,break-up,2023,90.0,2023-04-30 16:53:59.085170
+Hudson Bay Area,freeze-up,2023,10.0,2023-11-19 14:38:01.188118
+Hudson Bay Area,freeze-up,2023,50.0,2023-12-17 17:52:27.298062
+Hudson Bay Area,freeze-up,2023,90.0,2024-01-21 07:05:36.313678
+Hudson Bay Area,break-up,2024,10.0,2024-07-19 13:30:16.889394
+Hudson Bay Area,break-up,2024,50.0,2024-06-06 02:02:05.909821
+Hudson Bay Area,break-up,2024,90.0,2024-04-13 04:56:38.323775
+Hudson Bay Area,freeze-up,2024,10.0,2024-11-27 00:27:15.830618
+Hudson Bay Area,freeze-up,2024,50.0,2025-01-01 15:49:52.967863
+Hudson Bay Area,freeze-up,2024,90.0,2025-02-02 12:45:33.232563
+Hudson Bay Area,break-up,2025,10.0,2025-07-09 12:57:05.208778
+Hudson Bay Area,break-up,2025,50.0,2025-06-10 12:26:27.877546
+Hudson Bay Area,break-up,2025,90.0,2025-04-28 14:27:43.184363
+Hudson Bay Area,freeze-up,2025,10.0,2025-11-29 09:27:32.576907
+Hudson Bay Area,freeze-up,2025,50.0,2025-12-17 13:01:18.372531
+Hudson Bay Area,freeze-up,2025,90.0,2026-01-16 18:00:27.135678
+Hudson Bay Area,break-up,2026,10.0,2026-07-10 05:12:52.246639
+Hudson Bay Area,break-up,2026,50.0,2026-06-09 16:58:03.001347
+Hudson Bay Area,break-up,2026,90.0,2026-04-24 13:01:37.297297
+Hudson Bay Area,freeze-up,2026,10.0,
+Hudson Bay Area,freeze-up,2026,50.0,
+Hudson Bay Area,freeze-up,2026,90.0,
+Hudson Strait,break-up,1978,10.0,
+Hudson Strait,break-up,1978,50.0,
+Hudson Strait,break-up,1978,90.0,
+Hudson Strait,freeze-up,1978,10.0,
+Hudson Strait,freeze-up,1978,50.0,
+Hudson Strait,freeze-up,1978,90.0,
+Hudson Strait,break-up,1979,10.0,1979-07-17 14:51:32.497938
+Hudson Strait,break-up,1979,50.0,1979-06-28 08:35:02.189781
+Hudson Strait,break-up,1979,90.0,1979-04-09 02:45:40.518417
+Hudson Strait,freeze-up,1979,10.0,1979-11-27 16:37:26.100519
+Hudson Strait,freeze-up,1979,50.0,1979-12-07 16:46:15.079197
+Hudson Strait,freeze-up,1979,90.0,1980-02-07 10:10:13.953488
+Hudson Strait,break-up,1980,10.0,1980-07-07 12:29:12.850539
+Hudson Strait,break-up,1980,50.0,1980-06-17 10:48:28.309305
+Hudson Strait,break-up,1980,90.0,1980-04-02 23:54:52.252894
+Hudson Strait,freeze-up,1980,10.0,1980-12-02 05:11:16.033504
+Hudson Strait,freeze-up,1980,50.0,1980-12-08 11:04:11.795841
+Hudson Strait,freeze-up,1980,90.0,1981-01-27 11:41:11.641791
+Hudson Strait,break-up,1981,10.0,1981-07-08 07:20:21.880698
+Hudson Strait,break-up,1981,50.0,1981-06-17 04:45:16.619884
+Hudson Strait,break-up,1981,90.0,1981-04-23 16:14:57.196261
+Hudson Strait,freeze-up,1981,10.0,1981-11-27 10:44:28.976958
+Hudson Strait,freeze-up,1981,50.0,1981-12-19 06:44:11.286601
+Hudson Strait,freeze-up,1981,90.0,1982-02-01 05:07:38.687258
+Hudson Strait,break-up,1982,10.0,1982-07-16 19:06:40.000000
+Hudson Strait,break-up,1982,50.0,1982-06-25 04:14:55.280898
+Hudson Strait,break-up,1982,90.0,1982-04-29 05:27:30.226928
+Hudson Strait,freeze-up,1982,10.0,1982-11-13 19:16:02.176422
+Hudson Strait,freeze-up,1982,50.0,1982-11-25 01:30:29.463781
+Hudson Strait,freeze-up,1982,90.0,1982-12-25 07:42:58.444747
+Hudson Strait,break-up,1983,10.0,1983-08-01 07:02:36.210665
+Hudson Strait,break-up,1983,50.0,1983-07-06 19:23:20.985221
+Hudson Strait,break-up,1983,90.0,1983-04-17 11:07:28.239355
+Hudson Strait,freeze-up,1983,10.0,1983-11-13 10:44:47.388535
+Hudson Strait,freeze-up,1983,50.0,1983-11-26 19:05:49.917627
+Hudson Strait,freeze-up,1983,90.0,1984-01-03 16:37:59.806138
+Hudson Strait,break-up,1984,10.0,1984-08-02 12:32:56.025236
+Hudson Strait,break-up,1984,50.0,1984-07-10 18:40:59.287410
+Hudson Strait,break-up,1984,90.0,1984-04-27 08:26:08.871595
+Hudson Strait,freeze-up,1984,10.0,1984-11-13 23:26:14.809375
+Hudson Strait,freeze-up,1984,50.0,1984-12-01 01:32:07.209855
+Hudson Strait,freeze-up,1984,90.0,1984-12-31 19:13:16.885428
+Hudson Strait,break-up,1985,10.0,1985-07-20 23:33:13.980969
+Hudson Strait,break-up,1985,50.0,1985-07-01 14:12:41.478933
+Hudson Strait,break-up,1985,90.0,1985-05-11 17:06:35.939086
+Hudson Strait,freeze-up,1985,10.0,1985-12-02 19:13:15.860771
+Hudson Strait,freeze-up,1985,50.0,1985-12-20 08:39:42.377022
+Hudson Strait,freeze-up,1985,90.0,1986-02-12 22:17:20.462427
+Hudson Strait,break-up,1986,10.0,1986-07-08 16:03:38.892508
+Hudson Strait,break-up,1986,50.0,1986-06-15 09:43:19.816007
+Hudson Strait,break-up,1986,90.0,1986-03-30 11:14:48.702928
+Hudson Strait,freeze-up,1986,10.0,1986-11-05 11:02:52.800000
+Hudson Strait,freeze-up,1986,50.0,1986-11-15 03:27:33.024793
+Hudson Strait,freeze-up,1986,90.0,1987-01-02 16:15:21.073672
+Hudson Strait,break-up,1987,10.0,1987-07-19 05:20:20.020855
+Hudson Strait,break-up,1987,50.0,1987-06-25 16:36:38.188874
+Hudson Strait,break-up,1987,90.0,1987-04-14 08:42:08.055077
+Hudson Strait,freeze-up,1987,10.0,1987-11-18 19:34:12.186805
+Hudson Strait,freeze-up,1987,50.0,1987-11-30 20:01:01.374533
+Hudson Strait,freeze-up,1987,90.0,1988-01-07 17:34:33.790462
+Hudson Strait,break-up,1988,10.0,1988-07-21 14:01:27.320837
+Hudson Strait,break-up,1988,50.0,1988-06-25 04:46:13.614775
+Hudson Strait,break-up,1988,90.0,1988-04-18 04:37:20.986132
+Hudson Strait,freeze-up,1988,10.0,1988-12-03 06:19:08.137108
+Hudson Strait,freeze-up,1988,50.0,1988-12-07 03:48:24.049262
+Hudson Strait,freeze-up,1988,90.0,1989-01-18 06:41:30.352941
+Hudson Strait,break-up,1989,10.0,1989-07-13 11:55:27.580484
+Hudson Strait,break-up,1989,50.0,1989-06-21 00:05:44.873949
+Hudson Strait,break-up,1989,90.0,1989-04-07 08:24:51.798561
+Hudson Strait,freeze-up,1989,10.0,1989-11-22 17:19:12.625345
+Hudson Strait,freeze-up,1989,50.0,1989-11-30 07:15:07.826086
+Hudson Strait,freeze-up,1989,90.0,1989-12-26 08:42:19.767054
+Hudson Strait,break-up,1990,10.0,1990-07-27 20:42:29.782293
+Hudson Strait,break-up,1990,50.0,1990-06-29 03:57:01.822272
+Hudson Strait,break-up,1990,90.0,1990-03-29 10:19:59.999999
+Hudson Strait,freeze-up,1990,10.0,1990-11-14 14:23:13.814432
+Hudson Strait,freeze-up,1990,50.0,1990-12-01 11:37:56.323119
+Hudson Strait,freeze-up,1990,90.0,1991-01-08 08:02:07.152317
+Hudson Strait,break-up,1991,10.0,1991-07-22 01:44:20.869565
+Hudson Strait,break-up,1991,50.0,1991-06-27 21:09:00.458015
+Hudson Strait,break-up,1991,90.0,1991-03-28 16:22:03.726708
+Hudson Strait,freeze-up,1991,10.0,1991-11-28 12:54:11.109907
+Hudson Strait,freeze-up,1991,50.0,1991-12-08 09:23:02.698961
+Hudson Strait,freeze-up,1991,90.0,1992-01-23 22:06:46.644518
+Hudson Strait,break-up,1992,10.0,1992-07-28 21:59:21.394101
+Hudson Strait,break-up,1992,50.0,1992-07-08 10:27:23.153526
+Hudson Strait,break-up,1992,90.0,1992-05-11 00:11:38.275862
+Hudson Strait,freeze-up,1992,10.0,1992-11-16 03:15:14.678718
+Hudson Strait,freeze-up,1992,50.0,1992-11-22 11:40:08.907741
+Hudson Strait,freeze-up,1992,90.0,1992-12-23 20:53:07.529228
+Hudson Strait,break-up,1993,10.0,1993-07-12 11:56:04.577656
+Hudson Strait,break-up,1993,50.0,1993-06-23 06:15:05.960264
+Hudson Strait,break-up,1993,90.0,1993-05-11 07:44:17.454545
+Hudson Strait,freeze-up,1993,10.0,1993-11-12 10:21:22.421420
+Hudson Strait,freeze-up,1993,50.0,1993-11-29 03:58:20.689655
+Hudson Strait,freeze-up,1993,90.0,1993-12-24 05:41:51.119056
+Hudson Strait,break-up,1994,10.0,1994-07-12 20:44:16.310679
+Hudson Strait,break-up,1994,50.0,1994-06-21 15:15:09.700598
+Hudson Strait,break-up,1994,90.0,1994-04-14 05:00:47.070217
+Hudson Strait,freeze-up,1994,10.0,1994-11-26 22:04:23.924365
+Hudson Strait,freeze-up,1994,50.0,1994-12-09 05:12:53.935351
+Hudson Strait,freeze-up,1994,90.0,1995-01-29 21:23:19.511002
+Hudson Strait,break-up,1995,10.0,1995-07-05 01:05:47.208121
+Hudson Strait,break-up,1995,50.0,1995-06-10 20:14:26.819412
+Hudson Strait,break-up,1995,90.0,1995-03-30 03:03:51.500465
+Hudson Strait,freeze-up,1995,10.0,1995-11-30 03:54:56.450849
+Hudson Strait,freeze-up,1995,50.0,1995-12-14 15:06:24.514344
+Hudson Strait,freeze-up,1995,90.0,
+Hudson Strait,break-up,1996,10.0,1996-07-19 06:59:10.966107
+Hudson Strait,break-up,1996,50.0,1996-06-26 22:57:20.660165
+Hudson Strait,break-up,1996,90.0,1996-04-23 01:20:46.421663
+Hudson Strait,freeze-up,1996,10.0,1996-11-29 16:16:32.082262
+Hudson Strait,freeze-up,1996,50.0,1996-12-21 17:21:32.054794
+Hudson Strait,freeze-up,1996,90.0,1997-01-30 16:31:44.516129
+Hudson Strait,break-up,1997,10.0,1997-07-09 20:31:55.270935
+Hudson Strait,break-up,1997,50.0,1997-06-19 20:07:29.081900
+Hudson Strait,break-up,1997,90.0,1997-04-18 01:56:57.055342
+Hudson Strait,freeze-up,1997,10.0,1997-12-07 14:26:23.119700
+Hudson Strait,freeze-up,1997,50.0,1997-12-16 09:39:49.764174
+Hudson Strait,freeze-up,1997,90.0,1998-02-02 15:57:52.495849
+Hudson Strait,break-up,1998,10.0,1998-06-26 19:48:45.458248
+Hudson Strait,break-up,1998,50.0,1998-06-05 09:40:30.000000
+Hudson Strait,break-up,1998,90.0,1998-04-05 08:49:33.214285
+Hudson Strait,freeze-up,1998,10.0,1998-12-16 19:29:06.341463
+Hudson Strait,freeze-up,1998,50.0,1998-12-21 22:07:34.804270
+Hudson Strait,freeze-up,1998,90.0,1999-02-08 11:24:40.754716
+Hudson Strait,break-up,1999,10.0,1999-06-30 06:21:31.736017
+Hudson Strait,break-up,1999,50.0,1999-06-07 02:44:11.866801
+Hudson Strait,break-up,1999,90.0,1999-03-16 04:13:06.151797
+Hudson Strait,freeze-up,1999,10.0,1999-12-05 19:17:38.450704
+Hudson Strait,freeze-up,1999,50.0,1999-12-23 07:05:41.942369
+Hudson Strait,freeze-up,1999,90.0,2000-01-31 16:21:31.903719
+Hudson Strait,break-up,2000,10.0,2000-07-01 18:12:58.378378
+Hudson Strait,break-up,2000,50.0,2000-06-11 16:40:09.099526
+Hudson Strait,break-up,2000,90.0,2000-03-19 02:18:09.789635
+Hudson Strait,freeze-up,2000,10.0,2000-12-02 11:12:58.937686
+Hudson Strait,freeze-up,2000,50.0,2000-12-12 13:15:12.839392
+Hudson Strait,freeze-up,2000,90.0,2001-01-15 20:08:06.876790
+Hudson Strait,break-up,2001,10.0,2001-06-20 10:06:34.830597
+Hudson Strait,break-up,2001,50.0,2001-06-01 15:27:49.721627
+Hudson Strait,break-up,2001,90.0,2001-04-07 02:04:24.220183
+Hudson Strait,freeze-up,2001,10.0,2001-12-03 03:16:24.204131
+Hudson Strait,freeze-up,2001,50.0,2001-12-10 12:31:28.151658
+Hudson Strait,freeze-up,2001,90.0,2002-01-17 18:20:54.631083
+Hudson Strait,break-up,2002,10.0,2002-07-10 01:40:05.381165
+Hudson Strait,break-up,2002,50.0,2002-06-19 01:50:41.253456
+Hudson Strait,break-up,2002,90.0,2002-03-22 21:46:45.260685
+Hudson Strait,freeze-up,2002,10.0,2002-12-06 21:46:50.322580
+Hudson Strait,freeze-up,2002,50.0,2002-12-11 22:30:12.176929
+Hudson Strait,freeze-up,2002,90.0,2003-02-07 16:52:06.348333
+Hudson Strait,break-up,2003,10.0,2003-06-21 18:57:40.194174
+Hudson Strait,break-up,2003,50.0,2003-06-03 07:00:12.563758
+Hudson Strait,break-up,2003,90.0,2003-03-18 01:38:37.808219
+Hudson Strait,freeze-up,2003,10.0,2003-12-12 15:28:59.165009
+Hudson Strait,freeze-up,2003,50.0,2003-12-27 16:51:43.229594
+Hudson Strait,freeze-up,2003,90.0,2004-02-27 14:49:53.258426
+Hudson Strait,break-up,2004,10.0,2004-07-03 08:03:04.964110
+Hudson Strait,break-up,2004,50.0,2004-06-06 22:27:17.022132
+Hudson Strait,break-up,2004,90.0,2004-03-18 09:59:59.999999
+Hudson Strait,freeze-up,2004,10.0,2004-12-02 16:30:31.868852
+Hudson Strait,freeze-up,2004,50.0,2004-12-12 18:16:50.605115
+Hudson Strait,freeze-up,2004,90.0,
+Hudson Strait,break-up,2005,10.0,2005-07-02 14:19:45.829707
+Hudson Strait,break-up,2005,50.0,2005-06-07 13:22:24.424778
+Hudson Strait,break-up,2005,90.0,
+Hudson Strait,freeze-up,2005,10.0,2005-12-09 16:14:42.948673
+Hudson Strait,freeze-up,2005,50.0,2005-12-20 17:48:49.330254
+Hudson Strait,freeze-up,2005,90.0,
+Hudson Strait,break-up,2006,10.0,2006-06-17 05:26:06.712141
+Hudson Strait,break-up,2006,50.0,2006-05-25 18:37:58.124999
+Hudson Strait,break-up,2006,90.0,2006-03-29 06:15:28.366762
+Hudson Strait,freeze-up,2006,10.0,2006-12-19 00:21:50.635428
+Hudson Strait,freeze-up,2006,50.0,2006-12-29 22:54:36.135377
+Hudson Strait,freeze-up,2006,90.0,
+Hudson Strait,break-up,2007,10.0,2007-06-28 04:38:58.144329
+Hudson Strait,break-up,2007,50.0,2007-06-05 16:05:58.189997
+Hudson Strait,break-up,2007,90.0,2007-03-18 13:44:54.857142
+Hudson Strait,freeze-up,2007,10.0,2007-11-27 23:32:16.659436
+Hudson Strait,freeze-up,2007,50.0,2007-12-09 00:00:28.780812
+Hudson Strait,freeze-up,2007,90.0,2008-01-02 04:17:33.126184
+Hudson Strait,break-up,2008,10.0,2008-07-02 08:16:46.113537
+Hudson Strait,break-up,2008,50.0,2008-06-14 11:11:52.796998
+Hudson Strait,break-up,2008,90.0,2008-03-19 00:52:17.065052
+Hudson Strait,freeze-up,2008,10.0,2008-12-04 11:11:00.067491
+Hudson Strait,freeze-up,2008,50.0,2008-12-10 18:24:57.549956
+Hudson Strait,freeze-up,2008,90.0,2009-02-19 04:20:08.119079
+Hudson Strait,break-up,2009,10.0,2009-07-03 20:07:09.949471
+Hudson Strait,break-up,2009,50.0,2009-06-14 10:42:09.729729
+Hudson Strait,break-up,2009,90.0,2009-04-17 04:33:58.938053
+Hudson Strait,freeze-up,2009,10.0,2009-12-03 15:06:17.622377
+Hudson Strait,freeze-up,2009,50.0,2009-12-26 03:53:46.639552
+Hudson Strait,freeze-up,2009,90.0,
+Hudson Strait,break-up,2010,10.0,2010-06-19 14:13:10.419161
+Hudson Strait,break-up,2010,50.0,2010-06-01 02:08:17.624190
+Hudson Strait,break-up,2010,90.0,2010-03-26 03:49:12.932216
+Hudson Strait,freeze-up,2010,10.0,2011-01-12 07:14:18.609625
+Hudson Strait,freeze-up,2010,50.0,2011-01-26 16:46:00.874089
+Hudson Strait,freeze-up,2010,90.0,
+Hudson Strait,break-up,2011,10.0,2011-06-13 17:31:21.349458
+Hudson Strait,break-up,2011,50.0,2011-05-05 15:28:40.646006
+Hudson Strait,break-up,2011,90.0,
+Hudson Strait,freeze-up,2011,10.0,2011-12-17 01:32:29.000951
+Hudson Strait,freeze-up,2011,50.0,2011-12-30 06:59:52.859166
+Hudson Strait,freeze-up,2011,90.0,
+Hudson Strait,break-up,2012,10.0,2012-06-21 17:46:49.014084
+Hudson Strait,break-up,2012,50.0,2012-06-06 07:49:43.957219
+Hudson Strait,break-up,2012,90.0,2012-03-21 04:14:46.288848
+Hudson Strait,freeze-up,2012,10.0,2012-12-04 06:28:11.650485
+Hudson Strait,freeze-up,2012,50.0,2012-12-26 04:50:52.340425
+Hudson Strait,freeze-up,2012,90.0,2013-02-16 01:01:13.990077
+Hudson Strait,break-up,2013,10.0,2013-06-26 16:01:40.501635
+Hudson Strait,break-up,2013,50.0,2013-06-09 01:34:53.023255
+Hudson Strait,break-up,2013,90.0,2013-03-21 10:10:56.191074
+Hudson Strait,freeze-up,2013,10.0,2013-11-29 15:35:09.864603
+Hudson Strait,freeze-up,2013,50.0,2013-12-14 22:42:00.947724
+Hudson Strait,freeze-up,2013,90.0,2014-02-05 12:44:07.058823
+Hudson Strait,break-up,2014,10.0,2014-06-27 10:33:25.675877
+Hudson Strait,break-up,2014,50.0,2014-06-12 09:51:22.507384
+Hudson Strait,break-up,2014,90.0,2014-05-06 06:18:50.232558
+Hudson Strait,freeze-up,2014,10.0,2014-11-28 17:27:11.020408
+Hudson Strait,freeze-up,2014,50.0,2014-12-15 21:40:29.065743
+Hudson Strait,freeze-up,2014,90.0,2015-01-29 07:45:35.079872
+Hudson Strait,break-up,2015,10.0,2015-06-28 21:31:07.826086
+Hudson Strait,break-up,2015,50.0,2015-06-06 07:53:53.898305
+Hudson Strait,break-up,2015,90.0,2015-04-03 09:10:26.912928
+Hudson Strait,freeze-up,2015,10.0,2015-11-24 04:29:25.416285
+Hudson Strait,freeze-up,2015,50.0,2015-12-03 12:13:22.896451
+Hudson Strait,freeze-up,2015,90.0,2016-01-31 03:23:03.995523
+Hudson Strait,break-up,2016,10.0,2016-07-06 21:43:32.903225
+Hudson Strait,break-up,2016,50.0,2016-06-16 04:36:38.130841
+Hudson Strait,break-up,2016,90.0,2016-04-04 21:47:06.845637
+Hudson Strait,freeze-up,2016,10.0,2016-12-09 11:10:36.918827
+Hudson Strait,freeze-up,2016,50.0,2016-12-19 19:50:22.150882
+Hudson Strait,freeze-up,2016,90.0,2017-02-02 20:39:12.191235
+Hudson Strait,break-up,2017,10.0,2017-06-23 16:34:59.251123
+Hudson Strait,break-up,2017,50.0,2017-06-07 01:53:43.647569
+Hudson Strait,break-up,2017,90.0,2017-04-05 22:00:18.818609
+Hudson Strait,freeze-up,2017,10.0,2017-12-09 17:56:02.056303
+Hudson Strait,freeze-up,2017,50.0,2017-12-19 12:15:43.643512
+Hudson Strait,freeze-up,2017,90.0,2018-01-27 07:08:24.513064
+Hudson Strait,break-up,2018,10.0,2018-07-11 00:38:13.805309
+Hudson Strait,break-up,2018,50.0,2018-06-16 05:03:56.949614
+Hudson Strait,break-up,2018,90.0,
+Hudson Strait,freeze-up,2018,10.0,2018-11-28 05:53:28.759124
+Hudson Strait,freeze-up,2018,50.0,2018-12-14 06:49:35.107865
+Hudson Strait,freeze-up,2018,90.0,
+Hudson Strait,break-up,2019,10.0,2019-06-24 23:33:46.707132
+Hudson Strait,break-up,2019,50.0,2019-05-29 12:13:08.379888
+Hudson Strait,break-up,2019,90.0,2019-03-22 12:32:12.885906
+Hudson Strait,freeze-up,2019,10.0,2019-12-19 15:24:52.981709
+Hudson Strait,freeze-up,2019,50.0,2019-12-25 19:45:08.582511
+Hudson Strait,freeze-up,2019,90.0,2020-02-18 01:46:19.630808
+Hudson Strait,break-up,2020,10.0,2020-06-29 04:17:01.621621
+Hudson Strait,break-up,2020,50.0,2020-05-21 00:49:59.820413
+Hudson Strait,break-up,2020,90.0,
+Hudson Strait,freeze-up,2020,10.0,2020-12-11 10:08:02.048546
+Hudson Strait,freeze-up,2020,50.0,2020-12-20 08:48:37.081545
+Hudson Strait,freeze-up,2020,90.0,
+Hudson Strait,break-up,2021,10.0,2021-06-24 01:44:37.466863
+Hudson Strait,break-up,2021,50.0,2021-05-25 00:21:33.107522
+Hudson Strait,break-up,2021,90.0,2021-03-26 17:01:24.534412
+Hudson Strait,freeze-up,2021,10.0,2021-12-20 01:16:47.024968
+Hudson Strait,freeze-up,2021,50.0,2021-12-30 20:37:33.873127
+Hudson Strait,freeze-up,2021,90.0,2022-02-16 06:51:07.642752
+Hudson Strait,break-up,2022,10.0,2022-06-17 17:23:12.700729
+Hudson Strait,break-up,2022,50.0,2022-06-02 07:46:14.634146
+Hudson Strait,break-up,2022,90.0,
+Hudson Strait,freeze-up,2022,10.0,2022-12-04 16:59:54.695853
+Hudson Strait,freeze-up,2022,50.0,2022-12-17 06:46:42.296211
+Hudson Strait,freeze-up,2022,90.0,
+Hudson Strait,break-up,2023,10.0,2023-06-29 00:05:01.045296
+Hudson Strait,break-up,2023,50.0,2023-06-03 03:36:05.893587
+Hudson Strait,break-up,2023,90.0,2023-04-18 07:05:32.379713
+Hudson Strait,freeze-up,2023,10.0,2023-12-18 13:45:36.801809
+Hudson Strait,freeze-up,2023,50.0,2023-12-31 22:29:23.914876
+Hudson Strait,freeze-up,2023,90.0,
+Hudson Strait,break-up,2024,10.0,2024-06-23 05:32:38.348294
+Hudson Strait,break-up,2024,50.0,2024-06-01 23:23:07.717543
+Hudson Strait,break-up,2024,90.0,
+Hudson Strait,freeze-up,2024,10.0,2025-01-05 05:54:22.905162
+Hudson Strait,freeze-up,2024,50.0,2025-01-14 19:22:05.394896
+Hudson Strait,freeze-up,2024,90.0,
+Hudson Strait,break-up,2025,10.0,2025-06-17 20:54:31.556350
+Hudson Strait,break-up,2025,50.0,2025-05-23 00:02:21.084258
+Hudson Strait,break-up,2025,90.0,
+Hudson Strait,freeze-up,2025,10.0,2025-12-22 15:10:57.207940
+Hudson Strait,freeze-up,2025,50.0,2026-01-06 13:29:36.000000
+Hudson Strait,freeze-up,2025,90.0,
+Hudson Strait,break-up,2026,10.0,2026-06-14 12:32:06.540724
+Hudson Strait,break-up,2026,50.0,2026-05-19 21:07:25.579567
+Hudson Strait,break-up,2026,90.0,2026-03-17 00:00:50.898379
+Hudson Strait,freeze-up,2026,10.0,
+Hudson Strait,freeze-up,2026,50.0,
+Hudson Strait,freeze-up,2026,90.0,

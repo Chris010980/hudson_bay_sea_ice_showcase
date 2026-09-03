@@ -632,22 +632,15 @@ class TimeSeriesAnalyzer:
             len(data),
         ):
 
-            previous = data.iloc[
-                start_idx - 1
-            ]
-
-            current = data.iloc[
-                start_idx
-            ]
+            previous = data.iloc[start_idx - 1]
+            current = data.iloc[start_idx]
 
             # -----------------------------------------------------
-            # The crossing itself must occur between consecutive
-            # calendar days.
+            # Crossing must occur between consecutive calendar days.
             # -----------------------------------------------------
 
             if (
-                current["date"]
-                - previous["date"]
+                current["date"] - previous["date"]
                 != pd.Timedelta(days=1)
             ):
                 continue
@@ -657,19 +650,6 @@ class TimeSeriesAnalyzer:
 
             # -----------------------------------------------------
             # Determine whether an actual crossing occurred.
-            #
-            # Strict inequality on the previous day is important:
-            #
-            # down:
-            #     previous > threshold
-            #     current  <= threshold
-            #
-            # up:
-            #     previous < threshold
-            #     current  >= threshold
-            #
-            # Thus, a window that already starts above/below the
-            # threshold does not create a fictitious event.
             # -----------------------------------------------------
 
             if direction == "down":
@@ -692,15 +672,11 @@ class TimeSeriesAnalyzer:
             # -----------------------------------------------------
             # Check persistence.
             #
-            # The crossing day itself counts as the first persistent
-            # day. Therefore we need `persistence - 1` additional
-            # consecutive calendar days after the crossing.
+            # The crossing day itself counts as the first
+            # persistence day.
             # -----------------------------------------------------
 
-            end_idx = (
-                start_idx
-                + persistence
-            )
+            end_idx = start_idx + persistence
 
             if end_idx > len(data):
                 continue
@@ -709,27 +685,27 @@ class TimeSeriesAnalyzer:
                 start_idx:end_idx
             ]
 
-            # -----------------------------------------------------
-            # Check calendar continuity.
-            # -----------------------------------------------------
-
             if len(persistent_segment) < persistence:
                 continue
 
-            dates = (
+            # -----------------------------------------------------
+            # All persistence observations must be consecutive
+            # calendar days.
+            # -----------------------------------------------------
+
+            date_deltas = (
                 persistent_segment["date"]
                 .diff()
                 .dropna()
             )
 
-            if not dates.eq(
+            if not date_deltas.eq(
                 pd.Timedelta(days=1)
             ).all():
                 continue
 
             # -----------------------------------------------------
-            # Check that all persistence days remain on the target
-            # side of the threshold.
+            # Check persistence on the required side.
             # -----------------------------------------------------
 
             if direction == "down":
@@ -750,11 +726,10 @@ class TimeSeriesAnalyzer:
                 continue
 
             # -----------------------------------------------------
-            # We now have a valid persistent crossing.
+            # Valid persistent crossing found.
             #
-            # Determine the exact crossing date by linear
-            # interpolation between the previous and current
-            # observations.
+            # Interpolate between the observations immediately
+            # surrounding the threshold.
             # -----------------------------------------------------
 
             if y0 == threshold:
@@ -763,10 +738,6 @@ class TimeSeriesAnalyzer:
             if y1 == threshold:
                 return current["date"]
 
-            # This should normally not happen because an actual
-            # crossing has already been established, but protects
-            # against division by zero and unexpected numerical
-            # input.
             if y1 == y0:
                 return current["date"]
 
@@ -776,7 +747,6 @@ class TimeSeriesAnalyzer:
                 y1 - y0
             )
 
-            # Numerical safety.
             if not 0.0 <= fraction <= 1.0:
                 continue
 
@@ -785,12 +755,10 @@ class TimeSeriesAnalyzer:
                 - previous["date"]
             )
 
-            crossing = (
+            return (
                 previous["date"]
                 + fraction * delta
             )
-
-            return crossing
 
         return None
 
@@ -799,9 +767,49 @@ class TimeSeriesAnalyzer:
         df_region: pd.DataFrame,
         event_year: int,
         event_type: str,
+        start_date: pd.Timestamp | None = None,
     ) -> pd.DataFrame:
-        if event_type == "freeze-up":
-            start = pd.Timestamp(
+        """
+        Return the time window used for a threshold event search.
+
+        Parameters
+        ----------
+        df_region:
+            Regional daily time series.
+
+        event_year:
+            Calendar year of the event.
+
+        event_type:
+            ``"break-up"`` or ``"freeze-up"``.
+
+        start_date:
+            Optional dynamic start date. If supplied, it overrides
+            the normal seasonal start date.
+
+        Returns
+        -------
+        pd.DataFrame
+            Data restricted to the requested event window.
+        """
+
+        if event_type == "break-up":
+
+            default_start = pd.Timestamp(
+                year=event_year,
+                month=3,
+                day=16,
+            )
+
+            end = pd.Timestamp(
+                year=event_year,
+                month=9,
+                day=15,
+            )
+
+        elif event_type == "freeze-up":
+
+            default_start = pd.Timestamp(
                 year=event_year,
                 month=9,
                 day=16,
@@ -813,30 +821,25 @@ class TimeSeriesAnalyzer:
                 day=15,
             )
 
-        elif event_type == "break-up":
-            start = pd.Timestamp(
-                year=event_year,
-                month=3,
-                day=16,
-            )
-
-            end = pd.Timestamp(
-                year=event_year,
-                month=9,
-                day=15,
-            )
-
         else:
             raise ValueError(
                 f"Unknown event type: {event_type}"
             )
+
+        if start_date is None:
+            start = default_start
+        else:
+            start = pd.Timestamp(start_date)
+
+        if start > end:
+            return df_region.iloc[0:0].copy()
 
         return df_region[
             df_region["date"].between(
                 start,
                 end,
             )
-        ].copy()    
+        ].copy()
 
     def calculate_threshold_events(
         self,
@@ -852,11 +855,19 @@ class TimeSeriesAnalyzer:
         Calculate break-up and freeze-up threshold events.
 
         Break-up events are searched between March 16 and September 15.
-        Freeze-up events are searched between September 16 and March 15
-        of the following year.
 
-        A freeze-up event is only valid if the corresponding threshold
-        was crossed during the preceding break-up season.
+        Freeze-up events normally start on September 16 and extend
+        through March 15 of the following year.
+
+        If a threshold has a valid break-up event but the threshold is
+        already reached or exceeded on September 16, the freeze-up
+        search is extended backwards to the day after the corresponding
+        break-up event. This allows an earlier freeze-up crossing in
+        September to be detected.
+
+        A freeze-up event is only considered meaningful if the
+        corresponding threshold was crossed during the preceding
+        break-up season.
         """
 
         logger.info(
@@ -871,7 +882,7 @@ class TimeSeriesAnalyzer:
                 "Cannot calculate threshold events: dataframe is empty."
             )
 
-            self.threshold_events_df = pd.DataFrame(
+            self.events_df = pd.DataFrame(
                 columns=[
                     "region",
                     "event_type",
@@ -881,9 +892,13 @@ class TimeSeriesAnalyzer:
                 ]
             )
 
-            return self.threshold_events_df
+            return self.events_df
 
         events = []
+
+        # ---------------------------------------------------------
+        # Process each region independently
+        # ---------------------------------------------------------
 
         for region, df_region in self.df.groupby("region"):
 
@@ -893,17 +908,30 @@ class TimeSeriesAnalyzer:
                 .reset_index(drop=True)
             )
 
-            min_year = df_region["date"].dt.year.min()
-            max_year = df_region["date"].dt.year.max()
+            min_year = (
+                df_region["date"]
+                .dt.year
+                .min()
+            )
+
+            max_year = (
+                df_region["date"]
+                .dt.year
+                .max()
+            )
+
+            # -----------------------------------------------------
+            # Process each event year
+            # -----------------------------------------------------
 
             for event_year in range(
                 min_year,
                 max_year + 1,
             ):
 
-                # -------------------------------------------------
-                # Break-up window
-                # -------------------------------------------------
+                # =================================================
+                # BREAK-UP WINDOW
+                # =================================================
 
                 breakup_window = self._get_event_window(
                     df_region=df_region,
@@ -911,15 +939,21 @@ class TimeSeriesAnalyzer:
                     event_type="break-up",
                 )
 
-                # -------------------------------------------------
-                # Freeze-up window
-                # -------------------------------------------------
+                # =================================================
+                # FREEZE-UP DEFAULT WINDOW
+                #
+                # 16 September -> 15 March
+                # =================================================
 
-                freezeup_window = self._get_event_window(
+                default_freezeup_window = self._get_event_window(
                     df_region=df_region,
                     event_year=event_year,
                     event_type="freeze-up",
                 )
+
+                # -------------------------------------------------
+                # Iterate over thresholds
+                # -------------------------------------------------
 
                 for threshold in thresholds:
 
@@ -949,22 +983,102 @@ class TimeSeriesAnalyzer:
                     # FREEZE-UP
                     # =============================================
 
-                    # A freeze-up crossing is physically meaningful
-                    # only if the threshold was crossed downward
-                    # during the preceding melt season.
+                    # No break-up means that the threshold was never
+                    # reached from above during the melt season.
+                    #
+                    # Consequently, there is no meaningful freeze-up
+                    # event for this threshold in the following season.
+
                     if breakup_date is None:
 
                         freezeup_date = None
 
                         logger.debug(
-                            "Skipping freeze-up for %s / %d / %.1f%%: "
-                            "threshold was not crossed during break-up.",
+                            "No freeze-up for %s / %d / %.1f%%: "
+                            "no corresponding break-up event.",
                             region,
                             event_year,
                             threshold,
                         )
 
                     else:
+
+                        # -----------------------------------------
+                        # Determine the state on September 16.
+                        # -----------------------------------------
+
+                        september_16 = pd.Timestamp(
+                            year=event_year,
+                            month=9,
+                            day=16,
+                        )
+
+                        sep16_data = df_region[
+                            df_region["date"]
+                            == september_16
+                        ]
+
+                        # -----------------------------------------
+                        # Default:
+                        #
+                        # Search from September 16 onward.
+                        # -----------------------------------------
+
+                        freezeup_start = september_16
+
+                        # -----------------------------------------
+                        # If the threshold has already been reached
+                        # on September 16, the actual freeze-up may
+                        # have happened before September 16.
+                        #
+                        # In this case extend the search window back
+                        # to the day after the corresponding break-up.
+                        # -----------------------------------------
+
+                        if not sep16_data.empty:
+
+                            sep16_value = pd.to_numeric(
+                                sep16_data.iloc[0][column],
+                                errors="coerce",
+                            )
+
+                            if (
+                                pd.notna(sep16_value)
+                                and sep16_value >= threshold
+                            ):
+
+                                freezeup_start = (
+                                    pd.Timestamp(breakup_date)
+                                    .normalize()
+                                    + pd.Timedelta(days=1)
+                                )
+
+                                logger.debug(
+                                    "Extending freeze-up window for "
+                                    "%s / %d / %.1f%%: "
+                                    "value on September 16 is %.2f%% "
+                                    "(>= threshold). Start: %s.",
+                                    region,
+                                    event_year,
+                                    threshold,
+                                    sep16_value,
+                                    freezeup_start.date(),
+                                )
+
+                        # -----------------------------------------
+                        # Build the actual freeze-up search window.
+                        # -----------------------------------------
+
+                        freezeup_window = self._get_event_window(
+                            df_region=df_region,
+                            event_year=event_year,
+                            event_type="freeze-up",
+                            start_date=freezeup_start,
+                        )
+
+                        # -----------------------------------------
+                        # Search for actual upward crossing.
+                        # -----------------------------------------
 
                         freezeup_date = (
                             self._find_threshold_crossing(
@@ -986,7 +1100,11 @@ class TimeSeriesAnalyzer:
                         }
                     )
 
-        self.threshold_events_df = (
+        # ---------------------------------------------------------
+        # Create result dataframe
+        # ---------------------------------------------------------
+
+        self.events_df = (
             pd.DataFrame(events)
             .sort_values(
                 [
@@ -1001,10 +1119,10 @@ class TimeSeriesAnalyzer:
 
         logger.info(
             "Calculated %d threshold event records.",
-            len(self.threshold_events_df),
+            len(self.events_df),
         )
 
-        return self.threshold_events_df
+        return self.events_df
 
     # ---------------------------------------------------------
     # saving

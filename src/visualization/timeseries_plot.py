@@ -26,6 +26,7 @@ from src.config.paths import PROJECT_ROOT
 RESULTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
 OUTPUT_DIR = PROJECT_ROOT / "output" / "plots"
 YEARLY_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_yearly.csv" 
+EVENTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_events.csv"
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +53,16 @@ class TimeSeriesPlotter:
         self,
         csv_file: str | Path = RESULTS_CSV,
         yearly_csv_file: str | Path = YEARLY_CSV,
+        events_csv_file: str | Path = EVENTS_CSV,
     ):
 
         self.csv_file = Path(csv_file)
         self.yearly_csv_file = Path(yearly_csv_file)
+        self.events_csv_file = Path(events_csv_file)
 
         self.df = None
         self.yearly_df = None
+        self.events_df = None
 
         self.unique_years = None
         self.norm = None
@@ -146,6 +150,26 @@ class TimeSeriesPlotter:
 
         self.yearly_df = pd.read_csv(
             self.yearly_csv_file,
+        )
+
+        self.events_df = pd.read_csv(
+            self.events_csv_file,
+            parse_dates=["event_date"],
+        )
+
+        self.events_df["event_year"] = pd.to_numeric(
+            self.events_df["event_year"],
+            errors="coerce",
+        )
+
+        self.events_df["threshold_percent"] = pd.to_numeric(
+            self.events_df["threshold_percent"],
+            errors="coerce",
+        )
+
+        self.events_df["event_date"] = pd.to_datetime(
+            self.events_df["event_date"],
+            errors="coerce",
         )
 
         self._prepare_dataframe()
@@ -251,6 +275,363 @@ class TimeSeriesPlotter:
                 "absolute",
             )
 
+    def plot_anomalies(self) -> None:
+        """Plot relative and absolute sea-ice coverage anomalies."""
+
+        if self.df is None or self.df.empty:
+            logger.warning(
+                "Cannot plot anomalies: dataframe is empty."
+            )
+            return
+
+        for region in self.df["region"].dropna().unique():
+
+            df_region = (
+                self.df[
+                    self.df["region"] == region
+                ]
+                .sort_values("date")
+                .copy()
+            )
+
+            self._plot_anomaly_region(
+                df_region=df_region,
+                anomaly_column="relative_anomaly_percent",
+                std_column="relative_climatology_std_percent",
+                ylabel="Relative anomaly [percentage points]",
+                filename="relative_anomaly",
+                region=region,
+            )
+
+            self._plot_anomaly_region(
+                df_region=df_region,
+                anomaly_column="absolute_anomaly_percent",
+                std_column="absolute_climatology_std_percent",
+                ylabel="Absolute anomaly [percentage points]",
+                filename="absolute_anomaly",
+                region=region,
+            )
+
+    def _plot_anomaly_region(
+        self,
+        df_region: pd.DataFrame,
+        anomaly_column: str,
+        std_column: str,
+        ylabel: str,
+        filename: str,
+        region: str,
+    ) -> None:
+        """Plot anomalies for one region."""
+
+        fig, ax = plt.subplots(
+            figsize=(12, 6),
+        )
+
+        for year in self.unique_years:
+
+            df_year = df_region[
+                df_region["year"] == year
+            ].copy()
+
+            if df_year.empty:
+                continue
+
+            ax.plot(
+                df_year["plot_date"],
+                df_year[anomaly_column],
+                color=self.cmap(
+                    self.norm(year)
+                ),
+                linewidth=1.0,
+                alpha=0.7,
+            )
+
+        # Zero anomaly reference
+        ax.axhline(
+            0.0,
+            color="black",
+            linewidth=1.2,
+            linestyle="--",
+            label="Climatological mean",
+        )
+
+        # Climatological ±1σ envelope
+        climatology = (
+            df_region[
+                [
+                    "plot_date",
+                    std_column,
+                ]
+            ]
+            .drop_duplicates(subset="plot_date")
+            .sort_values("plot_date")
+        )
+
+        std = climatology[std_column]
+
+        ax.fill_between(
+            climatology["plot_date"],
+            -std,
+            std,
+            color="dimgray",
+            alpha=0.15,
+            linewidth=0,
+            label="1981–2010 ±1σ",
+        )
+
+        # Latest observation
+        valid = df_region.dropna(
+            subset=[anomaly_column]
+        )
+
+        if not valid.empty:
+
+            latest = valid.iloc[-1]
+
+            ax.scatter(
+                latest["plot_date"],
+                latest[anomaly_column],
+                color="red",
+                s=45,
+                zorder=10,
+                label="Latest observation",
+            )
+
+        ax.set_title(
+            f"{region} – {ylabel.split(' [')[0]}"
+        )
+
+        ax.set_xlabel("Date")
+        ax.set_ylabel(ylabel)
+
+        ax.set_xlim(
+            pd.Timestamp("2000-01-01"),
+            pd.Timestamp("2000-12-31"),
+        )
+
+        ax.xaxis.set_major_locator(
+            MonthLocator()
+        )
+
+        ax.xaxis.set_major_formatter(
+            DateFormatter("%b")
+        )
+
+        ax.grid(
+            True,
+            alpha=0.25,
+        )
+
+        ax.legend(
+            loc="best",
+        )
+
+        self._add_year_colorbar(
+            ax=ax,
+        )
+
+        fig.tight_layout()
+
+        output_dir = (
+            self.output_dir
+            / "timeseries"
+            / "anomalies"
+        )
+
+        output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        fig.savefig(
+            output_dir
+            / f"{region.lower().replace(' ', '_')}_{filename}.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+        plt.close(fig)
+
+    def plot_threshold_durations(self) -> None:
+        """Plot seasonal durations derived from threshold events."""
+
+        if self.events_df is None or self.events_df.empty:
+            logger.warning(
+                "Cannot plot threshold durations: "
+                "event dataframe is empty."
+            )
+            return
+
+        events = self.events_df.copy()
+
+        events = events.dropna(
+            subset=[
+                "event_date",
+                "event_year",
+                "threshold_percent",
+            ]
+        )
+
+        if events.empty:
+            logger.warning(
+                "Cannot plot threshold durations: "
+                "no valid event dates available."
+            )
+            return
+
+        events = events[
+            events["event_type"].isin(
+                [
+                    "break-up",
+                    "freeze-up",
+                ]
+            )
+        ]
+
+        # Convert event types into columns.
+        events_pivot = (
+            events.pivot_table(
+                index=[
+                    "region",
+                    "event_year",
+                    "threshold_percent",
+                ],
+                columns="event_type",
+                values="event_date",
+                aggfunc="first",
+            )
+            .reset_index()
+        )
+
+        if (
+            "break-up" not in events_pivot.columns
+            or "freeze-up" not in events_pivot.columns
+        ):
+            logger.warning(
+                "Cannot calculate threshold durations: "
+                "break-up or freeze-up events are missing."
+            )
+            return
+
+        events_pivot["duration_days"] = (
+            events_pivot["freeze-up"]
+            - events_pivot["break-up"]
+        ).dt.total_seconds() / 86400.0
+
+        for region in events_pivot["region"].dropna().unique():
+
+            df_region = events_pivot[
+                events_pivot["region"] == region
+            ].copy()
+
+            self._plot_threshold_duration_region(
+                df_region=df_region,
+                region=region,
+            )
+
+    def _plot_threshold_duration_region(
+        self,
+        df_region: pd.DataFrame,
+        region: str,
+    ) -> None:
+        """Plot threshold durations for one region."""
+
+        fig, ax = plt.subplots(
+            figsize=(11, 6),
+        )
+
+        threshold_style = {
+            10.0: {
+                "color": "tab:blue",
+                "marker": "o",
+                "label": "10 %",
+            },
+            50.0: {
+                "color": "tab:orange",
+                "marker": "s",
+                "label": "50 %",
+            },
+            90.0: {
+                "color": "tab:green",
+                "marker": "^",
+                "label": "90 %",
+            },
+        }
+
+        for threshold, style in threshold_style.items():
+
+            data = df_region[
+                df_region["threshold_percent"] == threshold
+            ].copy()
+
+            data = data.dropna(
+                subset=[
+                    "event_year",
+                    "duration_days",
+                ]
+            )
+
+            if data.empty:
+                continue
+
+            data = data.sort_values(
+                "event_year"
+            )
+
+            ax.plot(
+                data["event_year"],
+                data["duration_days"],
+                color=style["color"],
+                marker=style["marker"],
+                markersize=5,
+                linewidth=1.5,
+                label=style["label"],
+            )
+
+        ax.set_title(
+            f"{region} – Threshold duration"
+        )
+
+        ax.set_xlabel("Year")
+        ax.set_ylabel(
+            "Duration between break-up and freeze-up [days]"
+        )
+
+        ax.grid(
+            True,
+            alpha=0.25,
+        )
+
+        ax.legend(
+            title="Ice coverage threshold",
+        )
+
+        fig.tight_layout()
+
+        output_dir = (
+            self.output_dir
+            / "timeseries"
+            / "thresholds"
+        )
+
+        output_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        filename = (
+            f"{region.lower().replace(' ', '_')}"
+            "_threshold_duration.png"
+        )
+
+        fig.savefig(
+            output_dir / filename,
+            dpi=300,
+            bbox_inches="tight",
+        )
+
+        plt.close(fig)
+
     def _plot_region(
         self,
         region,
@@ -334,26 +715,49 @@ class TimeSeriesPlotter:
 
         climatology = (
             df_region[
+                df_region["year"].between(1981, 2010)
+            ][
                 [
                     "plot_date",
                     climatology_column,
+                    climatology_column.replace(
+                        "_climatology_percent",
+                        "_climatology_std_percent",
+                    ),
                 ]
             ]
-            .dropna(
-                subset=[climatology_column]
-            )
+            .drop_duplicates(subset="plot_date")
             .sort_values("plot_date")
         )
 
+        climatology_mean = climatology[
+            climatology_column
+        ]
+
+        climatology_std = climatology[
+            climatology_column.replace(
+                "_climatology_percent",
+                "_climatology_std_percent",
+            )
+        ]
+
         if not climatology.empty:
+
+            ax.fill_between(
+                climatology["plot_date"],
+                climatology_mean - climatology_std,
+                climatology_mean + climatology_std,
+                color="dimgray",
+                alpha=0.15,
+                linewidth=0,
+                label="1981–2010 ±1σ",
+            )
 
             ax.plot(
                 climatology["plot_date"],
-                climatology[climatology_column],
-                color=self.climatology_color,
-                linewidth=self.climatology_linewidth,
-                alpha=self.climatology_alpha,
-                zorder=8,
+                climatology_mean,
+                color="dimgray",
+                linewidth=2.5,
                 label="1981–2010 climatology",
             )
 
@@ -1019,6 +1423,10 @@ class TimeSeriesPlotter:
             self.load()
 
         self.plot_timeseries()
+
+        self.plot_anomalies()
+        
+        self.plot_threshold_durations()
 
         self.plot_polar()
 
