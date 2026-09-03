@@ -324,17 +324,33 @@ class TimeSeriesPlotter:
         """Plot anomalies for one region."""
 
         fig, ax = plt.subplots(
-            figsize=(12, 6),
+            figsize=self.figure_size,
         )
+
+        for spine in ax.spines.values():
+            spine.set_color("0.4")
+            spine.set_linewidth(0.8)
+
+        # ---------------------------------------------------------
+        # Individual years
+        # ---------------------------------------------------------
 
         for year in self.unique_years:
 
-            df_year = df_region[
-                df_region["year"] == year
-            ].copy()
+            df_year = (
+                df_region[
+                    df_region["year"] == year
+                ]
+                .sort_values("date")
+                .copy()
+            )
 
             if df_year.empty:
                 continue
+
+            df_year = self._prepare_year(
+                df_year
+            )
 
             ax.plot(
                 df_year["plot_date"],
@@ -342,20 +358,27 @@ class TimeSeriesPlotter:
                 color=self.cmap(
                     self.norm(year)
                 ),
-                linewidth=1.0,
-                alpha=0.7,
+                linewidth=1.3,
+                alpha=0.85,
             )
 
+        # ---------------------------------------------------------
         # Zero anomaly reference
+        # ---------------------------------------------------------
+
         ax.axhline(
             0.0,
-            color="black",
-            linewidth=1.2,
-            linestyle="--",
-            label="Climatological mean",
+            color=self.climatology_color,
+            linewidth=self.climatology_linewidth,
+            linestyle="-",
+            alpha=self.climatology_alpha,
+            label="1981–2010 climatology",
         )
 
+        # ---------------------------------------------------------
         # Climatological ±1σ envelope
+        # ---------------------------------------------------------
+
         climatology = (
             df_region[
                 [
@@ -363,78 +386,121 @@ class TimeSeriesPlotter:
                     std_column,
                 ]
             ]
-            .drop_duplicates(subset="plot_date")
+            .dropna(
+                subset=["plot_date", std_column]
+            )
+            .drop_duplicates(
+                subset="plot_date"
+            )
             .sort_values("plot_date")
         )
 
-        std = climatology[std_column]
+        if not climatology.empty:
 
-        ax.fill_between(
-            climatology["plot_date"],
-            -std,
-            std,
-            color="dimgray",
-            alpha=0.15,
-            linewidth=0,
-            label="1981–2010 ±1σ",
+            std = climatology[std_column]
+
+            ax.fill_between(
+                climatology["plot_date"],
+                -std,
+                std,
+                color=self.climatology_color,
+                alpha=0.15,
+                linewidth=0,
+                label="1981–2010 ±1σ",
+            )
+
+        # ---------------------------------------------------------
+        # Current observation
+        # ---------------------------------------------------------
+
+        current = (
+            df_region
+            .dropna(subset=[anomaly_column])
+            .sort_values("date")
         )
 
-        # Latest observation
-        valid = df_region.dropna(
-            subset=[anomaly_column]
-        )
+        if not current.empty:
 
-        if not valid.empty:
-
-            latest = valid.iloc[-1]
+            latest = current.iloc[-1]
 
             ax.scatter(
                 latest["plot_date"],
                 latest[anomaly_column],
+                s=self.current_marker_size,
                 color="red",
-                s=45,
+                edgecolor="black",
+                linewidth=0.8,
                 zorder=10,
                 label="Latest observation",
             )
 
-        ax.set_title(
-            f"{region} – {ylabel.split(' [')[0]}"
+        # ---------------------------------------------------------
+        # Axes
+        # ---------------------------------------------------------
+
+        ax.set_xlabel(
+            "Month",
+            fontsize=self.axis_fontsize,
+            color="0.25",
         )
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel(ylabel)
+        ax.set_ylabel(
+            ylabel,
+            fontsize=self.axis_fontsize,
+            color="0.25",
+        )
+
+        ax.set_title(
+            f"{region} – {ylabel.split(' [')[0]}",
+            fontsize=self.title_fontsize,
+        )
 
         ax.set_xlim(
-            pd.Timestamp("2000-01-01"),
-            pd.Timestamp("2000-12-31"),
+            datetime(2000, 1, 1),
+            datetime(2000, 12, 31),
         )
 
         ax.xaxis.set_major_locator(
-            MonthLocator()
+            self.month_locator
         )
 
         ax.xaxis.set_major_formatter(
-            DateFormatter("%b")
+            self.month_formatter
         )
 
         ax.grid(
             True,
-            alpha=0.25,
+            linestyle="--",
+            linewidth=0.7,
+            color="0.6",
+            alpha=0.3,
         )
+
+        # ---------------------------------------------------------
+        # Legend
+        # ---------------------------------------------------------
 
         ax.legend(
-            loc="best",
+            loc="upper right",
+            frameon=False,
+            fontsize=self.legend_fontsize,
         )
 
-        self._add_year_colorbar(
-            ax=ax,
+        # ---------------------------------------------------------
+        # Year colorbar
+        # ---------------------------------------------------------
+
+        self._create_colorbar(
+            fig,
+            ax,
         )
 
-        fig.tight_layout()
+        # ---------------------------------------------------------
+        # Save
+        # ---------------------------------------------------------
 
         output_dir = (
             self.output_dir
-            / "timeseries"
             / "anomalies"
         )
 
@@ -443,14 +509,22 @@ class TimeSeriesPlotter:
             exist_ok=True,
         )
 
-        fig.savefig(
+        filepath = (
             output_dir
-            / f"{region.lower().replace(' ', '_')}_{filename}.png",
+            / f"{region.replace(' ', '_')}_{filename}.png"
+        )
+
+        fig.savefig(
+            filepath,
             dpi=300,
-            bbox_inches="tight",
         )
 
         plt.close(fig)
+
+        logger.info(
+            "Saved %s",
+            filepath,
+        )
 
     def plot_threshold_durations(self) -> None:
         """Plot seasonal durations derived from threshold events."""
@@ -1425,7 +1499,7 @@ class TimeSeriesPlotter:
         self.plot_timeseries()
 
         self.plot_anomalies()
-        
+
         self.plot_threshold_durations()
 
         self.plot_polar()
