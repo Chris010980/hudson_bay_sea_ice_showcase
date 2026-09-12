@@ -460,6 +460,11 @@ class TimeSeriesPlotter:
             datetime(2000, 12, 31),
         )
 
+        ax.set_ylim(
+            -100,
+            100,
+        )
+
         ax.xaxis.set_major_locator(
             self.month_locator
         )
@@ -481,7 +486,7 @@ class TimeSeriesPlotter:
         # ---------------------------------------------------------
 
         ax.legend(
-            loc="upper right",
+            loc="upper left",
             frameon=False,
             fontsize=self.legend_fontsize,
         )
@@ -611,8 +616,12 @@ class TimeSeriesPlotter:
         """Plot threshold durations for one region."""
 
         fig, ax = plt.subplots(
-            figsize=(11, 6),
+            figsize=self.figure_size,
         )
+
+        for spine in ax.spines.values():
+            spine.set_color("0.4")
+            spine.set_linewidth(0.8)
 
         threshold_style = {
             10.0: {
@@ -652,9 +661,76 @@ class TimeSeriesPlotter:
                 "event_year"
             )
 
+            x = data["event_year"].to_numpy(
+                dtype=float,
+            )
+
+            y = data["duration_days"].to_numpy(
+                dtype=float,
+            )
+
+            # ---------------------------------------------------------
+            # Linear trend
+            # ---------------------------------------------------------
+
+            if len(data) >= 2:
+
+                slope, intercept = np.polyfit(
+                    x,
+                    y,
+                    1,
+                )
+
+                y_trend = (
+                    slope * x
+                    + intercept
+                )
+
+                residuals = (
+                    y
+                    - y_trend
+                )
+
+                ss_res = np.sum(
+                    residuals ** 2
+                )
+
+                ss_tot = np.sum(
+                    (y - np.mean(y)) ** 2
+                )
+
+                if ss_tot > 0:
+
+                    r_squared = (
+                        1.0
+                        - ss_res / ss_tot
+                    )
+
+                else:
+
+                    r_squared = np.nan
+
+                # Trend line
+                ax.plot(
+                    x,
+                    y_trend,
+                    color=style["color"],
+                    linestyle="--",
+                    linewidth=1.3,
+                    alpha=0.75,
+                )
+
+            else:
+
+                r_squared = np.nan
+
+            # ---------------------------------------------------------
+            # Observations
+            # ---------------------------------------------------------
+
             ax.plot(
-                data["event_year"],
-                data["duration_days"],
+                x,
+                y,
                 color=style["color"],
                 marker=style["marker"],
                 markersize=5,
@@ -662,29 +738,80 @@ class TimeSeriesPlotter:
                 label=style["label"],
             )
 
+            # ---------------------------------------------------------
+            # Trend information
+            # ---------------------------------------------------------
+
+            if len(data) >= 2:
+
+                trend_label = (
+                    f"{style['label']}: "
+                    f"{slope:+.2f} d/year"
+                )
+
+                if np.isfinite(r_squared):
+
+                    trend_label += (
+                        f", $R^2={r_squared:.3f}$"
+                    )
+
+                style["trend_label"] = trend_label
+
+        # -------------------------------------------------------------
+        # Axes
+        # -------------------------------------------------------------
+
         ax.set_title(
-            f"{region} – Threshold duration"
+            f"{region} – Threshold duration",
+            fontsize=self.title_fontsize,
         )
 
-        ax.set_xlabel("Year")
+        ax.set_xlabel(
+            "Year",
+            fontsize=self.axis_fontsize,
+            color="0.25",
+        )
+
         ax.set_ylabel(
-            "Duration between break-up and freeze-up [days]"
+            "Duration between break-up and freeze-up [days]",
+            fontsize=self.axis_fontsize,
+            color="0.25",
+        )
+
+        ax.set_ylim(
+            0,
+            365,
         )
 
         ax.grid(
             True,
-            alpha=0.25,
+            linestyle="--",
+            linewidth=0.7,
+            color="0.6",
+            alpha=0.3,
         )
 
+        # -------------------------------------------------------------
+        # Legend
+        # -------------------------------------------------------------
+
+        handles, labels = ax.get_legend_handles_labels()
+
         ax.legend(
+            handles,
+            labels,
+            loc="upper right",
+            frameon=False,
+            fontsize=self.legend_fontsize,
             title="Ice coverage threshold",
         )
 
-        fig.tight_layout()
+        # -------------------------------------------------------------
+        # Save
+        # -------------------------------------------------------------
 
         output_dir = (
             self.output_dir
-            / "timeseries"
             / "thresholds"
         )
 
@@ -694,17 +821,26 @@ class TimeSeriesPlotter:
         )
 
         filename = (
-            f"{region.lower().replace(' ', '_')}"
+            f"{region.replace(' ', '_')}"
             "_threshold_duration.png"
         )
 
+        filepath = (
+            output_dir
+            / filename
+        )
+
         fig.savefig(
-            output_dir / filename,
+            filepath,
             dpi=300,
-            bbox_inches="tight",
         )
 
         plt.close(fig)
+
+        logger.info(
+            "Saved %s",
+            filepath,
+        )
 
     def _plot_region(
         self,
