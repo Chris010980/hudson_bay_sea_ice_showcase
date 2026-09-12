@@ -1110,7 +1110,7 @@ class TimeSeriesPlotter:
             latest = current.iloc[-1]
 
             ax.scatter(
-                latest["plot_date"],
+                latest["theta"],
                 latest[column],
                 s=self.current_marker_size,
                 color="red",
