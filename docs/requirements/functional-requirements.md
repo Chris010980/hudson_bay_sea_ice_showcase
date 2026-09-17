@@ -62,23 +62,49 @@ For each valid daily GeoTIFF, the system shall extract the sea-ice information f
 
 For each region and observation date, the system shall calculate the configured sea-ice coverage metrics.
 
-The analysis shall distinguish between:
+The analysis shall distinguish between **absolute** and **relative** sea-ice coverage.
 
-1. **Relative / concentration-based coverage**
+### Absolute sea-ice coverage
 
-   Each water pixel has an area of 625 km². Its contribution to the ice-covered area shall be calculated from its local sea-ice concentration:
+Absolute sea-ice coverage shall use a binary classification of each water pixel.
 
-   `pixel contribution = pixel area × local ice concentration`
+For each water pixel:
 
-   The contributions of all relevant water pixels shall then be summed.
+* if the sea-ice concentration is above the configured detection threshold, the complete pixel area shall be counted as ice-covered;
+* otherwise, the pixel shall contribute zero ice-covered area.
 
-2. **Absolute / threshold-based coverage**
+With the current spatial resolution, one pixel represents an area of **625 km²**.
 
-   Each water pixel shall contribute either 1 or 0 depending on whether its sea-ice concentration exceeds the configured sea-ice threshold.
+Thus, each pixel contributes either:
 
-   The resulting count shall represent the number of ice-covered pixels and shall be convertible to an area using the fixed pixel area.
+* `0 km²`, or
+* `625 km²`.
 
-The system shall persist the resulting regional observations.
+The resulting value represents the threshold-based, binary ice-covered area of the region.
+
+The threshold represents the effective detection/resolution limit of the underlying measurement product and shall be treated as a configurable analysis parameter.
+
+### Relative sea-ice coverage
+
+Relative sea-ice coverage shall use the measured sea-ice concentration as a weighting factor.
+
+For each water pixel, the ice-covered area contribution shall be calculated as:
+
+$$
+A_\mathrm{ice,pixel}
+=
+625\,\mathrm{km^2}
+\cdot
+c_\mathrm{pixel}
+$$
+
+where \(c_\mathrm{pixel}\) is the normalized sea-ice concentration in the range 0 to 1.
+
+The contributions of all relevant water pixels shall then be summed to obtain the concentration-weighted ice-covered area.
+
+The relative metric therefore represents a continuous, concentration-weighted estimate, whereas the absolute metric represents a binary threshold-based estimate.
+
+The system shall persist the resulting regional observations for subsequent temporal analysis.
 
 ---
 
