@@ -332,9 +332,9 @@ The available configuration options shall be documented as part of the project d
 
 ---
 
-# Resolved Functional Questions
+## Resolved Functional Questions
 
-## Initially Empty Dataset
+### Initially Empty Dataset
 
 An initially empty dataset shall trigger a full acquisition and processing operation for all observations available within the configured acquisition period.
 
@@ -342,7 +342,7 @@ An optional start date and, where required, end date shall allow the initial pro
 
 ---
 
-## Reference Dataset
+### Reference Dataset
 
 The reference dataset shall be the first suitable GeoTIFF without actual `NaN` or missing values in the relevant spatial domain.
 
@@ -352,7 +352,7 @@ Reference masks shall be generated once for the selected reference dataset and s
 
 ---
 
-## Interpolation
+### Interpolation
 
 Missing observations may be linearly interpolated when the temporal gap is sufficiently small.
 
@@ -364,7 +364,7 @@ Leap years shall be treated according to the actual calendar.
 
 ---
 
-## Moving Average
+### Moving Average
 
 The moving average is **not a scientific requirement**.
 
@@ -381,7 +381,7 @@ The smoothing window shall therefore be treated as a configurable heuristic visu
 
 ---
 
-## Complete Year
+### Complete Year
 
 A complete year is a complete calendar year from 01 January through 31 December.
 
@@ -392,7 +392,7 @@ It contains:
 
 ---
 
-## Anomalies
+### Anomalies
 
 Anomalies are calculated relative to the 1981–2010 climatological mean.
 
@@ -404,7 +404,7 @@ This is calculated independently for the absolute and relative sea-ice coverage 
 
 ---
 
-## Trend Analysis
+### Trend Analysis
 
 Linear regression is currently the required trend method.
 
@@ -414,7 +414,7 @@ The coefficient of determination (`R²`) shall be reported as an indicator of ho
 
 ---
 
-## Plot Generation
+### Plot Generation
 
 All currently implemented plot types are considered required outputs.
 
@@ -422,7 +422,7 @@ Users may nevertheless restrict execution to selected plot types and/or regions 
 
 ---
 
-## Public Website
+### Public Website
 
 The public website shall contain all currently generated plots.
 
@@ -430,7 +430,7 @@ The website shall therefore evolve together with the analysis pipeline as new vi
 
 ---
 
-## Successful Pipeline Run
+### Successful Pipeline Run
 
 A successful update with new observations shall:
 
