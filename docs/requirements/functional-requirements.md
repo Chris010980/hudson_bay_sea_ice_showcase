@@ -14,11 +14,11 @@ The downloader shall:
 * recognize equivalent product versions for the same observation date,
 * store downloaded files in the configured temporary data directory.
 
-For an initially empty dataset, the system shall download all available observations in the configured download path and process them as a new dataset.
+For an initially empty dataset, the system shall download all available observations within the configured acquisition period and process them as a new dataset.
 
-The download and processing period shall optionally be restrictable by a configurable start date and, where required, an end date.
+The acquisition and processing period shall optionally be restrictable by a configurable start date and, where required, an end date.
 
-If no new observations are available during an incremental update, the system shall not perform further processing and shall leave existing analysis results and the website unchanged.
+If no new observations are available during an incremental update, the system shall not perform further processing and shall leave the existing analysis results and website unchanged.
 
 ---
 
@@ -36,9 +36,9 @@ The system shall provide an option to retain downloaded GeoTIFF files for inspec
 
 ## FR-03 – Spatial Reference Data Preparation
 
-The system shall identify a valid reference GeoTIFF from the available sea-ice dataset.
+The system shall identify a suitable reference GeoTIFF from the available sea-ice dataset.
 
-The reference dataset shall be a dataset without actual `NaN` or missing values in the relevant spatial domain. The product's value encoding shall be used to distinguish:
+The reference dataset shall not contain actual `NaN` or missing values in the relevant spatial domain. The product's explicit value encoding shall be used to distinguish between:
 
 * open water,
 * sea ice,
@@ -46,13 +46,13 @@ The reference dataset shall be a dataset without actual `NaN` or missing values 
 * coast,
 * other explicitly encoded invalid or special values.
 
-Based on this reference dataset, the system shall generate a spatial mask for each configured analysis region.
+Based on the reference dataset, the system shall generate a spatial mask for each configured analysis region.
 
 The generated reference data shall be stored persistently below `output/reference/`.
 
 For each region, a reference summary shall be generated in JSON format containing the relevant characteristics required for subsequent analysis.
 
-The reference masks shall be reusable for subsequent daily processing without rebuilding them for every observation.
+The reference masks shall be reusable for subsequent daily processing without being rebuilt for every observation.
 
 ---
 
@@ -64,13 +64,13 @@ For each region and observation date, the system shall calculate the configured 
 
 The analysis shall distinguish between **absolute** and **relative** sea-ice coverage.
 
-### Absolute sea-ice coverage
+### Absolute Sea-Ice Coverage
 
 Absolute sea-ice coverage shall use a binary classification of each water pixel.
 
 For each water pixel:
 
-* if the sea-ice concentration is above the configured detection threshold, the complete pixel area shall be counted as ice-covered;
+* if the sea-ice concentration exceeds the configured pixel detection threshold, the complete pixel area shall be counted as ice-covered;
 * otherwise, the pixel shall contribute zero ice-covered area.
 
 With the current spatial resolution, one pixel represents an area of **625 km²**.
@@ -80,29 +80,29 @@ Thus, each pixel contributes either:
 * `0 km²`, or
 * `625 km²`.
 
-The resulting value represents the threshold-based, binary ice-covered area of the region.
+The resulting value represents the binary, threshold-based ice-covered area of the region.
 
-The threshold represents the effective detection/resolution limit of the underlying measurement product and shall be treated as a configurable analysis parameter.
+The pixel detection threshold represents the effective detection/resolution limit of the underlying measurement product. Its exact value and scientific justification are separate from the thresholds used for seasonal event detection.
 
-### Relative sea-ice coverage
+### Relative Sea-Ice Coverage
 
 Relative sea-ice coverage shall use the measured sea-ice concentration as a weighting factor.
 
 For each water pixel, the ice-covered area contribution shall be calculated as:
 
 $$
-A_\mathrm{ice,pixel}
+A_{\mathrm{ice,pixel}}
 =
 625\,\mathrm{km^2}
 \cdot
-c_\mathrm{pixel}
+c_{\mathrm{pixel}}
 $$
 
-where \(c_\mathrm{pixel}\) is the normalized sea-ice concentration in the range 0 to 1.
+where \(c_{\mathrm{pixel}}\) is the normalized sea-ice concentration in the range 0 to 1.
 
 The contributions of all relevant water pixels shall then be summed to obtain the concentration-weighted ice-covered area.
 
-The relative metric therefore represents a continuous, concentration-weighted estimate, whereas the absolute metric represents a binary threshold-based estimate.
+The relative metric therefore represents a continuous, concentration-weighted estimate, whereas the absolute metric represents a binary, threshold-based estimate.
 
 The system shall persist the resulting regional observations for subsequent temporal analysis.
 
@@ -129,7 +129,7 @@ The system shall derive time-series data from the persistent daily regional resu
 
 Where observations are missing, the system shall support linear interpolation if the temporal gap does not exceed the configured maximum gap.
 
-Interpolation shall be performed on the daily calendar so that complete calendar years can be constructed where the available data and configured interpolation rules permit this.
+Interpolation shall be performed on the daily calendar so that complete calendar years can be constructed where the available data and interpolation rules permit this.
 
 Interpolation shall not bridge gaps exceeding the configured maximum gap.
 
@@ -137,6 +137,8 @@ Leap years shall be handled according to the actual calendar, i.e. complete year
 
 * 365 daily values for non-leap years,
 * 366 daily values for leap years.
+
+The moving average used for visualization shall be treated independently from the interpolation process.
 
 ---
 
@@ -157,7 +159,7 @@ At minimum, the climatology shall provide:
 
 The climatological statistics shall be calculated separately for the relevant sea-ice coverage measures.
 
-The climatology shall account for the actual calendar structure, including February 29 in leap years as applicable to the implementation.
+The climatology shall account for the actual calendar structure, including February 29 where applicable.
 
 ---
 
@@ -169,7 +171,7 @@ The anomaly shall be calculated separately for the corresponding absolute and re
 
 The current definition is:
 
-`anomaly = observed value − 30-year climatological mean`
+`anomaly = observed value − climatological mean`
 
 The reference climatology shall cover the period **1981–2010**.
 
@@ -180,7 +182,7 @@ The system shall support both:
 * absolute anomalies,
 * relative anomalies.
 
-The exact presentation units and normalization of the anomaly values shall remain consistent with the underlying coverage metric.
+The anomaly shall retain the units and meaning of the corresponding underlying coverage metric.
 
 ---
 
@@ -207,9 +209,9 @@ Linear regression is currently the required trend method. More complex or non-li
 
 ## FR-10 – Seasonal Threshold Events
 
-The system shall determine sea-ice threshold events for the configured thresholds.
+The system shall determine sea-ice threshold events for the configured seasonal event thresholds.
 
-The current thresholds are:
+The current seasonal event thresholds are:
 
 * 10%,
 * 50%,
@@ -222,12 +224,19 @@ The system shall determine threshold crossings separately for:
 
 The initial seasonal definitions are:
 
-* **summer / break-up season:** 16 March – 15 September,
-* **winter / freeze-up season:** 16 September – 15 March of the following year.
+* **break-up season:** 16 March – 15 September,
+* **freeze-up season:** 16 September – 15 March of the following year.
 
 The start of the freeze-up search may be dynamically adjusted where required to account for freeze-up occurring earlier than 16 September.
 
-A threshold event shall only be considered valid according to the configured crossing and persistence criteria.
+A threshold crossing shall only be considered a valid event if the threshold condition persists for **7 consecutive calendar days**.
+
+The following concepts shall be treated independently:
+
+* pixel detection threshold used for absolute sea-ice coverage,
+* seasonal event thresholds used for break-up and freeze-up,
+* persistence duration used to validate seasonal events,
+* moving-average window used for visualization.
 
 The resulting event dates shall be stored for subsequent analysis.
 
@@ -267,16 +276,16 @@ The system shall provide pipeline stages for:
 
 A complete pipeline run shall perform the following operations:
 
-1. identify and download missing GeoTIFF observations,
-2. extract regional data,
-3. calculate and persist the resulting values,
-4. perform the derived time-series analysis,
-5. regenerate the configured visualizations,
+1. identify and download missing GeoTIFF observations;
+2. extract regional data;
+3. calculate and persist the resulting values;
+4. perform the derived time-series analysis;
+5. regenerate the configured visualizations;
 6. update the website build.
 
-A successful incremental update with new data shall therefore result in an updated analysis dataset, updated plots and an updated website.
+A successful update with new observations shall therefore result in an updated analysis dataset, updated plots, and an updated website.
 
-If no new observations are available, the pipeline shall terminate without modifying the existing analysis results, plots or website.
+If no new observations are available, the pipeline shall terminate successfully without modifying the existing analysis results, plots, or website.
 
 ---
 
@@ -286,14 +295,15 @@ The system shall generate a self-contained website containing the current projec
 
 The public website shall include all currently generated analysis plots.
 
-This includes the newly introduced visualization types and analysis results, in particular:
+This includes the currently implemented visualization and analysis types, in particular:
 
 * anomaly plots,
 * threshold-duration plots,
-* annual/trend plots,
-* existing time-series plots,
+* annual and trend plots,
+* time-series plots,
 * polar plots,
-* overview and regional visualizations.
+* overview maps,
+* regional maps.
 
 The website shall be regenerated whenever new analysis results and corresponding plots are generated.
 
@@ -314,7 +324,7 @@ The command-line interface shall support, where applicable:
 * processing end date,
 * plot type,
 * region selection,
-* complete-region plot generation,
+* generation of plots for all configured regions,
 * display of plots,
 * retention of temporary input data.
 
@@ -322,33 +332,39 @@ The available configuration options shall be documented as part of the project d
 
 ---
 
-## Resolved Functional Questions
+# Resolved Functional Questions
 
-### Initially empty dataset
+## Initially Empty Dataset
 
-An initially empty dataset shall trigger a full acquisition and processing operation for all available observations within the configured download path.
+An initially empty dataset shall trigger a full acquisition and processing operation for all observations available within the configured acquisition period.
 
-An optional start date and, if required, end date shall allow the initial processing period to be restricted.
+An optional start date and, where required, end date shall allow the initial processing period to be restricted.
 
-### Reference dataset
+---
 
-The reference dataset shall be the first suitable GeoTIFF without actual `NaN` or missing values in the relevant domain.
+## Reference Dataset
+
+The reference dataset shall be the first suitable GeoTIFF without actual `NaN` or missing values in the relevant spatial domain.
 
 The product's explicit value encoding shall be used to distinguish valid and special spatial categories.
 
-Reference masks shall be generated once per configured reference dataset and stored under `output/reference/`, together with a JSON summary containing the relevant regional statistics.
+Reference masks shall be generated once for the selected reference dataset and stored under `output/reference/`, together with a JSON summary containing the relevant characteristics for each configured region.
 
-### Interpolation
+---
+
+## Interpolation
 
 Missing observations may be linearly interpolated when the temporal gap is sufficiently small.
 
-Interpolation is intended to enable complete calendar years and therefore consistent annual statistics.
+Interpolation is intended primarily to enable complete calendar years and thereby consistent annual statistics.
 
-The maximum permitted interpolation gap is a configurable analysis parameter.
+The maximum permitted interpolation gap shall be a configurable analysis parameter.
 
 Leap years shall be treated according to the actual calendar.
 
-### Moving average
+---
+
+## Moving Average
 
 The moving average is **not a scientific requirement**.
 
@@ -359,51 +375,70 @@ It is a visualization aid intended to:
 * reduce strong overlap between curves,
 * reduce threshold crossings caused by rapidly oscillating values.
 
-The smoothing window shall therefore be treated as a configurable/heuristic visualization parameter rather than a scientific property of the underlying data.
+The current seven-day window corresponds to the current `±3 days` implementation.
 
-### Complete year
+The smoothing window shall therefore be treated as a configurable heuristic visualization parameter rather than a scientific property of the underlying data.
+
+---
+
+## Complete Year
 
 A complete year is a complete calendar year from 01 January through 31 December.
 
-It contains 365 days in a non-leap year and 366 days in a leap year.
+It contains:
 
-### Anomalies
+* 365 days in a non-leap year,
+* 366 days in a leap year.
+
+---
+
+## Anomalies
 
 Anomalies are calculated relative to the 1981–2010 climatological mean.
 
-The anomaly is the difference between the observation and the corresponding climatological value:
+The anomaly is the difference between the observation and the corresponding climatological mean:
 
 `anomaly = observation − climatological mean`
 
 This is calculated independently for the absolute and relative sea-ice coverage measures.
 
-### Trend analysis
+---
+
+## Trend Analysis
 
 Linear regression is currently the required trend method.
 
-Although some time series may exhibit step-like or otherwise non-linear behavior, this does not currently require a different trend model. The coefficient of determination (`R²`) shall be reported as an indicator of how well a linear model represents the data, but a comparatively low `R²` shall not by itself invalidate the existence of an overall trend.
+Some time series may exhibit step-like or otherwise non-linear behavior. This does not currently require a different trend model.
 
-### Plot generation
+The coefficient of determination (`R²`) shall be reported as an indicator of how well a linear model represents the data. A comparatively low `R²` shall not by itself be interpreted as evidence that no overall trend exists.
+
+---
+
+## Plot Generation
 
 All currently implemented plot types are considered required outputs.
 
 Users may nevertheless restrict execution to selected plot types and/or regions when a complete plot generation is not required.
 
-### Public website
+---
+
+## Public Website
 
 The public website shall contain all currently generated plots.
 
 The website shall therefore evolve together with the analysis pipeline as new visualization and analysis components are introduced.
 
-### Successful complete pipeline run
+---
 
-A successful complete/incremental update shall, where new observations are available:
+## Successful Pipeline Run
 
-1. download missing observations,
-2. extract regional data,
-3. calculate and persist new values,
-4. update derived analysis,
-5. regenerate plots,
+A successful update with new observations shall:
+
+1. download missing observations;
+2. extract regional data;
+3. calculate and persist new values;
+4. update the derived analysis;
+5. regenerate the configured plots;
 6. update the website.
 
-If no new observations are available, the run shall terminate successfully without modifying the existing results or website.
+If no new observations are available, the pipeline shall terminate successfully without modifying the existing analysis results, plots, or website.
