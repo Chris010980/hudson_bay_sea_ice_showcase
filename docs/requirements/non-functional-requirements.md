@@ -1,391 +1,279 @@
 # Non-Functional Requirements
 
-## Purpose
+This document defines the non-functional requirements of the Hudson Bay Sea Ice Analysis project.
 
-This document defines the non-functional requirements of the `hudson_bay_sea_ice` project.
+## NFR-01 – Scientific Correctness
 
-The requirements describe qualities and constraints concerning reliability, reproducibility, maintainability, performance, testing, usability and scientific integrity.
+The system shall implement the documented scientific methodology consistently.
 
-The initial draft is based on the current project structure and intended use. Requirements marked **TBD** require further clarification.
+Scientific calculations shall use explicitly defined:
 
----
+* input data,
+* spatial reference data,
+* thresholds,
+* interpolation rules,
+* climatological periods,
+* statistical methods,
+* analysis parameters.
 
-## NFR-01 — Scientific Correctness
-
-### NFR-01.1 — Scientific Traceability
-
-Analysis results shall be traceable to the input data, processing methodology and configured analysis parameters.
-
-### NFR-01.2 — Reproducibility
-
-The same input data, configuration and software version shall produce reproducible analysis results, subject to explicitly documented sources of nondeterminism.
-
-### NFR-01.3 — Explicit Methodology
-
-Scientific processing assumptions shall be documented and shall not depend solely on implicit implementation behavior.
-
-### NFR-01.4 — Unit Consistency
-
-Physical quantities shall use explicitly defined and documented units.
-
-### NFR-01.5 — Spatial Reference Consistency
-
-Coordinate reference systems and spatial transformations shall be explicitly defined and consistently applied.
-
-### NFR-01.6 — Threshold Definition
-
-Threshold-based analyses shall use explicitly documented threshold definitions and event rules.
-
-### NFR-01.7 — Visualization Integrity
-
-Scientific visualizations shall represent the underlying data without introducing misleading spatial, temporal or statistical interpretations.
+Changes to scientific methodology shall be documented and traceable.
 
 ---
 
-## NFR-02 — Data Integrity
+## NFR-02 – Data Integrity
 
-### NFR-02.1 — Input Validation
+Persistent analysis data shall not be unintentionally overwritten or lost during incremental processing.
 
-Input data shall be validated sufficiently to prevent invalid observations from silently producing scientifically misleading results.
+The system shall ensure that:
 
-### NFR-02.2 — Missing Data Handling
+* existing historical observations are preserved,
+* duplicate observations for the same `(date, region)` combination are not created,
+* new observations are appended or otherwise incorporated without duplicating existing observations,
+* persistent CSV and JSON files remain structurally valid after processing.
 
-Missing and invalid observations shall be handled explicitly and documented.
-
-### NFR-02.3 — Duplicate Prevention
-
-The persistent result dataset shall not contain unintended duplicate date/region observations.
-
-### NFR-02.4 — Atomic or Safe Persistence
-
-Writing persistent result files shall minimize the risk of leaving corrupted or partially written datasets.
-
-**TBD:** Exact persistence strategy.
-
-### NFR-02.5 — Product Identification
-
-The system shall retain sufficient information to identify the data product used to generate an observation.
-
-**TBD:** Whether product version information needs to become part of the persistent result schema.
+A processing failure shall not intentionally result in a corrupted persistent result dataset.
 
 ---
 
-## NFR-03 — Reliability
+## NFR-03 – Reliability
 
-### NFR-03.1 — Incremental Processing
+The pipeline shall handle expected operational conditions without manual intervention where possible.
 
-Processing shall be incremental where possible and shall not unnecessarily repeat already completed work.
+In particular, it shall correctly handle:
 
-### NFR-03.2 — Error Isolation
+* already up-to-date datasets,
+* initially empty datasets,
+* missing input observations,
+* incomplete temporal data,
+* invalid or unusable input files,
+* processing failures of individual observations.
 
-A failure affecting one input observation should not unnecessarily invalidate unrelated observations in the same processing run.
-
-### NFR-03.3 — Failure Visibility
-
-Processing failures shall be clearly reported through logging and/or processing summaries.
-
-### NFR-03.4 — Consistent Pipeline State
-
-A failed pipeline stage shall not silently be reported as a successful complete update.
-
-### NFR-03.5 — Temporary Data Cleanup
-
-Temporary downloaded data shall only be removed when the configured processing conditions permit cleanup.
-
-### NFR-03.6 — Recovery
-
-The system shall allow a failed or interrupted processing run to be resumed without requiring unnecessary reprocessing.
+A failure affecting an individual input observation shall be reported clearly and shall not silently produce invalid scientific results.
 
 ---
 
-## NFR-04 — Maintainability
+## NFR-04 – Maintainability
 
-### NFR-04.1 — Separation of Responsibilities
+The source code shall be structured into clearly defined components with responsibilities that can be understood and tested independently.
 
-Components shall have clearly defined responsibilities.
+New functionality shall follow the existing project structure and coding conventions.
 
-### NFR-04.2 — Low Unnecessary Coupling
+Non-trivial functions and methods shall be sufficiently small and focused to permit isolated testing where practical.
 
-Components should communicate through clearly defined interfaces rather than relying on implementation details of other components.
-
-### NFR-04.3 — Testability
-
-Scientific calculations and processing logic shall be structured so that they can be tested independently.
-
-### NFR-04.4 — Code Consistency
-
-The source code shall follow the project's defined Python coding standards.
-
-### NFR-04.5 — Type Safety
-
-Relevant public interfaces shall use type annotations.
-
-**TBD:** Required static type-checking level and tool.
-
-### NFR-04.6 — Documentation
-
-Non-obvious scientific and technical behavior shall be documented close to the relevant implementation and/or in project documentation.
+Duplicated logic shall be avoided where a shared implementation can be used without reducing clarity.
 
 ---
 
-## NFR-05 — Testability and Quality Assurance
+## NFR-05 – Testability and Quality Assurance
 
-### NFR-05.1 — Automated Tests
+The project shall use automated tests to verify the correctness of individual components and their interactions.
 
-The project shall provide automated tests for relevant functionality.
+As an initial quality target:
 
-### NFR-05.2 — Unit Tests
+* new non-trivial functions and methods shall normally be accompanied by appropriate unit tests;
+* scientifically relevant calculations shall have explicit tests for expected results and relevant edge cases;
+* important component interfaces shall be covered by component or integration tests;
+* the project shall initially target a minimum overall **70% line coverage**.
 
-Individual scientific calculations and other suitable functions or methods shall be covered by unit tests.
+The coverage threshold shall be evaluated after the first development and testing cycles and may be revised based on the observed distribution and importance of tested code.
 
-### NFR-05.3 — Component Tests
-
-Important component-level behavior shall be verified independently of the complete pipeline.
-
-### NFR-05.4 — Integration Tests
-
-Interactions between major components shall be covered by integration tests where appropriate.
-
-### NFR-05.5 — End-to-End Tests
-
-Critical complete workflows shall be covered by end-to-end tests where appropriate.
-
-### NFR-05.6 — Regression Tests
-
-Previously verified scientific behavior shall be protected by regression tests.
-
-### NFR-05.7 — Static Analysis
-
-The project shall use automated static analysis to identify relevant code-quality issues.
-
-**TBD:** Exact tools and required rule sets.
-
-### NFR-05.8 — Test Execution
-
-Automated tests shall be executable in a reproducible development and CI environment.
-
-### NFR-05.9 — Coverage
-
-Test coverage shall be measured.
-
-**TBD:** Minimum coverage thresholds.
+Coverage shall be treated as a quality indicator and not as the sole measure of test quality.
 
 ---
 
-## NFR-06 — Performance
+## NFR-06 – Static Code Quality
 
-### NFR-06.1 — Incremental Efficiency
+Static analysis shall be used to identify relevant code-quality issues before changes are integrated into the stable codebase.
 
-The daily update workflow shall avoid processing historical observations that are already known to be complete.
+The initial static-analysis toolchain shall be evaluated during the quality-assurance phase.
 
-### NFR-06.2 — Memory Efficiency
+The evaluation shall consider, where appropriate:
 
-Processing and visualization shall avoid unnecessary loading of very large datasets into memory.
+* formatting and linting,
+* type checking,
+* unused-code detection,
+* import and architectural dependency checks.
 
-### NFR-06.3 — Reasonable Runtime
-
-The automated daily update shall complete within a practical time frame for the available CI environment.
-
-**TBD:** Define target runtime.
-
-### NFR-06.4 — Storage Efficiency
-
-Temporary raw data shall not accumulate indefinitely when automatic cleanup is enabled.
+Specific tools and mandatory thresholds shall be defined after this evaluation.
 
 ---
 
-## NFR-07 — Reproducibility and Automation
+## NFR-07 – Performance
 
-### NFR-07.1 — Automated Update
+A normal daily incremental update shall complete within approximately **2–3 minutes** under the expected execution environment and data volume.
 
-The project shall support automated periodic updates without manual intervention under normal operating conditions.
+Performance measurements shall be evaluated using representative update scenarios rather than empty or artificially small datasets.
 
-### NFR-07.2 — Deterministic Processing
-
-Processing behavior shall be deterministic for identical input data and configuration wherever technically feasible.
-
-### NFR-07.3 — Environment Specification
-
-The software environment required for processing shall be explicitly specified.
-
-### NFR-07.4 — CI Execution
-
-The automated pipeline shall be executable in the configured continuous-integration environment.
-
-### NFR-07.5 — Deployment Reproducibility
-
-The GitHub Pages deployment artifact shall be reproducible from the website source and generated project output.
+Performance optimization shall not compromise scientific correctness or data integrity.
 
 ---
 
-## NFR-08 — Observability
+## NFR-08 – Reproducibility
 
-### NFR-08.1 — Structured Logging
+The analysis shall be reproducible for defined input data, software versions, configuration and analysis parameters.
 
-Important pipeline operations shall generate meaningful log messages.
+The project shall provide sufficient information to identify the conditions under which a result was generated, including where applicable:
 
-### NFR-08.2 — Processing Summary
+* Python version,
+* software/code version,
+* dependency versions,
+* reference dataset,
+* analysis parameters,
+* relevant configuration,
+* documented analysis methodology.
 
-Processing shall provide a summary containing relevant information about processed, skipped and failed observations.
+The project's dependency specification shall be maintained so that the required Python environment can be recreated.
 
-### NFR-08.3 — Update Status
-
-An automated update shall make it possible to determine whether:
-
-* new data were downloaded,
-* new observations were processed,
-* plots were generated,
-* the website was built,
-* temporary data were removed.
-
-### NFR-08.4 — Failure Diagnostics
-
-Errors shall contain sufficient contextual information to identify the affected operation and, where applicable, input file.
+Bit-for-bit reproducibility across arbitrary environments is not currently required.
 
 ---
 
-## NFR-09 — Usability
+## NFR-09 – Version and Methodology Traceability
 
-### NFR-09.1 — Clear CLI
+Software, dependencies, reference data and relevant analysis parameters shall be identifiable for generated results.
 
-The command-line interface shall expose the available pipeline stages and relevant options clearly.
+The project shall use:
 
-### NFR-09.2 — Independent Stages
+* Git history and/or tags for software versions,
+* dependency specifications for the Python environment,
+* documented configuration for analysis parameters,
+* reference metadata for generated reference data,
+* project documentation for scientific methodology.
 
-Major processing stages shall be executable independently for development, debugging and maintenance.
-
-### NFR-09.3 — Meaningful Errors
-
-Configuration and input errors shall produce understandable error messages.
-
-### NFR-09.4 — Documentation
-
-The project documentation shall explain how to run the relevant pipeline stages and how to interpret the generated results.
+The concrete mechanism for storing result-generation metadata shall be defined during implementation.
 
 ---
 
-## NFR-10 — Website Quality
+## NFR-10 – Observability and Logging
 
-### NFR-10.1 — Self-Contained Deployment
+The pipeline shall provide sufficient logging to determine the operational status and outcome of a processing run.
 
-The generated GitHub Pages artifact shall contain all files required for the website to operate.
+The default CI execution shall use a concise logging level that reports relevant progress, warnings and errors without producing unnecessarily large logs.
 
-### NFR-10.2 — Separation of Source and Build Output
+A more detailed logging level, such as `DEBUG`, shall remain available for diagnosis and troubleshooting.
 
-Website source files and generated deployment files shall remain logically separated.
-
-### NFR-10.3 — Current Results
-
-The deployed website shall expose the latest successfully generated analysis results.
-
-### NFR-10.4 — Broken-Resource Prevention
-
-The build process shall avoid generating references to unavailable generated resources.
-
-**TBD:** Whether this should be verified automatically during the build.
-
-### NFR-10.5 — Static Hosting Compatibility
-
-The generated website shall be compatible with GitHub Pages static hosting.
+Important failures shall be reported explicitly and shall not be hidden by reduced logging.
 
 ---
 
-## NFR-11 — Portability
+## NFR-11 – Pipeline Success and Operational Consistency
 
-### NFR-11.1 — Supported Python Environment
+A successful pipeline run shall satisfy the corresponding functional success criteria defined in the Functional Requirements.
 
-The project shall define a supported Python version.
+For an update with new observations, the pipeline shall successfully complete the required processing stages and produce valid updated outputs.
 
-The current development and CI environment uses Python 3.12.
+For an update without new observations, the pipeline shall terminate successfully without modifying existing analysis results, plots or the website.
 
-### NFR-11.2 — Dependency Management
-
-Required third-party dependencies shall be explicitly specified.
-
-### NFR-11.3 — Operating Environment
-
-The project shall document supported operating environments.
-
-### NFR-11.4 — CI/Local Consistency
-
-The development and CI environments should use compatible dependency and Python-version specifications.
+The individual stages shall provide sufficient status information to identify where a failed pipeline run stopped.
 
 ---
 
-## NFR-12 — Configuration and Extensibility
+## NFR-12 – Automated Output Validation
 
-### NFR-12.1 — Centralized Configuration
+Persistent machine-readable outputs shall be validated automatically after processing.
 
-Paths and other project-wide configuration values shall be defined consistently rather than duplicated throughout the codebase.
+At minimum, the validation shall cover the generated CSV and JSON files used by subsequent analysis, plotting and website generation.
 
-### NFR-12.2 — Configurable Analysis Parameters
+Validation shall check, where applicable:
 
-Analysis parameters that are scientifically expected to change shall be configurable without modifying unrelated processing logic.
+* required fields/columns,
+* expected data types,
+* valid dates,
+* valid region identifiers,
+* absence of duplicate `(date, region)` observations,
+* validity of required numerical values,
+* expected JSON structure.
 
-**TBD:** Which parameters belong in configuration.
-
-### NFR-12.3 — Region Extensibility
-
-The architecture should allow analysis regions to be changed or extended without unnecessary changes to the core analysis algorithms.
-
-### NFR-12.4 — Analysis Extensibility
-
-The architecture should allow additional derived analyses and visualizations to be added without unnecessarily modifying unrelated components.
+Output validation shall be part of the automated quality-assurance process.
 
 ---
 
-## NFR-13 — Security and Operational Safety
+## NFR-13 – Configurability of Analysis Parameters
 
-### NFR-13.1 — No Embedded Credentials
+Analysis parameters that materially affect scientific or visualization results shall not be unnecessarily hard-coded.
 
-Credentials or authentication secrets shall not be stored in source code or generated public artifacts.
+At minimum, the following parameters shall be configurable:
 
-### NFR-13.2 — Public Output
+* moving-average window,
+* threshold-event persistence duration.
 
-Files intended for GitHub Pages shall contain only data appropriate for public publication.
+Other parameters may become configurable as the scientific methodology is further developed, including:
 
-### NFR-13.3 — Controlled File Operations
+* interpolation maximum gap,
+* pixel detection threshold,
+* seasonal event thresholds,
+* climatological reference period.
 
-Automated cleanup and build operations shall be restricted to explicitly configured project directories.
-
----
-
-## NFR-14 — Versioning and Traceability
-
-### NFR-14.1 — Source Version
-
-Analysis results and generated artifacts should be attributable to a specific source-code version.
-
-**TBD:** Exact mechanism.
-
-### NFR-14.2 — Configuration Version
-
-Important analysis configuration should be identifiable for generated results.
-
-### NFR-14.3 — Methodology Version
-
-Changes to scientifically relevant processing methodology shall be distinguishable from ordinary implementation changes.
-
-### NFR-14.4 — Regression Traceability
-
-Changes that alter scientific results shall be identifiable and testable through regression tests.
+Configuration mechanisms shall preserve reproducibility by making the parameter values used for a result identifiable.
 
 ---
 
-## Open Non-Functional Questions
+## NFR-14 – Extensibility
 
-The following points require clarification before these requirements become binding:
+The architecture shall support the future addition of analysis regions and sea-ice-related analysis methods without fundamental restructuring of the existing processing pipeline.
 
-1. Which Python versions are officially supported?
-2. Which operating systems must be supported?
-3. What minimum test coverage is required?
-4. Which static-analysis tools are mandatory?
-5. What runtime is acceptable for a daily update?
-6. What reproducibility guarantees are required?
-7. How should software/configuration/methodology versions be recorded?
-8. What level of logging is required in CI?
-9. What constitutes a valid successful pipeline run?
-10. Which data-integrity guarantees are required for persistent CSV/JSON files?
-11. Which public outputs require automated validation?
-12. Which analysis parameters must be configurable?
-13. What degree of extensibility for regions and analyses is actually required?
+The design should allow future extensions such as:
+
+* interactive selection of analysis regions,
+* additional regional datasets,
+* sea-ice thickness analysis,
+* sea-ice volume analysis,
+* additional analysis and visualization methods.
+
+Future functionality does not need to be implemented as part of the current project scope.
+
+---
+
+## NFR-15 – Platform Support
+
+The officially supported development and execution environment shall be:
+
+* Python 3.12,
+* Linux/Ubuntu.
+
+The project may work on other operating systems such as Windows and macOS, but cross-platform compatibility is currently not a verified requirement.
+
+Platform-specific assumptions shall nevertheless be avoided where this can be achieved without unnecessary complexity.
+
+---
+
+## NFR-16 – Website Quality
+
+The generated public website shall provide a consistent and functional presentation of the current project results.
+
+Generated plots and machine-readable result data used by the website shall correspond to the same analysis state.
+
+The website build shall not contain references to missing generated resources.
+
+The website shall remain unchanged when an update produces no new observations.
+
+---
+
+## NFR-17 – Documentation
+
+The project shall document the relevant scientific methodology, software usage and pipeline operation sufficiently to allow the project to be understood and reproduced by another technically competent user.
+
+Documentation shall cover, where applicable:
+
+* project scope,
+* scientific methodology,
+* data sources,
+* analysis regions,
+* processing pipeline,
+* configuration,
+* command-line usage,
+* generated outputs,
+* website generation,
+* relevant limitations and assumptions.
+
+---
+
+## NFR-18 – Security and Operational Safety
+
+The pipeline shall not require unnecessary privileges for normal execution.
+
+Downloaded external data shall be treated as untrusted input and shall be validated sufficiently before being incorporated into persistent analysis results.
+
+The system shall avoid destructive operations on persistent analysis results during normal incremental updates.
+
+Temporary data cleanup shall not remove persistent analysis results or website source files.
