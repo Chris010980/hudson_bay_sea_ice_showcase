@@ -18,9 +18,9 @@ Regression testing is considered a cross-cutting activity rather than an indepen
 
 ---
 
-# 2. Unit Tests
+## 2. Unit Tests
 
-## 2.1 Purpose
+### 2.1 Purpose
 
 Unit tests verify small, isolated pieces of functionality.
 
@@ -36,11 +36,11 @@ Unit tests should preferably operate on values or small controlled datasets supp
 
 ---
 
-## 2.2 Primary Unit-Test Candidates
+### 2.2 Primary Unit-Test Candidates
 
 The following types of functionality are suitable for unit testing.
 
-### Data and date handling
+#### Data and date handling
 
 Examples include:
 
@@ -52,7 +52,7 @@ Examples include:
 * path construction,
 * configuration parsing.
 
-### Scientific calculations
+#### Scientific calculations
 
 Examples include:
 
@@ -65,7 +65,7 @@ Examples include:
 * annual statistics,
 * linear trend calculations.
 
-### Time-series processing
+#### Time-series processing
 
 Examples include:
 
@@ -74,7 +74,7 @@ Examples include:
 * moving-average calculation,
 * complete-year filtering.
 
-### Threshold-event logic
+#### Threshold-event logic
 
 Threshold event detection is particularly important for unit testing.
 
@@ -93,7 +93,7 @@ Tests should cover:
 * freeze-up boundaries,
 * year transitions.
 
-### Data transformation and validation helpers
+#### Data transformation and validation helpers
 
 Examples include:
 
@@ -105,9 +105,9 @@ Examples include:
 
 ---
 
-# 3. Component Tests
+## 3. Component Tests
 
-## 3.1 Purpose
+### 3.1 Purpose
 
 Component tests verify complete project components in relative isolation.
 
@@ -117,7 +117,7 @@ The purpose is to verify that a component behaves correctly as a whole.
 
 ---
 
-## 3.2 RegionAnalyzer
+### 3.2 RegionAnalyzer
 
 `RegionAnalyzer` shall be tested as a complete spatial-analysis component.
 
@@ -138,7 +138,7 @@ Small synthetic raster fixtures should be preferred where possible.
 
 ---
 
-## 3.3 ReferenceBuilder
+### 3.3 ReferenceBuilder
 
 `ReferenceBuilder` shall be tested as a complete reference-data component.
 
@@ -155,7 +155,7 @@ Reference-building tests should use controlled raster and region fixtures.
 
 ---
 
-## 3.4 ResultsManager
+### 3.4 ResultsManager
 
 `ResultsManager` shall be tested as the persistent-result component.
 
@@ -175,7 +175,7 @@ Tests should use temporary directories rather than the production `output/` dire
 
 ---
 
-## 3.5 TimeSeriesAnalyzer
+### 3.5 TimeSeriesAnalyzer
 
 `TimeSeriesAnalyzer` shall receive extensive component-level testing because it contains a large part of the scientific processing logic.
 
@@ -203,7 +203,7 @@ The most mathematically sensitive individual operations should additionally be c
 
 ---
 
-## 3.6 Downloader
+### 3.6 Downloader
 
 The downloader component shall be tested without depending on the live NSIDC service for normal test execution.
 
@@ -222,7 +222,7 @@ Network behavior should preferably be simulated or mocked.
 
 ---
 
-## 3.7 Visualization Components
+### 3.7 Visualization Components
 
 The visualization components shall be tested primarily for functional behavior rather than pixel-perfect visual similarity.
 
@@ -241,9 +241,9 @@ Visual regression testing may be introduced later if justified.
 
 ---
 
-# 4. Integration Tests
+## 4. Integration Tests
 
-## 4.1 Purpose
+### 4.1 Purpose
 
 Integration tests verify communication and data exchange between multiple components.
 
@@ -251,7 +251,7 @@ The focus is not on the internal correctness of an individual component, but on 
 
 ---
 
-## 4.2 Spatial Processing Integration
+### 4.2 Spatial Processing Integration
 
 The spatial-processing chain should be tested as an integrated workflow:
 
@@ -276,7 +276,7 @@ Tests should verify that:
 
 ---
 
-## 4.3 Temporal Analysis Integration
+### 4.3 Temporal Analysis Integration
 
 The temporal-processing chain should be tested as:
 
@@ -301,7 +301,7 @@ Tests should verify:
 
 ---
 
-## 4.4 Analysis-to-Visualization Integration
+### 4.4 Analysis-to-Visualization Integration
 
 The analysis outputs shall be tested as inputs to the visualization layer.
 
@@ -323,7 +323,7 @@ Tests should verify that current analysis outputs can be consumed by the visuali
 
 ---
 
-## 4.5 Website Build Integration
+### 4.5 Website Build Integration
 
 The website build shall be tested as an integration between:
 
@@ -350,7 +350,7 @@ The test should use an isolated temporary build directory.
 
 ---
 
-## 4.6 Pipeline Integration
+### 4.6 Pipeline Integration
 
 The individual pipeline stages shall also be tested together where practical:
 
@@ -370,9 +370,9 @@ The purpose is to verify correct stage ordering, data exchange and failure propa
 
 ---
 
-# 5. End-to-End Tests
+## 5. End-to-End Tests
 
-## 5.1 Purpose
+### 5.1 Purpose
 
 End-to-end tests verify complete user-relevant workflows from input data through final generated artifacts.
 
@@ -380,7 +380,7 @@ Because E2E tests are relatively expensive and potentially sensitive to the envi
 
 ---
 
-## 5.2 Complete Processing Workflow
+### 5.2 Complete Processing Workflow
 
 A representative E2E workflow is:
 
@@ -411,7 +411,7 @@ The test should verify that:
 
 ---
 
-## 5.3 Incremental Update Workflow
+### 5.3 Incremental Update Workflow
 
 A second important E2E scenario is an incremental update.
 
@@ -447,7 +447,7 @@ The test should verify that historical observations remain unchanged and that on
 
 ---
 
-## 5.4 No-New-Data Workflow
+### 5.4 No-New-Data Workflow
 
 The no-new-data case is an important operational scenario.
 
@@ -474,9 +474,9 @@ This test is particularly important because the update pipeline and CI build pro
 
 ---
 
-# 6. Regression Tests
+## 6. Regression Tests
 
-## 6.1 Purpose
+### 6.1 Purpose
 
 Regression tests ensure that previously verified behavior remains correct after future changes.
 
@@ -484,7 +484,7 @@ Regression tests are not restricted to a single test level.
 
 ---
 
-## 6.2 Scientific Regression Cases
+### 6.2 Scientific Regression Cases
 
 The following areas should receive permanent regression coverage as relevant defects or edge cases are identified:
 
@@ -502,7 +502,7 @@ The following areas should receive permanent regression coverage as relevant def
 
 ---
 
-## 6.3 Data Regression Cases
+### 6.3 Data Regression Cases
 
 Regression tests should protect against:
 
@@ -514,7 +514,7 @@ Regression tests should protect against:
 
 ---
 
-## 6.4 Pipeline Regression Cases
+### 6.4 Pipeline Regression Cases
 
 Pipeline regression tests should protect against:
 
@@ -527,7 +527,7 @@ Pipeline regression tests should protect against:
 
 ---
 
-# 7. Test Fixtures
+## 7. Test Fixtures
 
 Test fixtures shall be designed according to the behavior being tested.
 
@@ -560,7 +560,7 @@ Fixtures shall be version-controlled where practical and should remain small eno
 
 ---
 
-# 8. Test Isolation and Temporary Data
+## 8. Test Isolation and Temporary Data
 
 Automated tests shall not modify production project data.
 
@@ -581,7 +581,7 @@ Tests of cleanup operations shall verify that files outside the intended tempora
 
 ---
 
-# 9. External Dependencies
+## 9. External Dependencies
 
 The following external dependencies shall normally be isolated from the regular test suite:
 
@@ -597,7 +597,7 @@ Dedicated integration tests may test external interactions separately.
 
 ---
 
-# 10. Test Level Selection Guidelines
+## 10. Test Level Selection Guidelines
 
 Not every behavior requires all test levels.
 
@@ -621,7 +621,7 @@ Higher-level tests should be added where component interaction itself is part of
 
 ---
 
-# 11. Relationship to Project Components
+## 11. Relationship to Project Components
 
 The current implementation can be mapped to the test levels as follows:
 
@@ -648,7 +648,7 @@ This table describes the intended testing responsibility. It does not imply that
 
 ---
 
-# 12. Test Priority
+## 12. Test Priority
 
 Not all components have the same testing priority.
 
@@ -669,7 +669,7 @@ This prioritization does not replace the general testing strategy. It defines th
 
 ---
 
-# 13. Test Level Boundaries
+## 13. Test Level Boundaries
 
 The boundaries between test levels should remain clear.
 
