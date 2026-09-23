@@ -1,266 +1,371 @@
-# Seasonal Event Detection
+# Event Detection
 
 ## Purpose
 
-This document describes the detection of seasonal sea ice transition dates and the calculation of threshold durations.
+This document describes the detection of seasonal sea-ice break-up and freeze-up events.
 
-The current implementation identifies break-up and freeze-up dates from regional sea ice coverage time series.
+Events are derived from the regional relative sea-ice coverage time series using predefined coverage thresholds and a persistence requirement.
 
-Three seasonal thresholds are considered:
-
-```text
-10 %
-50 %
-90 %
-```
-
-The event-detection methodology operates on regional time series and is distinct from the pixel detection threshold used for absolute coverage.
+The methodology reflects the current implementation of v0.1.
 
 ---
 
-## Seasonal Events
+## 1. Event types
 
-Two types of seasonal transition are identified.
+Two seasonal transition types are detected:
 
-### Break-up
+* **break-up**: downward crossing of a sea-ice coverage threshold;
+* **freeze-up**: upward crossing of the same threshold.
 
-Break-up describes the seasonal decrease in regional sea ice coverage.
-
-The search period normally extends from:
-
-```text
-March 16
-```
-
-through:
-
-```text
-September 15
-```
-
-of the event year.
-
-### Freeze-up
-
-Freeze-up describes the seasonal increase in regional sea ice coverage.
-
-The normal search period extends from:
-
-```text
-September 16
-```
-
-of the event year through:
-
-```text
-March 15
-```
-
-of the following year.
+Events are calculated independently for each analysis region and event year.
 
 ---
 
-## Event Thresholds
+## 2. Event thresholds
 
-Break-up and freeze-up are evaluated independently for three regional coverage thresholds:
+The current implementation evaluates three coverage thresholds:
 
 ```text
-10 %
-50 %
-90 %
+10%
+50%
+90%
 ```
 
-The threshold represents the regional sea ice coverage at which the seasonal transition is identified.
+Each threshold is processed independently.
 
-These thresholds are different from the pixel detection threshold used to calculate absolute ice-covered area.
+The threshold defines the sea-ice coverage level at which the seasonal transition is considered to occur.
+
+These thresholds are distinct from the 15% pixel-level detection threshold used for the spatial coverage metrics.
 
 ---
 
-## Threshold Crossing
+## 3. Input variable
 
-An event is not assigned merely because a time series contains a value close to a threshold.
-
-The implementation requires an actual crossing of the threshold.
-
-For a decreasing break-up transition:
+Event detection uses:
 
 ```text
-value_before > threshold
-value_after  < threshold
+relative_coverage_percent
 ```
 
-For an increasing freeze-up transition:
+as its input time series.
 
-```text
-value_before < threshold
-value_after  > threshold
-```
-
-The crossing date is determined using linear interpolation between the surrounding observations.
-
-This provides a sub-day estimate of the threshold crossing rather than simply assigning the date of one of the two observations.
+The event calculation therefore uses the concentration-weighted regional coverage metric rather than the absolute pixel-count coverage.
 
 ---
 
-## Temporal Continuity
+## 4. Persistence requirement
 
-Threshold detection requires consecutive calendar days around the crossing.
-
-Missing dates are therefore not silently bridged when searching for an event.
-
-This prevents a threshold crossing from being inferred across an extended observational gap.
-
-The requirement for temporal continuity is separate from the interpolation rules used for the general time-series analysis.
-
----
-
-## Persistence
-
-A detected threshold transition must satisfy the configured persistence requirement.
-
-The current event methodology uses:
+A threshold crossing is accepted only if the threshold condition persists for:
 
 ```text
 7 consecutive calendar days
 ```
 
-as the persistence criterion.
+The crossing day itself is counted as the first persistence day.
 
-Persistence is intended to distinguish a sustained seasonal transition from a short-lived fluctuation around the threshold.
-
-Persistence is therefore a separate concept from the threshold value itself.
-
----
-
-## Break-up Detection
-
-For each threshold, the break-up search examines the regional time series during the break-up season.
-
-Conceptually:
+For a downward crossing, all seven observations must satisfy:
 
 ```text
-March 16
-    ↓
-regional coverage decreases
-    ↓
-threshold crossing
-    ↓
-persistent post-crossing state
-    ↓
-break-up date
-    ↓
-September 15
+coverage <= threshold
 ```
 
-The resulting date is stored together with the region, event year and threshold.
-
----
-
-## Freeze-up Detection
-
-Freeze-up is searched during the subsequent freeze-up season.
-
-Conceptually:
+For an upward crossing, all seven observations must satisfy:
 
 ```text
-September 16
-    ↓
-regional coverage increases
-    ↓
-threshold crossing
-    ↓
-persistent post-crossing state
-    ↓
-freeze-up date
-    ↓
-March 15 of following year
+coverage >= threshold
 ```
 
-The implementation also allows the beginning of the freeze-up search to be adjusted when the preceding break-up event occurred unusually late.
-
-This prevents a valid early transition immediately following a late break-up from being excluded solely by the nominal September 16 search boundary.
+This persistence criterion prevents a short-lived threshold crossing from automatically defining a seasonal transition.
 
 ---
 
-## Relationship Between Break-up and Freeze-up
+## 5. Calendar continuity
 
-The freeze-up event is associated with the corresponding preceding seasonal cycle.
+The seven persistence observations must represent consecutive calendar days.
 
-A freeze-up event is considered valid only when the corresponding threshold was crossed during the preceding break-up season.
+The event detector therefore explicitly checks the date difference between neighboring observations.
 
-This prevents isolated threshold crossings from being interpreted as a complete seasonal cycle.
+A gap in the time series invalidates the persistence sequence.
 
----
-
-## Event Year
-
-The event year identifies the seasonal cycle to which the event belongs.
-
-For freeze-up, the event year refers to the year in which the freeze-up season begins, even though the event itself may occur during the following calendar year.
-
-This convention allows break-up and freeze-up events belonging to the same seasonal cycle to be compared directly.
+Missing dates cannot be bridged by simply taking the next available observation.
 
 ---
 
-## Threshold Duration
+## 6. Break-up detection
 
-For a given region, threshold and event year, the seasonal duration is calculated as:
+Break-up is defined as a downward transition through the selected threshold.
+
+The standard break-up search window is:
 
 ```text
-threshold duration
+March 16 → September 15
+```
+
+of the event year.
+
+The detector searches for the first valid persistent downward crossing within this window.
+
+The crossing condition is:
+
+```text
+previous value > threshold
+current value <= threshold
+```
+
+If the threshold is reached exactly, the corresponding observation date is used.
+
+Otherwise, the crossing date is linearly interpolated between the two observations surrounding the threshold.
+
+---
+
+## 7. Freeze-up detection
+
+Freeze-up is defined as an upward transition through the selected threshold.
+
+The standard freeze-up search window is:
+
+```text
+September 16 → March 15
+```
+
+where March 15 belongs to the following calendar year.
+
+The initial freeze-up search therefore spans the second half of the event year and the beginning of the following year.
+
+---
+
+## 8. Freeze-up start adjustment
+
+The implementation contains an additional rule for cases where the threshold has already been reached by September 16.
+
+The value on September 16 is inspected.
+
+If:
+
+```text
+coverage >= threshold
+```
+
+the freeze-up search is extended backwards.
+
+The adjusted start date becomes:
+
+```text
+break-up date + 1 day
+```
+
+This allows the algorithm to detect a freeze-up transition that occurred earlier than the standard September 16 start date.
+
+The corresponding break-up event must exist for this adjustment to be applied.
+
+---
+
+## 9. Relationship between break-up and freeze-up
+
+Freeze-up detection is conditional on successful break-up detection for the same threshold and event year.
+
+If no valid break-up event is found:
+
+```text
+freeze-up = None
+```
+
+for that threshold/event year.
+
+This establishes a consistent seasonal cycle:
+
+```text
+break-up
+    ↓
+ice-free / low-coverage period
+    ↓
+freeze-up
+```
+
+rather than treating the two transitions as completely independent events.
+
+---
+
+## 10. Crossing-date interpolation
+
+When a threshold is crossed between two observations, the event date is calculated by linear interpolation.
+
+For observations:
+
+```text
+(t0, y0)
+(t1, y1)
+```
+
+and threshold:
+
+```text
+T
+```
+
+the crossing fraction is:
+
+```text
+f = (T - y0) / (y1 - y0)
+```
+
+The event date is then placed at the corresponding fraction of the interval between the two observation dates.
+
+This provides a sub-day transition estimate even though the underlying observations are daily.
+
+The interpolation is only performed between two consecutive calendar days satisfying the required crossing condition.
+
+---
+
+## 11. Exact threshold values
+
+The implementation explicitly handles observations that are exactly equal to the threshold.
+
+For example:
+
+```text
+coverage = 50%
+```
+
+is treated as having reached the 50% threshold.
+
+The corresponding observation date is returned directly rather than performing interpolation.
+
+---
+
+## 12. Event-year definition
+
+Event years are derived from the calendar year of the available observations.
+
+For break-up, the event year corresponds to the year in which the break-up search occurs.
+
+For freeze-up, the search may extend into the following calendar year, but the resulting event remains associated with the original event year.
+
+For example:
+
+```text
+event year 2020
+    break-up: 2020
+    freeze-up: late 2020 / early 2021
+```
+
+This allows one seasonal cycle to be represented by a single event year.
+
+---
+
+## 13. Event output
+
+The detected events are stored in:
+
+```text
+output/analysis/ice_coverage_events.csv
+```
+
+The output contains:
+
+* `region`
+* `event_type`
+* `event_year`
+* `threshold_percent`
+* `event_date`
+
+For every region, event year, event type, and threshold, a row is produced even when no valid event date is found.
+
+An absent event is therefore represented explicitly rather than being silently omitted.
+
+---
+
+## 14. Threshold-duration analysis
+
+The event dates are subsequently used by the plotting component to calculate threshold durations.
+
+For a given threshold and event year:
+
+```text
+duration
 =
 freeze-up date
--
+−
 break-up date
 ```
 
-The duration is expressed in days.
+The resulting duration represents the length of the seasonal cycle between the two detected threshold crossings.
 
-The calculation is performed separately for:
+The current visualization uses a fixed y-axis range of:
 
 ```text
-10 %
-50 %
-90 %
+0–365 days
 ```
 
-This produces a measure of the length of the seasonal ice-covered cycle at each threshold.
+---
+
+## 15. Interpretation
+
+The three thresholds represent different aspects of the seasonal transition.
+
+### 90%
+
+Represents a high-coverage threshold and therefore characterizes a transition near the strongly ice-covered state.
+
+### 50%
+
+Represents an intermediate coverage threshold.
+
+### 10%
+
+Represents a low-coverage threshold near the transition to or from an ice-free state.
+
+The thresholds should be interpreted as defined coverage levels rather than as independent physical definitions of the onset or end of the entire ice season.
 
 ---
 
-## Distinction Between Threshold Concepts
+## 16. Distinction from smoothing
 
-The project uses several threshold-related concepts that must not be conflated:
+Event detection does not use the ±3-day moving average as its input.
 
-| Concept                   | Purpose                                                  |
-| ------------------------- | -------------------------------------------------------- |
-| Pixel detection threshold | Classify individual pixels for absolute coverage         |
-| Event threshold           | Detect regional seasonal transitions                     |
-| Persistence               | Require a sustained transition                           |
-| Moving-average window     | Smooth short-term variability for analysis/visualization |
+The event detector operates on:
 
-These parameters describe different stages or purposes of the analysis.
+```text
+relative_coverage_percent
+```
 
----
+directly.
 
-## Missing Data
-
-Threshold detection requires sufficient temporal continuity around the candidate crossing.
-
-Large observational gaps are not bridged simply to obtain an event date.
-
-Consequently, a seasonal event may remain undefined when the available observations do not provide sufficient evidence for a valid threshold crossing.
-
-An undefined event is preferable to assigning an unsupported transition date.
+The moving average is a separate derived quantity used for temporal visualization and does not redefine the threshold crossing or persistence criterion.
 
 ---
 
-## Interpretation
+## 17. Current implementation detail
 
-The detected event dates describe transitions in the regional sea ice coverage time series according to the defined thresholds and persistence criteria.
+The constructor currently contains:
 
-They should not be interpreted as direct observations of the physical moment at which every location in a region freezes or becomes ice-free.
+```python
+self.threshold_persistence = 3
+```
 
-Instead, they represent reproducible statistical transition dates derived from the regional sea ice concentration record.
+but this attribute is not used by `calculate_threshold_events()`.
 
-The three thresholds provide complementary descriptions of the seasonal transition rather than three independent physical events.
+The effective persistence value of the current event calculation is the method default:
+
+```text
+persistence = 7
+```
+
+This distinction should be resolved in a later cleanup so that the configured parameter and the effective methodology cannot diverge.
+
+---
+
+## 18. Current methodological limitations
+
+The current event detection does not implement:
+
+* probabilistic event detection,
+* uncertainty intervals for transition dates,
+* alternative persistence models,
+* hysteresis-specific physical models,
+* nonlinear interpolation,
+* multiple competing events within one seasonal window.
+
+The current method is a deterministic threshold-crossing procedure with a seven-day persistence requirement.
+
+Systematic tests for boundary conditions, missing observations, threshold equality, leap years, and event-window behavior are planned as part of the v0.2 testing work.
