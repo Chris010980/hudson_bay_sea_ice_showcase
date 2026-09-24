@@ -2,25 +2,29 @@
 
 ## Overview
 
-The current implementation consists of several components with distinct responsibilities.
+The current implementation consists of components with distinct technical responsibilities.
 
-The following table summarizes the main components.
+| Component             | Location                               | Responsibility                                         |
+| --------------------- | -------------------------------------- | ------------------------------------------------------ |
+| Pipeline Dispatcher   | `src/main.py`                          | CLI dispatch and stage selection                       |
+| NSIDC Downloader      | `src/data_download/downloader.py`      | Remote data acquisition and temporary data management  |
+| Download CLI          | `src/data_download/download_data.py`   | CLI entry point for data acquisition                   |
+| Reference Builder     | `src/analysis/reference_builder.py`    | Static spatial reference and regional mask preparation |
+| Region Analyzer       | `src/analysis/region_analyzer.py`      | Daily regional sea-ice analysis                        |
+| Results Manager       | `src/analysis/results_manager.py`      | Persistent daily result management                     |
+| Processing Stage      | `src/analysis/process_data.py`         | Spatial processing and temporal-analysis orchestration |
+| Time Series Analyzer  | `src/analysis/timeseries_analyzer.py`  | Temporal, climatological and event analysis            |
+| GeoTIFF Plotter       | `src/visualization/geotiff_plot.py`    | Spatial visualization                                  |
+| Time Series Plotter   | `src/visualization/timeseries_plot.py` | Temporal and derived visualization                     |
+| Plot Generator        | `src/visualization/generate_plots.py`  | Visualization-stage orchestration                      |
+| Update Pipeline       | `src/update/update_pipeline.py`        | Incremental end-to-end orchestration                   |
+| Pages Builder         | `src/update/build_pages.py`            | GitHub Pages deployment artifact generation            |
+| Logging Configuration | `src/config/logging_config.py`         | Central logging configuration                          |
+| Project Paths         | `src/config/paths.py`                  | Central project path definitions                       |
+| Region Configuration  | `src/config/regions.json`              | Spatial region definitions                             |
+| Test Suite            | `tests/`                               | Automated verification of selected functionality       |
 
-| Component            | Location                               | Responsibility                                    |
-| -------------------- | -------------------------------------- | ------------------------------------------------- |
-| Pipeline Dispatcher  | `src/main.py`                          | CLI dispatch and stage selection                  |
-| NSIDC Downloader     | `src/data_download/downloader.py`      | Remote data acquisition and local data management |
-| Download CLI         | `src/data_download/download_data.py`   | CLI entry point for data acquisition              |
-| Reference Builder    | `src/analysis/reference_builder.py`    | Static spatial reference preparation              |
-| Region Analyzer      | `src/analysis/region_analyzer.py`      | Daily spatial sea-ice analysis                    |
-| Results Manager      | `src/analysis/results_manager.py`      | Persistent daily result management                |
-| Processing Stage     | `src/analysis/process_data.py`         | Orchestration of spatial processing               |
-| Time Series Analyzer | `src/analysis/timeseries_analyzer.py`  | Temporal and climatological analysis              |
-| GeoTIFF Plotter      | `src/visualization/geotiff_plot.py`    | Spatial visualization                             |
-| Time Series Plotter  | `src/visualization/timeseries_plot.py` | Temporal visualization                            |
-| Plot Generator       | `src/visualization/generate_plots.py`  | Visualization stage orchestration                 |
-| Update Pipeline      | `src/update/update_pipeline.py`        | Incremental end-to-end update orchestration       |
-| Pages Builder        | `src/update/build_pages.py`            | GitHub Pages deployment artifact generation       |
+---
 
 ## Pipeline Dispatcher
 
@@ -39,9 +43,16 @@ update
 all
 ```
 
-It configures logging and forwards stage-specific arguments to the corresponding component.
+It:
 
-The dispatcher does not contain the scientific analysis itself.
+* parses the selected stage,
+* configures logging,
+* forwards stage-specific arguments,
+* invokes the corresponding stage.
+
+The dispatcher does not contain the scientific calculations themselves.
+
+---
 
 ## Data Acquisition
 
@@ -58,10 +69,16 @@ Responsibilities:
 * inspect the remote NSIDC archive,
 * inspect locally available observations,
 * identify missing observations,
+* identify equivalent product files,
 * download missing files,
-* remove temporary downloaded data.
+* manage temporary downloaded data,
+* remove temporary GeoTIFF files when requested.
 
-The downloader uses date and product information to identify equivalent observations.
+Temporary data are stored under:
+
+```text
+data/geotiff/
+```
 
 ### `download_data.py`
 
@@ -71,9 +88,11 @@ Location:
 src/data_download/download_data.py
 ```
 
-Provides the command-line stage entry point for the downloader.
+Provides the command-line entry point for the acquisition stage.
 
-## Spatial Analysis
+---
+
+## Spatial Reference Preparation
 
 ### `ReferenceBuilder`
 
@@ -85,16 +104,29 @@ src/analysis/reference_builder.py
 
 Responsibilities:
 
-* prepare static reference information,
+* use the fixed reference GeoTIFF,
+* prepare reference spatial information,
 * create regional masks,
 * determine reference pixel information,
-* store reference data for subsequent analysis.
+* write reusable reference products.
 
-Output:
+Reference products are stored under:
 
 ```text
 output/reference/
 ```
+
+The reference GeoTIFF itself is maintained at:
+
+```text
+src/config/reference.tif
+```
+
+The reference is intentionally separate from the normal incremental acquisition interval.
+
+---
+
+## Daily Spatial Analysis
 
 ### `RegionAnalyzer`
 
@@ -104,11 +136,22 @@ Location:
 src/analysis/region_analyzer.py
 ```
 
-Processes one daily GeoTIFF and calculates regional sea-ice statistics.
+Processes one daily GeoTIFF observation.
 
-It uses the reference masks generated by `ReferenceBuilder`.
+It:
 
-The main output is passed to `ResultsManager`.
+* determines the observation date,
+* loads the raster,
+* applies the predefined regional masks,
+* checks the relevant spatial data,
+* determines sea-ice pixels using the configured detection threshold,
+* calculates absolute sea-ice coverage,
+* calculates relative sea-ice coverage,
+* produces regional analysis records.
+
+The results are passed to `ResultsManager`.
+
+---
 
 ## Result Management
 
@@ -123,10 +166,10 @@ src/analysis/results_manager.py
 Responsibilities:
 
 * load existing daily results,
-* determine whether an observation date has already been processed,
+* determine whether a date has already been processed,
 * add new regional results,
-* remove duplicate date/region entries,
-* sort results,
+* remove duplicate date/region records,
+* sort the dataset,
 * save the persistent dataset,
 * maintain `latest.json`.
 
@@ -135,6 +178,8 @@ Primary output:
 ```text
 output/analysis/ice_coverage_summary.csv
 ```
+
+---
 
 ## Processing Orchestration
 
@@ -146,9 +191,9 @@ Location:
 src/analysis/process_data.py
 ```
 
-Coordinates the daily processing workflow.
+Coordinates the daily processing stage.
 
-Its current sequence is:
+The current sequence is:
 
 ```text
 ReferenceBuilder
@@ -162,7 +207,14 @@ ResultsManager
 TimeSeriesAnalyzer
 ```
 
-It also provides a `ProcessSummary` describing processed, skipped, failed and newly added files.
+It also provides a `ProcessSummary` containing counts for:
+
+* processed files,
+* skipped files,
+* failed files,
+* newly added results.
+
+---
 
 ## Temporal Analysis
 
@@ -174,7 +226,7 @@ Location:
 src/analysis/timeseries_analyzer.py
 ```
 
-Transforms the persistent daily regional results into derived temporal datasets.
+Transforms the persistent daily regional result dataset into derived temporal datasets.
 
 Current processing includes:
 
@@ -182,11 +234,29 @@ Current processing includes:
 * moving averages,
 * climatology,
 * climatological standard deviation,
+* climatological minimum and maximum,
 * anomalies,
-* yearly means,
-* threshold event detection.
+* annual means,
+* seasonal threshold-event detection.
 
-Threshold events are calculated for 10 %, 50 % and 90 % sea-ice coverage.
+The threshold analysis uses:
+
+```text
+10 %
+50 %
+90 %
+```
+
+Generated datasets include:
+
+```text
+output/analysis/
+├── ice_coverage_timeseries.csv
+├── ice_coverage_yearly.csv
+└── ice_coverage_events.csv
+```
+
+---
 
 ## Visualization
 
@@ -202,11 +272,11 @@ Provides spatial visualization of GeoTIFF observations.
 
 Current plot types include:
 
-* overview,
-* region overlay,
-* individual region plots.
+* overview maps,
+* region overlays,
+* individual regional maps.
 
-The current implementation uses the NSIDC polar stereographic coordinate system configured as EPSG:3411.
+The current implementation uses the configured NSIDC polar stereographic CRS, EPSG:3411.
 
 ### `TimeSeriesPlotter`
 
@@ -216,15 +286,15 @@ Location:
 src/visualization/timeseries_plot.py
 ```
 
-Creates plots based on the derived analysis datasets.
+Creates plots from the derived analysis datasets.
 
-Current plot families are:
+Current plot families include:
 
 * time series,
-* anomalies,
-* threshold durations,
+* anomaly plots,
+* threshold-duration plots,
 * polar seasonal plots,
-* yearly means.
+* yearly mean plots.
 
 ### `generate_plots.py`
 
@@ -234,11 +304,17 @@ Location:
 src/visualization/generate_plots.py
 ```
 
-Provides the visualization CLI stage.
+Provides the visualization CLI stage and coordinates the visualization components.
 
-It coordinates `SeaIcePlotter` and `TimeSeriesPlotter`.
+Generated figures are stored under:
 
-## Update Orchestration
+```text
+output/plots/
+```
+
+---
+
+## Incremental Update Orchestration
 
 ### `update_pipeline.py`
 
@@ -248,21 +324,29 @@ Location:
 src/update/update_pipeline.py
 ```
 
-Coordinates an incremental update:
+Coordinates the incremental update workflow.
+
+The intended sequence is:
 
 ```text
-NSIDCDownloader
-      ↓
+Determine latest processed observation
+              ↓
+NSIDCDownloader.sync()
+              ↓
 process_data
-      ↓
+              ↓
 generate_plots
-      ↓
+              ↓
 build_pages
-      ↓
-temporary data cleanup
+              ↓
+temporary GeoTIFF cleanup
 ```
 
 The processing start date is derived from the latest processed observation.
+
+The update pipeline is the primary orchestration component for scheduled incremental execution.
+
+---
 
 ## Website Build
 
@@ -274,7 +358,7 @@ Location:
 src/update/build_pages.py
 ```
 
-Creates the deployment directory by combining:
+Creates the static deployment artifact by combining:
 
 ```text
 docs/
@@ -287,11 +371,79 @@ into:
 build/
 ```
 
-The resulting directory is intended to be self-contained for GitHub Pages deployment.
+The resulting directory contains the website source together with the generated analysis products required by the static site.
+
+`build/` is a generated artifact and is not a source directory.
+
+---
+
+## Configuration Components
+
+### `paths.py`
+
+Location:
+
+```text
+src/config/paths.py
+```
+
+Provides central project path definitions used by the processing components.
+
+### `logging_config.py`
+
+Location:
+
+```text
+src/config/logging_config.py
+```
+
+Provides centralized logging configuration.
+
+### `regions.json`
+
+Location:
+
+```text
+src/config/regions.json
+```
+
+Contains the configured spatial analysis regions used by the reference preparation and spatial analysis components.
+
+### `reference.tif`
+
+Location:
+
+```text
+src/config/reference.tif
+```
+
+Provides the fixed spatial reference dataset used to establish the analysis grid and regional masks.
+
+---
+
+## Quality Assurance Components
+
+### Automated Test Suite
+
+Location:
+
+```text
+tests/
+```
+
+The current test suite uses pytest.
+
+The currently implemented tests cover selected visualization functionality.
+
+The test suite is therefore part of the current project structure, but it does not yet provide complete requirement coverage.
+
+Additional scientific, integration, regression and output-validation tests are part of the planned quality expansion.
+
+---
 
 ## Component Relationships
 
-The main relationships are:
+The principal relationships are:
 
 ```text
 NSIDCDownloader
@@ -324,7 +476,7 @@ SeaIcePlotter
 spatial plots
 ```
 
-Website generation consumes the static website and generated results:
+Website generation consumes the static website source and generated project output:
 
 ```text
 docs/ ──────────┐
@@ -338,10 +490,36 @@ output/ ────────┘
               build/
 ```
 
+The update pipeline coordinates these components:
+
+```text
+UpdatePipeline
+      │
+      ├── NSIDCDownloader
+      │
+      ├── process_data
+      │      ├── ReferenceBuilder
+      │      ├── RegionAnalyzer
+      │      ├── ResultsManager
+      │      └── TimeSeriesAnalyzer
+      │
+      ├── generate_plots
+      │      ├── SeaIcePlotter
+      │      └── TimeSeriesPlotter
+      │
+      └── build_pages
+```
+
+---
+
 ## Architectural Observation
 
-The current components are already separated broadly according to their technical responsibility.
+The current components are separated broadly according to their technical responsibilities.
 
-However, several components also contain orchestration logic and communicate through direct calls and filesystem-based artifacts.
+However, several components also contain orchestration logic and communicate through direct function calls and filesystem-based artifacts.
 
-The implications of these dependencies are not evaluated in this document. They will be addressed during the definition of the target architecture and quality strategy.
+The current architecture therefore represents a pragmatic pipeline implementation rather than a fully decoupled component architecture.
+
+This is an architectural characteristic of the current implementation and is not itself treated as a defect.
+
+Potential restructuring, dependency inversion and interface refinement belong to the target-architecture discussion and are not defined by this document.

@@ -9,44 +9,89 @@ The project is a pipeline-oriented scientific data processing application for th
 The system combines:
 
 * automated acquisition of NSIDC sea-ice data,
+* spatial reference preparation,
 * spatial analysis of daily GeoTIFF observations,
 * persistent storage of regional analysis results,
 * temporal and climatological analysis,
+* seasonal event detection,
 * scientific visualization,
+* incremental update orchestration,
 * and generation of a self-contained GitHub Pages deployment.
 
 This document describes the **current implementation (as-is architecture)**. Target architecture and planned refactoring are intentionally not covered here.
 
+---
+
 ## System Overview
 
-The current processing flow is:
+The current system consists of several processing and supporting areas:
 
 ```text
-NSIDC data
-    │
-    ▼
-Data acquisition
-    │
-    ▼
-Temporary GeoTIFF files
-    │
-    ▼
-Spatial analysis
-    │
-    ▼
-Persistent daily results
-    │
-    ▼
-Temporal analysis
-    │
-    ▼
-Derived analysis results
-    │
-    ▼
-Scientific visualizations
-    │
-    ▼
-GitHub Pages build
+                         ┌──────────────────────┐
+                         │      NSIDC archive   │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │  Data Acquisition    │
+                         │  NSIDCDownloader     │
+                         └──────────┬───────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │ Temporary GeoTIFFs   │
+                         │ data/geotiff/        │
+                         └──────────┬───────────┘
+                                    │
+                         ┌──────────┴───────────┐
+                         │                      │
+                         ▼                      ▼
+                ┌─────────────────┐    ┌─────────────────┐
+                │ Reference       │    │ Spatial         │
+                │ Preparation     │───►│ Analysis        │
+                │ ReferenceBuilder│    │ RegionAnalyzer  │
+                └─────────────────┘    └────────┬────────┘
+                                                │
+                                                ▼
+                                       ┌──────────────────┐
+                                       │ Persistent Daily │
+                                       │ Results          │
+                                       │ ResultsManager   │
+                                       └────────┬─────────┘
+                                                │
+                                                ▼
+                                       ┌──────────────────┐
+                                       │ Temporal         │
+                                       │ Analysis         │
+                                       │ TimeSeriesAnalyzer│
+                                       └────────┬─────────┘
+                                                │
+                              ┌─────────────────┴─────────────────┐
+                              │                                   │
+                              ▼                                   ▼
+                    ┌──────────────────┐                ┌──────────────────┐
+                    │ Derived Analysis │                │ Scientific       │
+                    │ Datasets         │───────────────►│ Visualization    │
+                    └──────────────────┘                └────────┬─────────┘
+                                                                  │
+                                                                  ▼
+                                                         ┌──────────────────┐
+                                                         │ Generated Plots  │
+                                                         │ output/plots/    │
+                                                         └──────────────────┘
+
+        docs/ ─────────────────────┐
+                                   ▼
+                            ┌──────────────────┐
+        output/ ───────────►│ Website Build    │
+                            │ build_pages.py   │
+                            └────────┬─────────┘
+                                     │
+                                     ▼
+                                  build/
+                                     │
+                                     ▼
+                               GitHub Pages
 ```
 
 The application is controlled through a command-line pipeline dispatcher.
@@ -62,87 +107,360 @@ src/main.py
     └── all
 ```
 
+The `update` stage delegates the end-to-end incremental workflow to `update_pipeline.py`.
+
+---
+
 ## Main Architectural Areas
 
 ### Data Acquisition
 
 `src/data_download/` is responsible for retrieving sea-ice data from the NSIDC archive.
 
-The `NSIDCDownloader` determines which observations are missing locally and downloads them into the temporary `data/geotiff/` working directory.
+`NSIDCDownloader`:
+
+* inspects the remote archive,
+* determines locally missing observations,
+* downloads missing observations,
+* identifies equivalent product files for the same observation date,
+* manages temporary local GeoTIFF files.
+
+Downloaded observations are stored temporarily under:
+
+```text
+data/geotiff/
+```
+
+---
+
+### Spatial Reference Preparation
+
+`ReferenceBuilder` creates and maintains the static spatial reference information required by the regional analysis.
+
+The reference consists of:
+
+* predefined regional masks,
+* reference pixel information,
+* reference metadata.
+
+The reference GeoTIFF is fixed under:
+
+```text
+src/config/reference.tif
+```
+
+Generated reference products are stored under:
+
+```text
+output/reference/
+```
+
+The reference products can be reused by subsequent processing runs.
+
+---
 
 ### Spatial Analysis
 
-`src/analysis/` contains the analysis components.
+`RegionAnalyzer` processes individual daily GeoTIFF observations.
 
-`ReferenceBuilder` prepares the static spatial reference data and region masks.
+It uses the reference masks to:
 
-`RegionAnalyzer` processes individual GeoTIFF observations and calculates regional sea-ice statistics.
+* extract the configured analysis regions,
+* identify valid water pixels,
+* apply the configured sea-ice detection threshold,
+* calculate absolute sea-ice coverage,
+* calculate relative sea-ice coverage,
+* produce regional daily observations.
+
+The resulting records are passed to `ResultsManager`.
+
+---
 
 ### Result Management
 
-`ResultsManager` provides persistence for the daily analysis results.
+`ResultsManager` provides persistent storage for the daily regional analysis results.
 
-The primary persistent dataset is:
+The primary dataset is:
 
 ```text
 output/analysis/ice_coverage_summary.csv
 ```
 
-Additional metadata is stored in `latest.json`.
+Additional metadata is stored in:
+
+```text
+output/analysis/latest.json
+```
+
+The result manager:
+
+* loads existing results,
+* identifies already processed dates,
+* adds new regional observations,
+* removes duplicate date/region records,
+* sorts the result dataset,
+* saves the persistent result dataset,
+* maintains information about the latest processed observation.
+
+---
 
 ### Temporal Analysis
 
-`TimeSeriesAnalyzer` derives temporal information from the persistent daily results.
+`TimeSeriesAnalyzer` derives temporal analysis products from the persistent daily regional results.
 
-Current analyses include:
+Current processing includes:
 
-* daily calendar-based time series,
+* calendar interpolation,
 * moving averages,
 * 1981–2010 climatology,
-* climatological standard deviations,
-* anomalies,
+* climatological mean,
+* climatological standard deviation,
+* climatological minimum and maximum,
+* absolute anomalies,
+* relative anomalies,
 * annual means,
-* break-up events,
-* freeze-up events,
-* threshold durations.
+* seasonal threshold-event detection.
 
-### Visualization
+Threshold event detection uses:
 
-The visualization layer consists of two main components.
+```text
+10 %
+50 %
+90 %
+```
 
-`SeaIcePlotter` creates spatial maps from GeoTIFF observations.
+The resulting datasets are stored under:
 
-`TimeSeriesPlotter` creates temporal, climatological and event-based plots from the derived analysis datasets.
+```text
+output/analysis/
+```
 
-### Website Build
+---
 
-The static website source is located in `docs/`.
+### Scientific Visualization
 
-`build_pages.py` combines the website source with the generated `output/` directory and creates the self-contained `build/` directory used for GitHub Pages deployment.
+The visualization layer is divided into spatial and temporal visualization.
+
+`SeaIcePlotter` creates spatial maps directly from GeoTIFF observations.
+
+`TimeSeriesPlotter` creates temporal and derived scientific plots from the analysis datasets.
+
+The generated figures are stored under:
+
+```text
+output/plots/
+```
+
+Visualization products are regenerated from the underlying analysis data rather than serving as inputs to subsequent scientific processing stages.
+
+---
+
+### Pipeline Orchestration
+
+The architecture contains two levels of orchestration.
+
+`src/main.py` provides the external command-line dispatcher.
+
+`src/update/update_pipeline.py` coordinates the incremental end-to-end workflow:
+
+```text
+NSIDCDownloader
+       ↓
+process_data
+       ↓
+generate_plots
+       ↓
+build_pages
+       ↓
+temporary data cleanup
+```
+
+The `all` stage in `main.py` provides a sequential complete pipeline using the individual processing stages.
+
+---
+
+### Website Build and Deployment
+
+The website source is located under:
+
+```text
+docs/
+```
+
+`build_pages.py` combines the website source with the generated project output and creates:
+
+```text
+build/
+```
+
+The `build/` directory is a generated deployment artifact.
+
+It is not a second source tree and is not used as an input to the scientific analysis.
+
+The resulting artifact is suitable for GitHub Pages deployment.
+
+---
 
 ## Data Persistence
 
-The project distinguishes between temporary input data and persistent analysis products.
+The architecture distinguishes three different classes of stored data.
 
-### Temporary
+### Temporary Input Data
 
 ```text
 data/
 └── geotiff/
 ```
 
-Downloaded GeoTIFF files are used as processing input and can be removed after successful processing.
+Downloaded GeoTIFF observations are temporary processing inputs.
 
-### Persistent
+They can be removed after successful processing.
+
+### Persistent Scientific Products
 
 ```text
 output/
 ├── analysis/
-├── reference/
-└── plots/
+└── reference/
 ```
 
-The `output/` directory contains the persistent results required by subsequent analysis and visualization steps.
+These products contain the persistent scientific state required for subsequent analysis and reproducibility of the current result set.
+
+### Regenerable Visualization and Deployment Products
+
+```text
+output/
+└── plots/
+
+build/
+```
+
+Plots and the website build are generated products.
+
+They can be regenerated from the corresponding source data and website source.
+
+---
+
+## Cross-Cutting Concerns
+
+Several requirements apply across multiple architectural components rather than belonging to a single processing component.
+
+### Configuration
+
+Configuration and project paths are maintained centrally under:
+
+```text
+src/config/
+```
+
+This includes:
+
+* project paths,
+* logging configuration,
+* the fixed spatial reference,
+* region definitions.
+
+Scientific and operational parameters that are intended to be variable are subject to the project's configurability requirements.
+
+---
+
+### Logging and Diagnostics
+
+The pipeline uses Python logging for operational diagnostics.
+
+Logging covers pipeline execution and processing activities and is configured centrally through the logging configuration.
+
+Logging is intended to provide information about:
+
+* processing stages,
+* downloaded and skipped observations,
+* failures,
+* generated products,
+* update execution.
+
+---
+
+### Error Handling
+
+Processing components handle failures locally where appropriate and report failures through the logging system.
+
+The current implementation does not yet provide complete centralized validation and failure propagation for every pipeline stage.
+
+This is part of the current quality gap identified by the requirements.
+
+---
+
+### Testing and Quality Assurance
+
+Automated tests are maintained under:
+
+```text
+tests/
+```
+
+The current test suite covers selected visualization functionality.
+
+Testing is therefore part of the project architecture, but systematic verification of all requirements is not yet implemented.
+
+The testing strategy, test levels and CI quality gates are documented separately under:
+
+```text
+docs/testing/
+```
+
+---
+
+### Output Validation
+
+The requirements define automated output validation as a separate quality concern.
+
+The current implementation does not yet provide a complete centralized output-validation component.
+
+Expected validation includes, among other checks:
+
+* required files,
+* expected data structures,
+* valid dates and regions,
+* numerical ranges,
+* duplicate detection,
+* successful generation of required figures,
+* required website files.
+
+This distinction is intentional: the requirement exists, while the corresponding implementation is not yet complete.
+
+---
+
+### Reproducibility and Traceability
+
+The architecture is based on explicit input data, configuration, source code and generated products.
+
+The current implementation provides partial reproducibility through:
+
+* persistent analysis datasets,
+* fixed reference data,
+* explicit project configuration,
+* documented methodology,
+* version-controlled source code.
+
+Complete version and dependency traceability is not yet fully formalized.
+
+---
+
+### CI/CD and Operational Execution
+
+GitHub Actions provides the current automated execution environment.
+
+The workflow:
+
+* installs the Python dependencies,
+* executes the update pipeline,
+* builds the website artifact,
+* uploads the GitHub Pages artifact,
+* commits updated scientific output.
+
+The current CI workflow does not yet implement the complete quality-gate strategy defined by the requirements.
+
+---
 
 ## Current Architectural Characteristics
 
@@ -150,24 +468,28 @@ The current implementation is characterized by:
 
 * pipeline-oriented processing,
 * explicit stage-based CLI control,
-* file-based data exchange between processing stages,
-* separation of data acquisition, analysis, visualization and website generation,
+* direct Python component calls,
+* file-based data exchange between stages,
+* separation of acquisition, analysis, visualization and deployment,
 * incremental processing based on the latest processed observation date,
-* temporary storage of raw downloaded observations,
-* persistent storage of derived analysis results.
+* temporary storage of raw observations,
+* persistent storage of derived scientific results,
+* regenerable visualization products,
+* static website deployment.
+
+---
 
 ## Architecture Status
 
 This document describes the current state of the implementation.
 
-The following aspects are intentionally not defined here yet:
+It does not define:
 
-* target architecture,
-* module restructuring,
+* a target architecture,
+* planned module restructuring,
 * dependency inversion,
 * final interface design,
-* branching strategy,
-* test architecture,
-* future analysis extensions.
+* a future plugin architecture,
+* future scientific extensions.
 
-These will be defined after the current system requirements and project scope have been established.
+Such changes should be defined separately and traced back to the project requirements before implementation.
