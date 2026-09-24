@@ -1,384 +1,345 @@
 # Non-Functional Requirements
 
-This document defines the non-functional requirements for the Hudson Bay Sea Ice Analysis project.
+This document defines the non-functional requirements of the `hudson_bay_sea_ice` project.
 
-The requirements describe quality attributes and engineering constraints of the system. They are independent of the current implementation status. The current degree of fulfillment is assessed separately in the project quality and development documentation.
+The non-functional requirements specify the required quality characteristics of the system and complement the functional requirements defined in the Functional Requirements document.
+
+They describe how the system shall perform its functions with respect to scientific correctness, reliability, maintainability, reproducibility, testability, performance, traceability, and operational safety.
 
 ---
 
 ## NFR-01 – Scientific Correctness
 
-The system shall implement and document the scientific methodology used for sea-ice analysis consistently and reproducibly.
+The system shall implement the documented scientific methods consistently and without introducing unintended methodological deviations.
 
-The methodology shall explicitly define:
+Scientific calculations shall:
 
-* input data and data product,
-* spatial reference data,
-* pixel interpretation,
-* absolute and relative sea-ice coverage,
-* pixel detection threshold,
-* seasonal event thresholds,
-* event persistence,
-* interpolation rules,
-* moving-average processing,
-* climatology period,
-* anomaly calculation,
-* annual statistics,
-* trend calculation.
+* use the defined spatial reference and pixel characteristics,
+* apply the documented sea-ice concentration interpretation,
+* distinguish between absolute and relative coverage metrics,
+* apply the defined climatological reference period,
+* apply the documented anomaly definition,
+* apply the defined annual completeness rules,
+* apply the documented seasonal event definitions and persistence criteria.
 
-Changes to scientifically relevant methods or parameters shall be documented and traceable.
+Scientific parameters and methodological assumptions shall be documented and distinguishable from software or visualization parameters.
 
-Scientific calculations shall be covered by automated tests using defined expected results and relevant edge cases.
+Changes to scientific methodology shall be identifiable and shall not occur implicitly through unrelated software changes.
 
 ---
 
 ## NFR-02 – Data Integrity
 
-The system shall preserve the integrity of persistent analysis results.
+The system shall preserve the integrity of input data, persistent analysis results, and generated output products.
 
-Persistent results shall:
+The system shall:
 
-* preserve previously processed historical observations,
-* contain no duplicate `(date, region)` records,
-* be deterministically sorted where applicable,
-* use defined and consistent data types,
-* contain valid values within their defined physical and numerical ranges,
-* remain structurally valid after incremental updates.
+* avoid unintended modification of downloaded source data,
+* prevent duplicate observations from being introduced into persistent results,
+* preserve the relationship between observation date and analysis region,
+* detect invalid or inconsistent input data where technically feasible,
+* prevent incomplete or invalid processing results from silently replacing valid existing results,
+* maintain internally consistent derived datasets.
 
-Updates shall not unintentionally modify or delete previously valid historical results.
-
-Output files shall be written in a manner that minimizes the risk of leaving corrupted persistent results after a failed operation.
+Persistent output files shall only be updated after the corresponding processing step has completed successfully.
 
 ---
 
 ## NFR-03 – Reliability and Error Handling
 
-The system shall handle expected operational and data-related error conditions in a controlled manner.
+The system shall handle expected operational failures in a controlled and diagnosable manner.
 
 This includes, where applicable:
 
-* no new observations,
-* empty input datasets,
-* missing observations,
-* incomplete time series,
-* invalid or unusable input files,
-* unavailable reference data,
-* malformed external data,
-* individual processing failures,
-* invalid configuration,
+* unavailable remote data,
 * failed downloads,
-* failed output generation.
+* inaccessible or corrupted input files,
+* missing reference data,
+* invalid spatial data,
+* incomplete analysis results,
+* missing required output files,
+* failures during website generation.
 
-Errors shall be logged with sufficient information to identify the affected processing step and input.
+An error affecting an individual observation shall not silently produce an apparently valid result for that observation.
 
-An error in one independent input observation shall not unnecessarily invalidate unrelated valid observations.
+Failures shall be distinguishable from successfully processed observations.
+
+The pipeline shall return an appropriate failure state when a processing stage cannot produce the required result reliably.
 
 ---
 
 ## NFR-04 – Maintainability
 
-The software shall be structured into components with clearly defined responsibilities.
+The software shall be structured so that individual processing stages and components can be modified without unnecessary changes to unrelated parts of the system.
 
-Components shall:
+The implementation shall:
 
-* have focused responsibilities,
-* minimize unnecessary coupling,
-* expose clear interfaces,
-* avoid unnecessary duplication,
-* be independently testable,
-* use consistent naming and coding conventions.
+* maintain a clear separation between data acquisition, analysis, visualization, and deployment,
+* use modular components with defined responsibilities,
+* avoid unnecessary duplication of processing logic,
+* centralize configuration where appropriate,
+* keep scientific calculations separate from presentation logic,
+* provide sufficiently clear interfaces between pipeline stages.
 
-Internal implementation details shall not unnecessarily be used as external component interfaces.
-
-The architecture shall support further development without requiring unrelated components to be modified unnecessarily.
+The code structure shall support future extensions without requiring a redesign of the complete processing pipeline.
 
 ---
 
 ## NFR-05 – Testability and Quality Assurance
 
-The system shall be covered by an automated testing strategy.
+The system shall be structured so that the correctness of individual components and the complete processing pipeline can be systematically verified.
 
-The test strategy shall include appropriate tests at multiple levels, including:
+Testing shall cover, as appropriate:
 
-* unit tests,
-* component tests,
-* integration tests,
-* end-to-end tests where appropriate,
-* regression tests for established behavior.
+* unit-level functionality,
+* component-level functionality,
+* integration between pipeline stages,
+* end-to-end pipeline execution,
+* regression behavior,
+* handling of invalid and edge-case input data.
 
-New non-trivial functions and methods shall normally receive automated unit tests.
+The test strategy shall define the responsibilities and expected coverage of the different test levels.
 
-Scientific calculations shall have explicit tests for:
+Critical scientific calculations and data transformations shall have automated tests.
 
-* expected results,
-* boundary conditions,
-* invalid inputs,
-* relevant edge cases.
-
-Important interfaces between components shall be tested at component or integration level.
-
-The project shall define and monitor a minimum initial line-coverage target of **70 %**. Coverage shall be treated as a quality indicator and shall not be used as the sole measure of test quality.
-
-The detailed test strategy is defined separately in the testing documentation.
+The test suite shall be executable independently of the production update process.
 
 ---
 
 ## NFR-06 – Static Code Quality
 
-The project shall use automated static quality checks.
+The source code shall conform to defined coding and quality standards.
 
-The quality checks shall cover, as appropriate:
+The project shall use automated static quality checks where appropriate, including:
 
-* code formatting,
+* formatting,
 * linting,
-* unused imports and declarations,
-* obvious code defects,
-* type consistency,
-* dependency/import structure,
-* architectural constraints.
+* detection of unused or unreachable code,
+* type checking where practical,
+* detection of common programming errors.
 
-Static checks shall be executable automatically in the development and CI environments.
-
-The concrete tools, configuration and quality gates shall be defined separately as part of the development and CI setup.
+Static quality checks shall be executable automatically and shall be suitable for integration into continuous integration workflows.
 
 ---
 
 ## NFR-07 – Performance
 
-The system shall provide sufficient performance for its intended operational use.
+The system shall process incremental updates efficiently enough for regular automated execution.
 
-For the normal daily incremental update, the expected total processing time shall be approximately **2–3 minutes** in the defined reference environment and for the expected data volume.
+The implementation shall avoid unnecessary reprocessing of previously analysed observations.
 
-Performance measurements shall be based on representative processing scenarios.
+In particular:
 
-Performance optimization shall not compromise scientific correctness, data integrity or reproducibility.
+* already processed observations shall not normally be analysed again,
+* reusable reference masks shall not be regenerated for every observation,
+* unchanged analysis products shall not be regenerated unnecessarily,
+* incremental updates shall process only the newly available observations.
 
-The reference environment and measurement procedure shall be documented when performance testing is introduced.
+Performance requirements shall be verified using representative datasets and documented measurements rather than assumed from implementation design alone.
+
+No fixed runtime limit is currently defined.
 
 ---
 
 ## NFR-08 – Reproducibility
 
-A defined combination of:
+The analysis shall be reproducible from the documented source data, configuration, software version, and processing methodology.
 
-* source code,
-* Python version,
-* dependencies,
-* configuration,
-* reference data,
-* input data,
-* scientific parameters
+A reproducible processing run shall use:
 
-shall produce reproducible analysis results within the defined reproducibility scope.
+* defined input data,
+* defined spatial reference data,
+* documented configuration parameters,
+* documented processing methods,
+* identifiable software and dependency versions.
 
-The project shall document the Python version and dependency requirements.
+Repeated processing of identical inputs with identical configuration shall produce equivalent numerical results.
 
-Scientific parameters relevant to generated results shall be identifiable.
-
-Exact bit-for-bit reproducibility across arbitrary environments is not required.
+Generated figures and derived datasets shall be reproducible from the corresponding analysis inputs.
 
 ---
 
 ## NFR-09 – Version and Methodology Traceability
 
-Scientific results shall be traceable to the software and methodology used to generate them.
+Changes affecting scientific results or system behavior shall be traceable to the corresponding software, configuration, or methodological change.
 
-The project shall maintain traceability through:
+The project shall maintain sufficient information to determine:
 
-* version-controlled source code,
-* Git history and/or release tags,
-* dependency specifications,
-* documented scientific methodology,
-* relevant configuration and parameter definitions,
-* reference-data information.
+* which software version produced an output,
+* which methodology was applied,
+* which relevant configuration was used,
+* which source data were processed.
 
-Where practical, generated result metadata shall identify the relevant software or methodology version.
+Methodological changes shall be distinguishable from ordinary implementation or presentation changes.
 
-Changes to scientific processing shall be distinguishable from changes that only affect presentation or infrastructure.
+Release versions shall provide a defined point of reference for the corresponding implementation and documentation.
 
 ---
 
-## NFR-10 – Logging
+## NFR-10 – Logging and Diagnostics
 
-The system shall provide structured operational logging.
+The system shall provide structured logging for relevant processing and operational events.
 
-Logging shall:
+Logging shall provide sufficient information to diagnose:
 
-* provide sufficient information to understand pipeline execution,
-* identify important processing steps,
-* report warnings and errors explicitly,
-* support configurable log levels,
-* support console logging,
-* support file logging where required.
+* pipeline execution,
+* downloaded observations,
+* skipped observations,
+* processing failures,
+* validation warnings,
+* generated outputs,
+* website build operations,
+* cleanup operations.
 
-At minimum, `INFO` and `DEBUG` operation shall be supported.
+Log messages shall distinguish informational messages, warnings, and errors.
 
-CI execution shall provide concise but sufficient logs for diagnosing failed pipeline stages.
+Logging shall not expose unnecessary sensitive information.
 
 ---
 
-## NFR-11 – Pipeline Success and Operational Consistency
+## NFR-11 – Pipeline Operational Consistency
 
-The pipeline shall execute its defined stages in a deterministic and documented order.
+The complete pipeline shall maintain a consistent state across its processing stages.
 
-A successful update with new observations shall perform all required downstream processing stages, including:
+A successful update shall result in mutually consistent:
 
-1. data acquisition,
-2. spatial analysis,
-3. persistent result update,
-4. temporal analysis,
-5. visualization,
-6. website build where applicable.
+* persistent analysis results,
+* derived analysis datasets,
+* generated figures,
+* website content.
 
-If no new observations are available, the update shall not modify persistent scientific results or regenerate outputs unnecessarily.
+If a required processing stage fails, downstream products shall not silently be presented as successfully updated.
 
-The responsibilities of the update pipeline and the website build stage shall be clearly defined.
-
-A failed required stage shall result in an identifiable unsuccessful pipeline execution.
+The pipeline shall avoid states in which the website claims to represent data that were not successfully incorporated into the underlying analysis results.
 
 ---
 
 ## NFR-12 – Automated Output Validation
 
-Generated scientific outputs shall be automatically validated.
+The system shall provide automated validation of critical generated outputs.
 
-Validation shall check, where applicable:
+Validation shall, where applicable, verify:
 
-* required files,
-* required columns,
-* data types,
-* valid dates,
-* valid region identifiers,
-* duplicate records,
-* numerical ranges,
-* missing values,
-* JSON structure,
-* consistency between related output files.
+* expected files exist,
+* required CSV columns are present,
+* required JSON structures are valid,
+* dates are valid and ordered as expected,
+* regional identifiers are valid,
+* numerical values are within physically meaningful ranges,
+* generated datasets contain no unintended duplicates,
+* generated plots can be created successfully,
+* website build products contain the required files.
 
-Website build outputs shall additionally be checked for required resources and expected output structure.
-
-Output validation shall be executable automatically as part of the testing or CI process.
+Output validation shall be independent from visual inspection wherever an automated check is technically feasible.
 
 ---
 
 ## NFR-13 – Configurability
 
-Scientifically relevant and operationally relevant parameters shall be configurable where appropriate.
+Scientific and operational parameters that are intended to vary shall not unnecessarily be hard-coded into processing logic.
 
-This includes, at minimum, parameters such as:
+The system shall provide a clearly defined mechanism for configuring, where applicable:
 
-* moving-average window,
-* threshold-event persistence,
-* interpolation limits where configurable.
+* processing date ranges,
+* analysis regions,
+* logging behavior,
+* plot selection,
+* interpolation parameters,
+* visualization parameters,
+* operational options such as temporary-data retention.
 
-The following parameters shall be treated as explicit scientific configuration candidates:
+Configuration changes shall not require modification of unrelated processing code.
 
-* pixel detection threshold,
-* event thresholds,
-* climatology period,
-* interpolation limits,
-* moving-average parameters.
-
-Parameter values affecting scientific results shall not be hidden implicitly in unrelated implementation code.
-
-The configuration mechanism shall preserve clear defaults and documented parameter meanings.
+Parameters with scientific significance shall have documented defaults and meanings.
 
 ---
 
 ## NFR-14 – Extensibility
 
-The system shall support future extensions without requiring fundamental restructuring of the existing processing pipeline.
+The system architecture shall support the addition of future analysis methods and data products without requiring fundamental changes to existing components.
 
-Potential future extensions include:
+The design shall allow future extensions such as:
 
 * additional analysis regions,
-* sea-ice thickness,
-* sea-ice volume,
-* additional data products,
-* additional scientific analysis methods,
-* interactive region selection,
-* additional visualization types.
+* additional statistical analyses,
+* additional visualization types,
+* alternative sea-ice datasets,
+* additional environmental variables,
+* further derived indicators.
 
-Future extensions shall not be considered implemented merely because the current architecture permits them.
+Future extensions shall be implemented as explicit additions rather than by silently changing the meaning of existing outputs.
 
 ---
 
-## NFR-15 – Platform Support
+## NFR-15 – Platform and Environment
 
-The officially supported execution environment shall be:
+The project shall operate reliably in the defined development and execution environment.
 
-* Python 3.12,
-* Linux/Ubuntu.
+The supported baseline environment shall be explicitly documented, including:
 
-The CI environment shall use a supported Python 3.12 environment.
+* operating system,
+* Python version,
+* required Python packages,
+* relevant geospatial dependencies.
 
-Windows and macOS shall not be considered officially supported unless explicitly added to the project scope.
+The pipeline shall not rely on undocumented local environment state.
 
-Platform-specific assumptions should be avoided where reasonably practical.
+Where platform independence is intended, platform-specific assumptions shall be identified and tested.
 
 ---
 
 ## NFR-16 – Website Quality
 
-The generated GitHub Pages website shall represent the same analysis state as the corresponding generated scientific outputs.
+The generated website shall provide a stable and self-contained presentation of the current project documentation and analysis results.
 
 The website shall:
 
-* contain all required current pages,
-* reference existing resources,
-* contain the current generated plots,
-* use the corresponding current analysis results,
-* remain internally consistent after updates,
-* be buildable automatically,
-* be deployable as a self-contained artifact.
+* contain the intended documentation pages,
+* reference the correct generated analysis products,
+* remain internally navigable,
+* use the generated build structure consistently,
+* be reproducible from the repository contents and generated analysis outputs,
+* avoid references to obsolete or unavailable files.
 
-The build process shall not require a second manually maintained copy of generated scientific data.
-
-If no new scientific data are available, the website content shall remain unchanged unless an explicit website-only change has been introduced.
+The website build shall not modify the underlying source documentation or scientific analysis data.
 
 ---
 
 ## NFR-17 – Documentation
 
-The project shall document:
+The project shall provide documentation sufficient to understand, reproduce, maintain, and extend the system.
+
+Documentation shall cover, as appropriate:
 
 * project scope,
-* scientific methodology,
+* functional requirements,
+* non-functional requirements,
+* system architecture,
+* methodology,
 * data sources,
-* regions,
-* data flow,
-* software architecture,
-* pipeline stages,
-* configuration,
-* command-line interfaces,
-* generated outputs,
-* website structure,
-* known limitations,
-* testing strategy.
+* development conventions,
+* testing strategy,
+* command-line usage,
+* deployment,
+* known limitations.
 
-Documentation shall distinguish between:
-
-* current implementation,
-* defined requirements,
-* future extensions.
-
-Changes to requirements or scientific methodology shall be reflected in the corresponding documentation.
+Documentation shall distinguish between currently implemented functionality and planned or future functionality.
 
 ---
 
 ## NFR-18 – Security and Operational Safety
 
-The system shall operate without requiring unnecessary privileges.
+The system shall perform external and destructive operations in a controlled manner.
 
-External input data shall be treated as untrusted input and validated before being used for scientific processing.
+This includes:
 
-Destructive operations shall be restricted to their intended scope.
+* downloading data only from configured sources,
+* avoiding unintended modification of source data,
+* safely handling temporary files,
+* avoiding destructive operations outside the intended project directories,
+* preventing incomplete downloads from being treated as valid input,
+* ensuring cleanup operations are limited to intended temporary data.
 
-In particular:
+Operations that delete or replace generated files shall validate their target locations before execution.
 
-* temporary raw data cleanup shall not remove persistent analysis results,
-* website build cleanup shall not remove source data,
-* persistent result files shall not be deleted as part of normal cleanup,
-* CI operations shall operate only on the intended repository and build artifacts.
-
-Operations with destructive effects shall be clearly identifiable and, where practical, protected by tests or explicit preconditions.
+The system shall not require unnecessary credentials or elevated operating-system privileges for normal operation.
