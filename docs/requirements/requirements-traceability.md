@@ -338,7 +338,7 @@ The distinction prevents the current project state from being incorrectly charac
 
 ---
 
-# 7. Functional Requirements Traceability Matrix
+## 7. Functional Requirements Traceability Matrix
 
 The following matrix records the current implementation baseline.
 
@@ -365,7 +365,7 @@ The functional matrix is therefore a **current implementation baseline**, not a 
 
 ---
 
-# 8. Non-Functional Requirements Traceability Matrix
+## 8. Non-Functional Requirements Traceability Matrix
 
 Non-functional requirements are traced using the same general model, but their verification may involve multiple mechanisms.
 
@@ -394,7 +394,7 @@ The NFR matrix is likewise a current baseline. Statuses should be updated as ver
 
 ---
 
-# 9. Test Traceability
+## 9. Test Traceability
 
 Tests should reference the requirement or behavior they verify where this improves traceability.
 
@@ -421,7 +421,7 @@ The current tests provide an initial example of automated verification, but requ
 
 ---
 
-# 10. Regression Traceability
+## 10. Regression Traceability
 
 Regression tests should be associated with the requirement or defect that motivated them where practical.
 
@@ -444,7 +444,7 @@ Regression tests are particularly important for scientific calculations where a 
 
 ---
 
-# 11. Scientific Result Changes
+## 11. Scientific Result Changes
 
 When a code change intentionally modifies scientific results, the change should be traceable to:
 
@@ -475,7 +475,7 @@ This distinction is essential for separating genuine regressions from intentiona
 
 ---
 
-# 12. Traceability and v0.1
+## 12. Traceability and v0.1
 
 For v0.1, the primary objective is to establish the traceability structure and document the current implementation baseline.
 
@@ -493,7 +493,7 @@ This provides the basis for the systematic testing and quality-assurance work pl
 
 ---
 
-# 13. Traceability and v0.2
+## 13. Traceability and v0.2
 
 During the development of v0.2, the traceability matrix should be extended as the test suite and CI quality gates are established.
 
@@ -533,7 +533,7 @@ The target is not to maximize the number of tests, but to provide appropriate an
 
 ---
 
-# 14. Maintenance
+## 14. Maintenance
 
 The traceability information should be updated when:
 
@@ -553,7 +553,7 @@ Small implementation changes do not necessarily require changes to the matrix if
 
 ---
 
-# 15. Relationship to Other Documentation
+## 15. Relationship to Other Documentation
 
 Requirements traceability connects several areas of the project documentation.
 
