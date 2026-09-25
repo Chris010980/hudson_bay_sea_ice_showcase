@@ -2,11 +2,11 @@
 
 ## 1. Purpose
 
-This document defines the test levels used for the Hudson Bay Sea Ice Analysis project and assigns the current software components and processing workflows to the appropriate test levels.
+This document defines the test levels used by the `hudson_bay_sea_ice` project and describes how the project's components and workflows should be tested.
 
-The test levels complement the general testing principles defined in `test-strategy.md`.
+The test levels complement the general principles defined in `test-strategy.md`.
 
-The project uses the following test levels:
+The project distinguishes between:
 
 1. Unit tests
 2. Component tests
@@ -14,7 +14,9 @@ The project uses the following test levels:
 4. End-to-end tests
 5. Regression tests
 
-Regression testing is considered a cross-cutting activity rather than an independent architectural test level. A regression test may therefore exist at unit, component, integration or end-to-end level.
+Regression testing is a cross-cutting activity rather than an independent architectural test level. A regression test may therefore be implemented at unit, component, integration or end-to-end level.
+
+The test levels described here define the **v0.1 testing model and intended test responsibilities**. They do not imply that all listed tests are already implemented.
 
 ---
 
@@ -22,7 +24,7 @@ Regression testing is considered a cross-cutting activity rather than an indepen
 
 ### 2.1 Purpose
 
-Unit tests verify small, isolated pieces of functionality.
+Unit tests verify small, deterministic and isolated pieces of functionality.
 
 They should execute quickly and independently of:
 
@@ -36,16 +38,14 @@ Unit tests should preferably operate on values or small controlled datasets supp
 
 ---
 
-### 2.2 Primary Unit-Test Candidates
+### 2.2 Unit-Test Candidates
 
-The following types of functionality are suitable for unit testing.
+Suitable unit-test candidates include:
 
 #### Data and date handling
 
-Examples include:
-
 * date extraction from filenames,
-* date range handling,
+* date-range handling,
 * seasonal date boundaries,
 * year transitions,
 * leap-year handling,
@@ -54,54 +54,53 @@ Examples include:
 
 #### Scientific calculations
 
-Examples include:
-
-* absolute sea-ice coverage,
-* relative sea-ice coverage,
 * concentration normalization,
 * pixel-area calculations,
+* absolute ice-area calculations,
+* relative ice-area calculations,
+* coverage calculations,
 * climatological statistics,
 * anomaly calculations,
 * annual statistics,
-* linear trend calculations.
+* numerical helper functions used by visualization or analysis.
 
 #### Time-series processing
 
-Examples include:
-
-* calendar interpolation,
-* maximum interpolation-gap handling,
+* calendar reconstruction,
+* interpolation-gap handling,
 * moving-average calculation,
-* complete-year filtering.
+* complete-year filtering,
+* calendar-day climatology.
 
 #### Threshold-event logic
 
-Threshold event detection is particularly important for unit testing.
+Threshold-event detection is particularly important for unit testing.
 
 Tests should cover:
 
-* exact threshold values,
 * values below and above thresholds,
+* exact threshold values,
 * upward crossings,
 * downward crossings,
-* interpolation of crossing dates,
+* interpolated crossing dates,
 * persistence requirements,
-* missing days,
+* missing observations,
 * gaps in observations,
 * seasonal boundaries,
 * break-up boundaries,
 * freeze-up boundaries,
 * year transitions.
 
-#### Data transformation and validation helpers
+#### Data transformation and validation
 
-Examples include:
+Suitable tests include:
 
 * duplicate detection,
 * sorting,
 * value-range validation,
-* output schema checks,
-* JSON structure validation.
+* output schema validation,
+* JSON structure validation,
+* handling of missing or malformed metadata.
 
 ---
 
@@ -111,133 +110,144 @@ Examples include:
 
 Component tests verify complete project components in relative isolation.
 
-Unlike unit tests, component tests may use realistic files, controlled raster data, temporary directories and several internal functions of the component.
+Unlike unit tests, component tests may use:
 
-The purpose is to verify that a component behaves correctly as a whole.
+* realistic files,
+* controlled raster data,
+* temporary directories,
+* multiple internal functions,
+* several processing steps of the same component.
+
+The purpose is to verify that a component behaves correctly as a complete unit of functionality.
 
 ---
 
-### 3.2 RegionAnalyzer
+### 3.2 `RegionAnalyzer`
 
-`RegionAnalyzer` shall be tested as a complete spatial-analysis component.
+`RegionAnalyzer` is a high-priority component because its output directly determines the daily scientific coverage metrics.
 
-Tests should verify:
+Component tests should verify:
 
 * loading of a valid GeoTIFF,
 * interpretation of concentration values,
 * handling of special values,
-* application of region masks,
-* calculation of absolute coverage,
-* calculation of relative coverage,
-* calculation of pixel-based area,
-* extraction of observation dates,
-* behavior with invalid or incomplete input data,
-* behavior when expected reference information is unavailable.
+* application of regional masks,
+* absolute coverage calculation,
+* relative coverage calculation,
+* pixel-based area calculation,
+* observation-date handling,
+* rejection of invalid or incomplete regional data,
+* consistency with the reference water-pixel configuration.
 
-Small synthetic raster fixtures should be preferred where possible.
+Small synthetic raster fixtures should be preferred wherever possible.
 
 ---
 
-### 3.3 ReferenceBuilder
+### 3.3 `ReferenceBuilder`
 
-`ReferenceBuilder` shall be tested as a complete reference-data component.
+`ReferenceBuilder` is responsible for constructing reusable spatial reference products.
 
 Tests should verify:
 
-* creation of reference masks,
-* creation of reference metadata,
+* generation of regional masks,
+* generation of reference metadata,
 * expected output structure,
 * handling of valid reference data,
-* handling of invalid or unsuitable reference data,
-* consistency of generated masks and reference metadata.
+* handling of invalid reference data,
+* consistency between generated masks and reference metadata.
 
-Reference-building tests should use controlled raster and region fixtures.
+Controlled raster and region fixtures should be used rather than relying on the production reference dataset for ordinary automated tests.
 
 ---
 
-### 3.4 ResultsManager
+### 3.4 `ResultsManager`
 
-`ResultsManager` shall be tested as the persistent-result component.
+`ResultsManager` is responsible for persistent daily analysis results.
 
 Tests should verify:
 
-* loading existing results,
-* adding new observations,
-* preservation of existing results,
+* loading of existing results,
+* addition of new observations,
+* preservation of existing observations,
 * `(date, region)` deduplication,
 * sorting,
-* saving CSV results,
-* creation of `latest.json`,
+* CSV persistence,
+* creation and update of `latest.json`,
 * determination of the latest processed date,
-* behavior with empty or missing result files.
+* behavior with empty result files,
+* behavior when result files do not yet exist.
 
-Tests should use temporary directories rather than the production `output/` directory.
+Tests should use temporary directories.
 
 ---
 
-### 3.5 TimeSeriesAnalyzer
+### 3.5 `TimeSeriesAnalyzer`
 
-`TimeSeriesAnalyzer` shall receive extensive component-level testing because it contains a large part of the scientific processing logic.
+`TimeSeriesAnalyzer` receives high testing priority because it contains several scientifically relevant transformations.
 
-Tests should verify the complete processing stages:
+The component should be tested as a complete processing chain:
 
 ```text
 daily results
-    ↓
-calendar interpolation
-    ↓
+      ↓
+calendar reconstruction
+      ↓
+interpolation
+      ↓
 moving average
-    ↓
+      ↓
 climatology
-    ↓
+      ↓
 anomalies
-    ↓
+      ↓
 annual means
-    ↓
+      ↓
 threshold events
 ```
 
-Component tests should verify that these stages interact correctly and that the resulting data structures contain the expected information.
+Component tests should verify that these processing stages interact correctly and that the generated datasets contain the expected structure and values.
 
-The most mathematically sensitive individual operations should additionally be covered by unit tests.
+Mathematically sensitive operations should additionally be covered by focused unit tests.
 
 ---
 
-### 3.6 Downloader
+### 3.6 `NSIDCDownloader`
 
-The downloader component shall be tested without depending on the live NSIDC service for normal test execution.
+The downloader should be tested without requiring the live NSIDC service during normal test execution.
 
-Tests should verify:
+Tests should cover:
 
-* identification of remote files,
-* identification of local files,
-* date/product key handling,
+* remote-file identification,
+* local-file identification,
+* date and product-key handling,
 * recognition of equivalent product versions,
 * missing-file detection,
-* download result handling,
+* download-result handling,
 * synchronization behavior,
-* cleanup of temporary GeoTIFF files.
+* temporary-data cleanup.
 
-Network behavior should preferably be simulated or mocked.
+Network interactions should normally be mocked or represented by controlled fixtures.
+
+Dedicated external-service tests may be added separately when required.
 
 ---
 
 ### 3.7 Visualization Components
 
-The visualization components shall be tested primarily for functional behavior rather than pixel-perfect visual similarity.
+The visualization components should primarily be tested for functional behavior rather than pixel-perfect visual identity.
 
 Tests should verify:
 
 * creation of expected plots,
 * correct output paths,
-* correct handling of selected regions,
-* correct handling of selected plot types,
-* required output files,
+* handling of configured regions,
+* handling of selected plot types,
+* existence of required output files,
 * behavior with valid and incomplete input data.
 
-Where numerical or structural aspects of the plot are important, these should be tested directly rather than relying solely on image comparison.
+Where numerical or structural properties of a plot are important, those properties should be tested directly.
 
-Visual regression testing may be introduced later if justified.
+Visual regression testing may be introduced later if the project requires it.
 
 ---
 
@@ -245,33 +255,33 @@ Visual regression testing may be introduced later if justified.
 
 ### 4.1 Purpose
 
-Integration tests verify communication and data exchange between multiple components.
+Integration tests verify the interaction and data exchange between multiple project components.
 
-The focus is not on the internal correctness of an individual component, but on whether independently functioning components work together correctly.
+The focus is not on whether one component works in isolation, but whether independently functioning components can exchange their outputs and continue processing correctly.
 
 ---
 
 ### 4.2 Spatial Processing Integration
 
-The spatial-processing chain should be tested as an integrated workflow:
+The spatial-processing chain should be tested as:
 
 ```text
 ReferenceBuilder
-       ↓
-reference data
-       ↓
+      ↓
+reference products
+      ↓
 RegionAnalyzer
-       ↓
+      ↓
 daily regional results
-       ↓
+      ↓
 ResultsManager
 ```
 
 Tests should verify that:
 
-* reference data can be consumed by the spatial analyzer,
-* generated regional results have the expected structure,
-* results can be persisted without information loss,
+* reference products can be consumed by the spatial analyzer,
+* regional results have the expected structure,
+* results can be persisted without unintended information loss,
 * multiple observation dates can be processed incrementally.
 
 ---
@@ -281,92 +291,100 @@ Tests should verify that:
 The temporal-processing chain should be tested as:
 
 ```text
-ResultsManager
-       ↓
 persistent daily results
-       ↓
+      ↓
 TimeSeriesAnalyzer
-       ↓
-derived time-series results
+      ↓
+derived temporal datasets
 ```
 
 Tests should verify:
 
-* expected input/output schemas,
+* expected input and output schemas,
 * region consistency,
 * date consistency,
 * preservation of existing observations,
 * correct propagation of calculated values,
-* consistency between derived result files.
+* consistency between generated temporal result files.
 
 ---
 
 ### 4.4 Analysis-to-Visualization Integration
 
-The analysis outputs shall be tested as inputs to the visualization layer.
+The outputs of the analysis layer shall be usable as inputs to the visualization layer.
 
-Example:
+The relevant flow is:
 
 ```text
 TimeSeriesAnalyzer
-       ↓
+      ↓
 ice_coverage_timeseries.csv
 ice_coverage_yearly.csv
 ice_coverage_events.csv
-       ↓
+      ↓
 TimeSeriesPlotter
-       ↓
+      ↓
 plot files
 ```
 
-Tests should verify that current analysis outputs can be consumed by the visualization components and that all expected plot types are generated.
+Tests should verify that the current analysis outputs can be consumed by the plotting components and that the expected plot products are generated.
+
+The spatial plotting chain should be tested analogously using the outputs of the spatial-analysis layer.
 
 ---
 
 ### 4.5 Website Build Integration
 
-The website build shall be tested as an integration between:
+The website build should be tested as an integration between the static website source and generated project outputs:
 
 ```text
 docs/
- +
+  +
 output/
- ↓
+  ↓
 build_pages
- ↓
+  ↓
 build/
 ```
 
 Tests should verify:
 
 * website source files are copied,
-* generated output is copied to the expected location,
+* required analysis output is copied,
+* required plot resources are copied,
 * expected HTML pages exist,
-* expected plot resources exist,
-* relative resource paths resolve to the generated build structure,
-* no second manually maintained copy of scientific output is required.
+* expected resource paths are present,
+* the generated directory structure matches the GitHub Pages deployment structure.
 
-The test should use an isolated temporary build directory.
+The build should be executed against an isolated temporary directory.
+
+No manually maintained second copy of scientific output should be required.
 
 ---
 
 ### 4.6 Pipeline Integration
 
-The individual pipeline stages shall also be tested together where practical:
+Where practical, the main processing stages should also be tested together:
 
 ```text
 download
-    ↓
+   ↓
 process
-    ↓
+   ↓
 plots
-    ↓
+   ↓
 build
 ```
 
-The test should use controlled test data rather than the live production dataset.
+The tests should use controlled input data rather than the live production dataset.
 
-The purpose is to verify correct stage ordering, data exchange and failure propagation.
+The primary purpose is to verify:
+
+* correct stage ordering,
+* correct data exchange,
+* expected handling of intermediate outputs,
+* failure propagation,
+* correct final output locations.
 
 ---
 
@@ -374,26 +392,28 @@ The purpose is to verify correct stage ordering, data exchange and failure propa
 
 ### 5.1 Purpose
 
-End-to-end tests verify complete user-relevant workflows from input data through final generated artifacts.
+End-to-end tests verify complete user-relevant processing workflows from controlled input data to final generated artifacts.
 
-Because E2E tests are relatively expensive and potentially sensitive to the environment, their number should remain limited.
+Because E2E tests are comparatively expensive and more environment-dependent, their number should remain limited.
+
+They should complement rather than replace unit, component and integration tests.
 
 ---
 
 ### 5.2 Complete Processing Workflow
 
-A representative E2E workflow is:
+A representative E2E scenario is:
 
 ```text
 controlled input data
         ↓
-data processing
+spatial processing
         ↓
 regional analysis
         ↓
 persistent results
         ↓
-time-series analysis
+temporal analysis
         ↓
 plot generation
         ↓
@@ -403,17 +423,19 @@ website build
 The test should verify that:
 
 * the complete workflow succeeds,
-* all required intermediate outputs are created,
-* final scientific outputs exist,
+* required intermediate outputs are created,
+* final analytical outputs exist,
 * expected plots exist,
 * the website build is complete,
-* no unexpected persistent files are modified.
+* no unintended production files are modified.
+
+The workflow should use controlled data and isolated paths.
 
 ---
 
 ### 5.3 Incremental Update Workflow
 
-A second important E2E scenario is an incremental update.
+Incremental processing is an important operational use case.
 
 Initial state:
 
@@ -427,23 +449,29 @@ New input:
 one or more new observations
 ```
 
-Expected behavior:
+Expected processing:
 
 ```text
 existing results
-        +
+      +
 new observations
-        ↓
+      ↓
 updated persistent results
-        ↓
-updated derived analysis
-        ↓
+      ↓
+updated temporal analysis
+      ↓
 updated plots
-        ↓
+      ↓
 updated website build
 ```
 
-The test should verify that historical observations remain unchanged and that only the intended new data are incorporated.
+The test should verify that:
+
+* existing historical observations remain unchanged,
+* new observations are incorporated,
+* duplicate observations are not introduced,
+* derived outputs are updated consistently,
+* the generated website reflects the updated results.
 
 ---
 
@@ -451,26 +479,18 @@ The test should verify that historical observations remain unchanged and that on
 
 The no-new-data case is an important operational scenario.
 
-Expected behavior:
+The current update pipeline determines whether observations newer than the latest processed date are available.
 
-```text
-existing dataset
-      ↓
-update
-      ↓
-no new observations
-```
+When no new observations are available, the update pipeline currently terminates without processing new downstream scientific products.
 
-The system should recognize that no update is necessary.
+The corresponding test should therefore verify the **actual v0.1 no-change behavior**, including:
 
-The test should verify the defined no-change behavior for:
+* recognition that no new observations are available,
+* preservation of existing persistent scientific results,
+* absence of unintended duplicate processing,
+* absence of unintended modifications to existing derived outputs.
 
-* persistent scientific results,
-* generated analysis outputs,
-* plots,
-* website artifacts.
-
-This test is particularly important because the update pipeline and CI build process currently have separate responsibilities that need to remain consistent.
+If the desired future behavior changes so that plots or the website are rebuilt even without new observations, that should be treated as a separate implementation change rather than silently incorporated into the current test documentation.
 
 ---
 
@@ -480,17 +500,17 @@ This test is particularly important because the update pipeline and CI build pro
 
 Regression tests ensure that previously verified behavior remains correct after future changes.
 
-Regression tests are not restricted to a single test level.
+Regression testing is cross-cutting and may be implemented at any of the other test levels.
 
 ---
 
 ### 6.2 Scientific Regression Cases
 
-The following areas should receive permanent regression coverage as relevant defects or edge cases are identified:
+Permanent regression tests should be added for relevant defects and important edge cases, including:
 
 * threshold crossing,
 * persistence,
-* break-up/freeze-up seasonal boundaries,
+* break-up and freeze-up boundaries,
 * late freeze-up,
 * year transitions,
 * leap years,
@@ -499,6 +519,8 @@ The following areas should receive permanent regression coverage as relevant def
 * climatology boundaries,
 * anomaly calculation,
 * absolute versus relative coverage.
+
+A regression test should contain a meaningful assertion about the behavior that is being protected.
 
 ---
 
@@ -520,43 +542,41 @@ Pipeline regression tests should protect against:
 
 * incorrect stage ordering,
 * skipped processing stages,
-* failed cleanup,
+* incorrect cleanup,
 * incorrect build paths,
 * missing website resources,
-* accidental modification of persistent data.
+* unintended modification of persistent scientific data.
 
 ---
 
 ## 7. Test Fixtures
 
-Test fixtures shall be designed according to the behavior being tested.
+Fixtures should be selected according to the behavior being tested.
 
-The project should distinguish between:
+### Unit Fixtures
 
-### Unit fixtures
+Small in-memory values or minimal deterministic datasets.
 
-Small in-memory values or minimal datasets.
+### Component Fixtures
 
-### Component fixtures
-
-Small files representing realistic component inputs.
-
-Examples:
+Small files representing realistic component inputs, such as:
 
 * synthetic GeoTIFFs,
 * region definitions,
 * CSV files,
 * JSON files.
 
-### Integration fixtures
+### Integration Fixtures
 
-Small collections of files representing a complete processing state.
+Small collections of files representing a complete controlled processing state.
 
-### Regression fixtures
+### Regression Fixtures
 
-Known datasets representing previously verified behavior or known defects.
+Known datasets representing previously verified behavior or previously detected defects.
 
-Fixtures shall be version-controlled where practical and should remain small enough to keep test execution efficient.
+Fixtures should remain small and deterministic wherever possible.
+
+Version-controlled fixtures should be preferred when they are stable and sufficiently small.
 
 ---
 
@@ -564,9 +584,9 @@ Fixtures shall be version-controlled where practical and should remain small eno
 
 Automated tests shall not modify production project data.
 
-Tests requiring filesystem operations shall use temporary directories or explicitly isolated test directories.
+Tests involving filesystem operations shall use temporary directories or explicitly isolated test directories.
 
-In particular, normal test execution shall not modify:
+Normal test execution should not modify:
 
 ```text
 data/
@@ -575,15 +595,15 @@ build/
 logs/
 ```
 
-unless a test explicitly creates an isolated equivalent of these structures in a temporary location.
+unless a test deliberately creates an isolated equivalent of these directories in a temporary location.
 
-Tests of cleanup operations shall verify that files outside the intended temporary scope remain untouched.
+Cleanup behavior should itself be tested to ensure that only files inside the intended temporary scope are removed.
 
 ---
 
 ## 9. External Dependencies
 
-The following external dependencies shall normally be isolated from the regular test suite:
+The following external dependencies should normally be isolated from the regular test suite:
 
 * NSIDC remote archives,
 * network access,
@@ -591,17 +611,17 @@ The following external dependencies shall normally be isolated from the regular 
 * GitHub Pages,
 * external web services.
 
-Mocking or controlled fixtures should be used where the behavior of an external service needs to be tested.
+Mocking and controlled fixtures should be used when external interactions need to be represented in ordinary automated tests.
 
-Dedicated integration tests may test external interactions separately.
+Dedicated integration tests may exercise actual external services separately where this provides meaningful additional coverage.
+
+Such tests should not be required for every normal test-suite execution.
 
 ---
 
 ## 10. Test Level Selection Guidelines
 
-Not every behavior requires all test levels.
-
-The following general rules apply:
+Not every behavior requires tests at every level.
 
 | Situation                       | Preferred level                      |
 | ------------------------------- | ------------------------------------ |
@@ -611,19 +631,21 @@ The following general rules apply:
 | Interaction between components  | Integration                          |
 | Complete processing workflow    | E2E                                  |
 | Previously fixed defect         | Regression at lowest suitable level  |
-| External service interaction    | Component/Integration with isolation |
-| Output schema validation        | Component/Integration                |
+| External-service interaction    | Component/Integration with isolation |
+| Output-schema validation        | Component/Integration                |
 | Complete website build          | Integration/E2E                      |
 
 Tests should generally be implemented at the **lowest level that can adequately verify the required behavior**.
 
-Higher-level tests should be added where component interaction itself is part of the requirement.
+Higher-level tests should be added when the interaction itself is part of the requirement.
 
 ---
 
 ## 11. Relationship to Project Components
 
-The current implementation can be mapped to the test levels as follows:
+The following table describes the **intended testing responsibility** of the current project components.
+
+It is not an inventory of tests that already exist.
 
 | Component               |   Unit  | Component | Integration |      E2E     |
 | ----------------------- | :-----: | :-------: | :---------: | :----------: |
@@ -642,19 +664,17 @@ The current implementation can be mapped to the test levels as follows:
 | `build_pages.py`        | limited |     ✓     |      ✓      |       ✓      |
 | GitHub Pages deployment |    –    |     –     |   limited   | dedicated CI |
 
-`*` End-to-end coverage should normally use controlled or mocked external input rather than the live external service.
+`*` E2E tests should use controlled or mocked external input rather than depend on the live external service.
 
-This table describes the intended testing responsibility. It does not imply that all listed tests already exist.
+The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
 
 ---
 
 ## 12. Test Priority
 
-Not all components have the same testing priority.
+Initial testing effort should focus on functionality where implementation errors can directly affect scientific results or persistent project data.
 
-The initial focus should be on functionality where an implementation error can directly change scientific results or persistent data.
-
-Priority areas are therefore:
+The recommended v0.1 priority is:
 
 1. `RegionAnalyzer`
 2. `TimeSeriesAnalyzer`
@@ -665,7 +685,9 @@ Priority areas are therefore:
 7. visualization and website build
 8. downloader and external-service integration
 
-This prioritization does not replace the general testing strategy. It defines the recommended order for establishing the initial test suite.
+This priority defines the recommended order for expanding the automated test suite.
+
+It does not imply that lower-priority components are unimportant.
 
 ---
 
@@ -673,15 +695,15 @@ This prioritization does not replace the general testing strategy. It defines th
 
 The boundaries between test levels should remain clear.
 
-A unit test should not become a disguised integration test simply because it is convenient to construct a large project object graph.
+A unit test should not become a disguised integration test simply because constructing a larger project object graph appears convenient.
 
-Likewise, an E2E test should not attempt to verify every mathematical intermediate value individually.
+Likewise, an E2E test should not attempt to verify every individual mathematical intermediate value.
 
 The intended separation is:
 
 ```text
 Unit
-  → Is this individual behavior mathematically/logically correct?
+  → Is this individual behavior mathematically or logically correct?
 
 Component
   → Does this complete component behave correctly?
@@ -690,7 +712,7 @@ Integration
   → Do the components exchange and process data correctly?
 
 E2E
-  → Does the complete workflow produce the intended result?
+  → Does the complete workflow produce the intended artifacts and results?
 
 Regression
   → Does previously verified behavior remain correct?

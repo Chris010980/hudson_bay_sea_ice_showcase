@@ -1,8 +1,8 @@
-# Test Strategy
+# Test Strategy — v0.1
 
 ## 1. Purpose
 
-This document defines the testing strategy for the Hudson Bay Sea Ice Analysis project.
+This document defines the testing strategy for the `hudson_bay_sea_ice` project.
 
 The purpose of testing is to provide evidence that the software:
 
@@ -11,11 +11,13 @@ The purpose of testing is to provide evidence that the software:
 * behaves reliably under expected and exceptional conditions,
 * produces structurally valid outputs,
 * remains maintainable during further development,
-* and executes the complete processing pipeline consistently.
+* and executes the defined processing workflows consistently.
 
 Testing is considered an integral part of the software development process rather than a final verification step.
 
-The strategy is derived from the project's functional and non-functional requirements, with particular emphasis on scientific correctness, data integrity, reliability, maintainability and reproducibility.
+The strategy is derived from the project's functional and non-functional requirements, with particular emphasis on scientific correctness, data integrity, reliability, maintainability, and reproducibility.
+
+The v0.1 strategy defines the intended testing model. It does not imply that every described test or quality gate is already implemented.
 
 ---
 
@@ -23,7 +25,7 @@ The strategy is derived from the project's functional and non-functional require
 
 The test strategy has five primary objectives.
 
-### 2.1 Scientific correctness
+### 2.1 Scientific Correctness
 
 Tests shall provide evidence that scientific calculations produce the expected results for defined input conditions.
 
@@ -36,18 +38,19 @@ This includes, among other aspects:
 * climatological statistics,
 * anomalies,
 * annual statistics,
-* trend calculations,
 * threshold crossings,
 * break-up and freeze-up events,
 * threshold durations.
 
-Scientific tests shall use explicitly defined expected results wherever practical.
+Scientific tests should use explicitly defined expected results wherever practical.
+
+For numerical calculations, expected values should be derived independently from the implementation under test rather than simply reproducing the same calculation in the test.
 
 ---
 
-### 2.2 Data integrity
+### 2.2 Data Integrity
 
-Tests shall verify that processing does not unintentionally corrupt, duplicate or remove persistent results.
+Tests shall verify that processing does not unintentionally corrupt, duplicate, or remove persistent results.
 
 Particular attention shall be given to:
 
@@ -59,13 +62,15 @@ Particular attention shall be given to:
 * handling of missing observations,
 * consistency between related output files.
 
+Persistent analysis results are an important project artifact and therefore require explicit integrity checks in addition to functional tests.
+
 ---
 
-### 2.3 Operational reliability
+### 2.3 Operational Reliability
 
 Tests shall verify the behavior of the pipeline under normal as well as exceptional conditions.
 
-Examples include:
+Relevant conditions include:
 
 * no new data available,
 * new data available,
@@ -78,17 +83,17 @@ Examples include:
 * invalid command-line arguments,
 * output-generation failures.
 
-The goal is not merely to test successful execution, but also to verify defined failure behavior.
+The goal is not merely to verify successful execution, but also to verify defined failure behavior.
 
 ---
 
-### 2.4 Regression protection
+### 2.4 Regression Protection
 
 Existing, verified behavior shall be protected against unintended changes.
 
 Whenever a defect is identified and fixed, a regression test should be added where practical.
 
-Scientific edge cases that have previously caused defects shall become permanent regression cases.
+Scientific edge cases that have previously caused defects should become permanent regression cases.
 
 This is particularly important for:
 
@@ -121,43 +126,41 @@ The test suite itself shall be maintained as part of the project.
 
 ## 3. Testing Principles
 
-The following principles apply to the project.
-
-### 3.1 Test behavior, not implementation details
+### 3.1 Test Behavior, Not Implementation Details
 
 Tests should primarily verify externally observable behavior and defined interfaces.
 
 Implementation details should only be tested directly where they represent an important and independently meaningful unit of behavior.
 
-This is intended to prevent tests from unnecessarily constraining future refactoring.
+This prevents tests from unnecessarily constraining future refactoring.
 
 ---
 
-### 3.2 Scientific calculations require explicit expected results
+### 3.2 Scientific Calculations Require Explicit Expected Results
 
 For scientifically relevant calculations, tests should preferably use small, controlled input datasets for which the expected result can be calculated independently.
 
-For example, a test of relative sea-ice coverage should not merely verify that a result is produced.
-
-It should verify that:
+For example:
 
 ```text
 known input
-    →
+    ↓
 defined calculation
-    →
+    ↓
 known expected result
 ```
+
+A scientific test should therefore not merely verify that a result is produced. It should verify that the result is correct for the defined input.
 
 This principle applies particularly to the core analysis algorithms.
 
 ---
 
-### 3.3 Edge cases are first-class test cases
+### 3.3 Edge Cases Are First-Class Test Cases
 
 Normal input alone is insufficient for this project.
 
-Tests shall explicitly cover relevant boundaries and exceptional conditions.
+Tests should explicitly cover relevant boundaries and exceptional conditions.
 
 Examples include:
 
@@ -166,7 +169,7 @@ Examples include:
 * values exactly at thresholds,
 * values immediately below and above thresholds,
 * missing days,
-* maximum allowed interpolation gap,
+* the maximum allowed interpolation gap,
 * gaps exceeding the interpolation limit,
 * leap years,
 * year boundaries,
@@ -178,9 +181,9 @@ Examples include:
 
 ---
 
-### 3.4 Tests should be deterministic
+### 3.4 Tests Should Be Deterministic
 
-Automated tests should produce the same result when executed repeatedly with the same input and environment.
+Automated tests should produce the same result when executed repeatedly with the same input and supported environment.
 
 Tests should avoid unnecessary dependence on:
 
@@ -194,17 +197,22 @@ External data access should therefore normally be isolated from tests of the sci
 
 ---
 
-### 3.5 Prefer small controlled test data
+### 3.5 Prefer Small Controlled Test Data
 
 Tests should use the smallest dataset that adequately verifies the behavior being tested.
 
-For scientific calculations this may mean synthetic raster data, small tabular datasets or controlled time series.
+For scientific calculations this may mean:
+
+* synthetic raster arrays,
+* small tabular datasets,
+* controlled daily time series,
+* reduced real-world fixtures.
 
 Large real-world datasets should only be used where their size or structure is itself part of what needs to be tested.
 
 ---
 
-### 3.6 Separate scientific tests from infrastructure tests
+### 3.6 Separate Scientific Tests from Infrastructure Tests
 
 A test verifying threshold-crossing mathematics should not require:
 
@@ -222,11 +230,11 @@ This separation keeps failures diagnosable and the test suite efficient.
 
 ## 4. Test Levels
 
-The project shall use several complementary test levels.
+The project uses several complementary test levels.
 
 The detailed allocation of components to test levels is defined in `test-levels.md`.
 
-The planned levels are:
+The levels are:
 
 1. Unit tests
 2. Component tests
@@ -236,8 +244,6 @@ The planned levels are:
 
 These levels are complementary rather than mutually exclusive.
 
----
-
 ### 4.1 Unit Tests
 
 Unit tests verify small, isolated units of functionality.
@@ -246,15 +252,13 @@ Typical candidates include:
 
 * mathematical calculations,
 * date handling,
-* threshold crossing logic,
+* threshold-crossing logic,
 * interpolation behavior,
 * statistical calculations,
 * data transformation helpers,
 * path and configuration helpers.
 
 Unit tests should normally be fast and independent of external resources.
-
----
 
 ### 4.2 Component Tests
 
@@ -269,9 +273,7 @@ Examples include:
 * downloader behavior,
 * visualization components.
 
-Component tests may use controlled files or fixtures where these are part of the component interface.
-
----
+Component tests may use controlled files or fixtures where these form part of the component interface.
 
 ### 4.3 Integration Tests
 
@@ -281,36 +283,32 @@ Examples include:
 
 ```text
 RegionAnalyzer
-    ↓
+      ↓
 ResultsManager
-    ↓
+      ↓
 TimeSeriesAnalyzer
 ```
 
-or:
+and:
 
 ```text
 docs + output
       ↓
- build_pages
+build_pages
       ↓
-    build/
+build/
 ```
 
 Integration tests should verify that independently tested components exchange data in the expected format and semantics.
-
----
 
 ### 4.4 End-to-End Tests
 
 End-to-end tests verify complete user-relevant workflows.
 
-A representative example is:
+A representative controlled workflow is:
 
 ```text
 input data
-    ↓
-download
     ↓
 processing
     ↓
@@ -323,13 +321,11 @@ plots
 website build
 ```
 
+Where acquisition behavior itself is under test, the workflow may additionally include the downloader.
+
 End-to-end tests should be used selectively because they are more expensive and more sensitive to environmental conditions than lower-level tests.
 
-The complete production NSIDC workflow does not need to be executed against the live service for every test run.
-
-Controlled test data should be preferred for automated E2E testing.
-
----
+The complete production NSIDC workflow does not need to be executed against the live service for every test run. Controlled test data should be preferred for automated E2E testing.
 
 ### 4.5 Regression Tests
 
@@ -343,7 +339,7 @@ A regression test should normally be added when:
 * a previously supported input condition changes,
 * a pipeline failure is fixed.
 
-Regression tests shall remain part of the permanent automated test suite unless there is a documented reason to remove them.
+Regression tests should remain part of the permanent automated test suite unless there is a documented reason to remove them.
 
 ---
 
@@ -351,13 +347,13 @@ Regression tests shall remain part of the permanent automated test suite unless 
 
 Testing scientific functionality requires controlled and traceable test data.
 
-The project shall distinguish between:
+The project distinguishes between three types of test data.
 
-### 5.1 Synthetic test data
+### 5.1 Synthetic Test Data
 
 Artificial datasets created specifically to test defined behavior.
 
-Examples:
+Examples include:
 
 * small raster arrays,
 * known concentration values,
@@ -367,9 +363,7 @@ Examples:
 
 Synthetic data should be preferred for deterministic unit and component tests.
 
----
-
-### 5.2 Reduced real-world fixtures
+### 5.2 Reduced Real-World Fixtures
 
 Small extracts of real NSIDC data may be used where real product characteristics are important to the test.
 
@@ -380,21 +374,19 @@ Examples include:
 * projection characteristics,
 * realistic region geometry.
 
-Such fixtures should be kept small and documented.
+Such fixtures should be kept small and their origin and purpose documented.
 
----
-
-### 5.3 Reference test cases
+### 5.3 Reference Test Cases
 
 Known scientific cases may be retained as regression fixtures when they represent important real-world behavior or previously identified edge cases.
 
-The origin and purpose of such fixtures shall be documented.
+The origin, expected behavior, and purpose of such fixtures should be documented.
 
 ---
 
 ## 6. External Services and Data
 
-Automated tests shall not normally depend on live external services.
+Automated tests should not normally depend on live external services.
 
 In particular, regular test execution should not require access to:
 
@@ -403,15 +395,15 @@ In particular, regular test execution should not require access to:
 * GitHub Pages,
 * external web services.
 
-External data acquisition shall be tested separately using controlled mocks, fixtures or dedicated integration tests.
+External data acquisition should be tested separately using controlled mocks, fixtures, or dedicated integration tests.
 
-Live external-service tests may be used selectively, but they shall not be required for the normal fast test suite.
+Live external-service tests may be used selectively, but they should not be required for the normal fast test suite.
 
 ---
 
 ## 7. Test Isolation
 
-Tests shall avoid modifying persistent project data.
+Tests should avoid modifying persistent project data.
 
 Test execution should use:
 
@@ -420,21 +412,21 @@ Test execution should use:
 * dedicated test output paths,
 * temporary configuration where necessary.
 
-Tests shall not modify the project's production `output/`, `data/` or `build/` directories unless explicitly designed as an isolated integration test.
+Tests should not modify the project's production `output/`, `data/`, or `build/` directories unless explicitly designed as an isolated integration test.
 
-Tests involving destructive operations shall verify that the operation is restricted to its intended scope.
+Tests involving destructive operations should verify that the operation is restricted to its intended scope.
 
 ---
 
 ## 8. Test Coverage Strategy
 
-The project shall use code coverage as one quantitative indicator of test completeness.
+The project uses code coverage as one quantitative indicator of test completeness.
 
-An initial project-wide minimum line coverage target of **70 %** shall be established.
+An initial project-wide minimum line coverage target of **70%** is defined.
 
-However, global coverage alone shall not be considered sufficient.
+Global coverage alone shall not be considered sufficient.
 
-Particular attention shall be given to scientifically and operationally critical components, especially:
+Particular attention should be given to scientifically and operationally critical components, especially:
 
 * `RegionAnalyzer`,
 * `TimeSeriesAnalyzer`,
@@ -442,7 +434,9 @@ Particular attention shall be given to scientifically and operationally critical
 * `ReferenceBuilder`,
 * incremental update processing.
 
-The detailed coverage targets and measurement procedure are defined in `coverage.md`.
+The detailed coverage policy and measurement procedure are defined in `test-coverage.md`.
+
+The 70% value is an initial project target. It should not be interpreted as evidence that the current implementation already achieves this level.
 
 ---
 
@@ -450,7 +444,7 @@ The detailed coverage targets and measurement procedure are defined in `coverage
 
 Testing is complemented by static quality checks.
 
-The quality process shall include, as appropriate:
+The quality process may include:
 
 * formatting,
 * linting,
@@ -465,6 +459,8 @@ Conversely, runtime tests do not replace static analysis.
 
 Both contribute to the overall software quality process.
 
+The specific tools and mandatory checks are established progressively as part of the project's development tooling.
+
 ---
 
 ## 10. Test Execution Strategy
@@ -473,7 +469,7 @@ Tests shall be executable locally and in CI.
 
 The intended execution strategy is:
 
-### Fast feedback
+### Fast Feedback
 
 During development:
 
@@ -487,7 +483,7 @@ static checks
 
 should provide rapid feedback.
 
-### CI validation
+### CI Validation
 
 The CI pipeline should execute:
 
@@ -501,19 +497,19 @@ coverage measurement
 output/build validation where applicable
 ```
 
-### Extended validation
+### Extended Validation
 
 More expensive integration or end-to-end tests may be executed separately where appropriate.
 
-The exact CI quality gates will be defined after the test structure and tooling have been established.
+The exact CI quality gates are defined in `ci-quality-gates.md`.
 
 ---
 
 ## 11. Test Failure Handling
 
-A failed automated test shall cause the corresponding quality gate to fail.
+A failed mandatory automated test shall cause the corresponding quality gate to fail.
 
-Test failures shall provide sufficient information to identify:
+Test failures should provide sufficient information to identify:
 
 * the affected component,
 * the input or fixture,
@@ -523,7 +519,7 @@ Test failures shall provide sufficient information to identify:
 
 Scientific test failures should make the expected scientific behavior explicit wherever possible.
 
-A failing test shall not simply be weakened or removed to accommodate an implementation change without first determining whether the underlying requirement or expected behavior has changed.
+A failing test should not simply be weakened or removed to accommodate an implementation change without first determining whether the underlying requirement or expected behavior has changed.
 
 ---
 
@@ -551,7 +547,7 @@ CI
 Regression protection
 ```
 
-Changes affecting scientific methodology shall additionally require corresponding documentation updates and appropriate scientific test cases.
+Changes affecting scientific methodology should additionally require corresponding documentation updates and appropriate scientific test cases.
 
 ---
 
@@ -569,7 +565,7 @@ For relevant functionality, test completeness should consider:
 6. output structure,
 7. regression protection.
 
-For scientifically relevant functionality, the correctness of the numerical result is the primary concern.
+For scientifically relevant functionality, correctness of the numerical result is the primary concern.
 
 ---
 
@@ -577,26 +573,24 @@ For scientifically relevant functionality, the correctness of the numerical resu
 
 The test strategy provides the basis for verifying the project's functional and non-functional requirements.
 
-Particular relationships include:
+| Requirement                   | Primary test concern                           |
+| ----------------------------- | ---------------------------------------------- |
+| FR-01 Data acquisition        | Downloader / component / integration tests     |
+| FR-02 Temporary data          | Component / integration tests                  |
+| FR-03 Reference data          | `ReferenceBuilder` tests                       |
+| FR-04 Daily regional analysis | Scientific unit / component tests              |
+| FR-05 Persistent results      | `ResultsManager` tests                         |
+| FR-06 Time-series processing  | Scientific unit / component tests              |
+| FR-07 Climatology             | Scientific unit / component tests              |
+| FR-08 Anomalies               | Scientific unit / component tests              |
+| FR-09 Annual statistics       | Scientific unit / component tests              |
+| FR-10 Threshold events        | Scientific unit / component / regression tests |
+| FR-11 Visualization           | Component / integration tests                  |
+| FR-12 Pipeline                | Integration / E2E tests                        |
+| FR-13 Website                 | Integration / E2E / build validation           |
+| FR-14 CLI                     | Component / integration tests                  |
 
-| Requirement                   | Primary test concern                       |
-| ----------------------------- | ------------------------------------------ |
-| FR-01 Data acquisition        | Downloader/component/integration tests     |
-| FR-02 Temporary data          | Component/integration tests                |
-| FR-03 Reference data          | ReferenceBuilder tests                     |
-| FR-04 Daily regional analysis | Scientific unit/component tests            |
-| FR-05 Persistent results      | ResultsManager tests                       |
-| FR-06 Time-series processing  | Scientific unit/component tests            |
-| FR-07 Climatology             | Scientific unit/component tests            |
-| FR-08 Anomalies               | Scientific unit/component tests            |
-| FR-09 Annual statistics       | Scientific unit/component tests            |
-| FR-10 Threshold events        | Scientific unit/component/regression tests |
-| FR-11 Visualization           | Component/integration tests                |
-| FR-12 Pipeline                | Integration/E2E tests                      |
-| FR-13 Website                 | Integration/E2E/build validation           |
-| FR-14 CLI                     | Component/integration tests                |
-
-The non-functional requirements are addressed primarily through the combination of automated tests, static analysis, coverage measurement, output validation and CI quality gates.
+The non-functional requirements are addressed primarily through the combination of automated tests, static analysis, coverage measurement, output validation, and CI quality gates.
 
 ---
 
@@ -626,4 +620,4 @@ The testing strategy may be extended to cover future functionality such as:
 * alternative scientific analysis methods,
 * multi-platform execution.
 
-Such extensions shall introduce corresponding test cases and, where appropriate, new test levels or quality gates.
+Such extensions should introduce corresponding test cases and, where appropriate, new test levels or quality gates.

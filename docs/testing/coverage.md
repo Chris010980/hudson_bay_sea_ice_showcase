@@ -2,27 +2,29 @@
 
 ## 1. Purpose
 
-This document defines the code coverage strategy for the Hudson Bay Sea Ice Analysis project.
+This document defines the code coverage strategy for the `hudson_bay_sea_ice` project.
 
 Code coverage is used as a quantitative indicator of how much of the implemented software is exercised by automated tests.
 
-Coverage is an aid for identifying insufficiently tested code. It is not considered a direct measure of software quality or scientific correctness.
+Coverage is primarily a diagnostic and regression-control metric. It is not considered a direct measure of software quality, scientific correctness or test effectiveness.
 
-The coverage strategy complements the testing strategy defined in `test-strategy.md` and the test-level definitions in `test-levels.md`.
+The coverage strategy complements the testing principles defined in `test-strategy.md` and the test-level definitions in `test-levels.md`.
+
+The requirements described in this document define the **v0.1 coverage strategy and target state**. They do not imply that all described coverage mechanisms are already implemented.
 
 ---
 
 ## 2. Coverage Objectives
 
-The primary objectives are:
+The primary objectives of code coverage measurement are to:
 
 * identify relevant untested code,
-* monitor test-suite growth,
-* prevent significant regression in test coverage,
-* identify critical components that require additional tests,
-* provide a measurable quality criterion for CI.
+* monitor growth of the automated test suite,
+* detect significant reductions in test coverage,
+* identify critical components requiring additional tests,
+* provide a measurable quality indicator for CI.
 
-Coverage shall be considered together with:
+Coverage shall always be considered together with:
 
 * test quality,
 * scientific correctness,
@@ -31,79 +33,79 @@ Coverage shall be considered together with:
 * regression coverage,
 * output validation.
 
-A high coverage percentage shall not be considered sufficient evidence of correct scientific behavior.
+A high coverage percentage shall not be considered sufficient evidence that the implemented scientific algorithms are correct.
 
 ---
 
 ## 3. Coverage Metrics
 
-The project shall initially focus on the following coverage metrics.
-
-### 3.1 Line coverage
+### 3.1 Line Coverage
 
 Line coverage measures the proportion of executable source lines that are executed by the automated test suite.
 
-Line coverage shall be the primary project-wide coverage metric.
+Line coverage is the primary project-wide coverage metric for v0.1.
+
+It provides a simple and reproducible measure for monitoring whether relevant parts of the implementation are exercised by tests.
 
 ---
 
-### 3.2 Branch coverage
+### 3.2 Branch Coverage
 
-Branch coverage measures whether different logical branches of the implementation are exercised.
+Branch coverage measures whether alternative logical paths through the implementation are exercised.
 
-Branch coverage is particularly relevant for code containing:
+It is particularly relevant for code containing:
 
 * conditional processing,
-* error handling,
+* validation and error handling,
 * threshold logic,
 * date-dependent behavior,
 * optional configuration,
 * alternative processing paths.
 
-Branch coverage should be monitored in addition to line coverage where practical.
+Branch coverage is considered a complementary diagnostic metric in v0.1. It is not initially defined as a blocking project-wide CI threshold.
 
 ---
 
-### 3.3 Component-level coverage
+### 3.3 Component-Level Coverage
 
-Coverage shall also be evaluated for critical scientific and data-processing components.
+Coverage should also be evaluated for components whose behavior can directly affect scientific results or persistent project data.
 
-Particular attention shall be given to:
+Particular attention should be given to:
 
 * `RegionAnalyzer`,
 * `TimeSeriesAnalyzer`,
 * `ResultsManager`,
 * `ReferenceBuilder`,
-* incremental update processing.
+* `update_pipeline.py`.
 
-A high project-wide coverage value shall not compensate for very low coverage of a critical scientific component.
+A high project-wide coverage value shall not compensate for insufficient testing of a critical scientific component.
 
 ---
 
 ## 4. Initial Coverage Target
 
-The initial project-wide target shall be:
+The initial project-wide target for v0.1 is:
 
-> **At least 70 % line coverage.**
+> **At least 70 % line coverage**
 
-This value represents the initial minimum quality gate and is intended to establish a meaningful baseline rather than a final target.
+The 70 % value represents an initial minimum target rather than a final project-wide coverage objective.
 
-The target shall be reviewed after the first substantial test implementation cycle.
+It is intended to establish a measurable baseline after the automated test suite has been expanded and coverage measurement has been integrated.
 
-Increasing the threshold shall be considered only after:
+The target should be reviewed after the first substantial testing cycle.
 
-* the initial test structure is established,
+Increasing the threshold should only be considered after:
+
+* the basic test structure is established,
 * critical scientific components have meaningful coverage,
 * integration tests are available,
-* the project has sufficient experience with the coverage metric.
+* coverage results have been evaluated over several development cycles.
 
 ---
 
 ## 5. Critical Component Coverage
 
-The project shall explicitly monitor coverage of critical components independently of the project-wide value.
-
-The following components are considered particularly important because errors can directly affect scientific results or persistent data:
+The project shall monitor coverage of critical components independently of the project-wide value.
 
 | Component            | Coverage priority |
 | -------------------- | ----------------- |
@@ -117,9 +119,9 @@ The following components are considered particularly important because errors ca
 | `SeaIcePlotter`      | Medium            |
 | `build_pages.py`     | Medium            |
 
-The exact component-specific thresholds shall be established after the initial test suite has been implemented and measured.
+The exact component-specific minimum thresholds are not fixed in v0.1.
 
-Until then, component coverage shall primarily be used as a diagnostic metric rather than as an independent blocking CI threshold.
+Until sufficient baseline data are available, component coverage is primarily a diagnostic metric and is not an independent blocking CI threshold.
 
 ---
 
@@ -128,18 +130,20 @@ Until then, component coverage shall primarily be used as a diagnostic metric ra
 Code coverage does not establish:
 
 * scientific correctness,
-* correctness of expected numerical values,
+* correctness of numerical results,
 * correctness of test assertions,
 * completeness of edge-case testing,
-* quality of test data,
+* quality or representativeness of test data,
 * correctness of external data,
 * performance,
 * maintainability,
 * reproducibility.
 
-For example, a test that executes a threshold-crossing function without checking the resulting date provides coverage but little evidence of scientific correctness.
+For example, a test may execute a threshold-crossing function while failing to verify whether the calculated event date is scientifically correct.
 
-Tests shall therefore contain meaningful assertions.
+Such a test contributes to coverage but provides limited evidence of behavioral correctness.
+
+Tests shall therefore contain meaningful assertions that verify expected behavior or expected results.
 
 ---
 
@@ -147,34 +151,35 @@ Tests shall therefore contain meaningful assertions.
 
 Scientific components require more than high execution coverage.
 
-For scientifically relevant functionality, coverage shall be combined with explicit expected-result tests.
+Coverage shall therefore be combined with explicit expected-result tests.
 
-For example:
+A scientifically relevant test should, where practical, establish a controlled relationship of the form:
 
 ```text
-Input data
-    ↓
+controlled input
+       ↓
 scientific calculation
-    ↓
-expected numerical result
+       ↓
+expected result
 ```
 
-should be tested directly.
+Particular attention should be given to:
 
-Particular attention shall be given to:
-
-* threshold boundaries,
+* concentration thresholds,
+* absolute versus relative coverage,
+* missing-data handling,
 * interpolation,
-* persistence,
+* persistence requirements,
+* threshold crossing,
 * seasonal boundaries,
 * leap years,
-* missing data,
-* absolute versus relative coverage,
 * climatology,
 * anomalies,
 * annual statistics.
 
-A scientific component may therefore require additional tests even when its code coverage already exceeds the project-wide target.
+For numerical algorithms, tests should preferably use small deterministic datasets for which the expected result can be calculated independently.
+
+A component may therefore require additional tests even when its measured code coverage already exceeds the project-wide target.
 
 ---
 
@@ -182,54 +187,60 @@ A scientific component may therefore require additional tests even when its code
 
 Regression tests contribute to the overall coverage measurement.
 
-When a defect is fixed, the corresponding regression test should ideally execute the previously defective code path.
+When a defect is corrected, a corresponding regression test should, where practical, execute the previously defective code path and verify the corrected behavior.
 
-Coverage reports can therefore help identify whether important historical defect paths remain exercised.
+Coverage reports can therefore help determine whether important historical defect paths remain exercised.
 
-Removing a regression test solely because the affected code is no longer covered shall require consideration of whether the underlying behavior is still relevant.
+Regression tests should not be removed merely because their corresponding code path currently has high coverage. Their purpose is to protect previously verified behavior.
 
 ---
 
 ## 9. Excluded Code
 
-Some code may reasonably be excluded from coverage requirements.
-
-Potential examples include:
-
-* defensive branches that cannot reasonably be exercised,
-* development-only code,
-* explicitly unreachable compatibility code,
-* `if __name__ == "__main__"` entry-point guards where appropriate.
-
 Coverage exclusions shall be used sparingly.
 
-Scientific processing logic, error handling and operational paths shall not be excluded merely to increase the reported coverage percentage.
+Potential exclusions include:
 
-Any non-obvious exclusion should be documented.
+* explicitly unreachable compatibility code,
+* development-only code,
+* defensive paths that cannot reasonably be exercised,
+* appropriate `if __name__ == "__main__"` entry-point guards.
+
+Scientific processing logic, validation logic and operational pipeline paths shall not be excluded merely to increase the reported coverage percentage.
+
+Non-obvious exclusions should be documented in the coverage configuration or project documentation.
 
 ---
 
 ## 10. Coverage Measurement
 
-Coverage shall be generated automatically using a dedicated coverage tool.
+Coverage should be generated automatically using `coverage.py` together with `pytest`.
 
-The intended tool is `coverage.py`, integrated with `pytest`.
+The intended coverage workflow is:
 
-The coverage process should produce:
+```text
+pytest
+   ↓
+coverage measurement
+   ↓
+coverage report
+```
 
-* terminal summary,
-* machine-readable result for CI,
-* HTML report for detailed local analysis.
+The coverage process should provide:
 
-The exact command-line configuration shall be defined as part of the project's development and CI tooling.
+* a terminal summary for local development,
+* a machine-readable result for CI,
+* an HTML report for detailed investigation.
+
+The exact command-line configuration and CI integration are implementation details of the project tooling and may evolve independently of this methodological document.
 
 ---
 
 ## 11. CI Quality Gate
 
-The CI pipeline shall enforce the initial project-wide minimum line coverage target.
+The project intends to establish a project-wide minimum line-coverage quality gate of 70 %.
 
-The intended behavior is:
+The intended future CI behavior is:
 
 ```text
 tests
@@ -243,67 +254,75 @@ coverage >= 70 %
  pass   fail
 ```
 
-A reduction below the defined minimum shall cause the corresponding CI quality gate to fail.
+A measured coverage below the configured minimum should cause the corresponding CI quality gate to fail.
 
-Coverage should therefore be treated as a regression-control mechanism as well as a development metric.
+This mechanism is intended as a regression-control measure.
+
+For v0.1, this requirement represents the **target CI behavior** and should not be interpreted as evidence that the coverage gate is already fully implemented.
 
 ---
 
 ## 12. Coverage Trends
 
-Coverage shall be monitored over time.
+Coverage should be monitored over time.
 
-The objective is not to maximize the percentage indefinitely, but to prevent deterioration and ensure that newly introduced functionality is appropriately tested.
+The objective is not to maximize the percentage indefinitely, but to:
 
-A lower coverage value may be acceptable temporarily when justified by substantial new functionality, provided that the corresponding tests are added as part of the same development work.
+* prevent significant deterioration,
+* ensure that new functionality is appropriately tested,
+* identify components that remain insufficiently tested.
 
-The project should avoid increasing coverage artificially through tests that merely execute code without verifying meaningful behavior.
+Temporary reductions may be acceptable when substantial new functionality is introduced, provided that the corresponding tests are added as part of the same development work.
+
+Artificially increasing coverage through tests that merely execute code without verifying meaningful behavior should be avoided.
 
 ---
 
 ## 13. Relationship to Test Levels
 
-Coverage applies across all runtime test levels.
+Coverage is collected across the complete automated test suite.
 
-| Test level  | Contribution to coverage               |
-| ----------- | -------------------------------------- |
-| Unit        | Primary source of fast code coverage   |
-| Component   | Important for complete component paths |
-| Integration | Covers component interaction paths     |
-| E2E         | Covers complete operational paths      |
-| Regression  | Protects previously tested paths       |
+| Test level  | Contribution to coverage             |
+| ----------- | ------------------------------------ |
+| Unit        | Primary source of fast code coverage |
+| Component   | Exercises complete component paths   |
+| Integration | Exercises interaction paths          |
+| E2E         | Exercises complete operational paths |
+| Regression  | Protects previously verified paths   |
 
-Coverage shall therefore not be interpreted as an argument to replace higher-level tests with large numbers of unit tests.
+Coverage shall not be interpreted as a reason to replace higher-level tests with large numbers of unit tests.
+
+Different test levels provide different types of evidence, while coverage only measures which executable code paths were exercised.
 
 ---
 
 ## 14. Initial Implementation
 
-The initial coverage implementation shall proceed in stages:
+The v0.1 coverage implementation should proceed incrementally:
 
-1. establish the test suite,
+1. establish and maintain the automated test suite,
 2. integrate `pytest` with coverage measurement,
-3. generate a baseline coverage report,
+3. generate an initial baseline coverage report,
 4. identify untested critical paths,
 5. add tests for scientifically important functionality,
 6. establish the 70 % project-wide minimum,
 7. monitor critical component coverage,
-8. integrate the coverage gate into CI.
+8. integrate the coverage threshold into CI.
 
-Component-specific coverage thresholds may be introduced after sufficient baseline data are available.
+Component-specific thresholds may be introduced later when sufficient baseline data are available.
 
 ---
 
 ## 15. Review
 
-The coverage strategy shall be reviewed after the first major testing cycle.
+The coverage strategy should be reviewed after the first major testing cycle.
 
 The review should consider:
 
-* whether 70 % remains appropriate,
+* whether 70 % remains an appropriate minimum,
 * whether branch coverage should become a formal quality gate,
-* whether critical components require independent minimum thresholds,
+* whether critical components require independent thresholds,
 * whether generated or infrastructure code requires separate treatment,
-* whether the coverage report provides useful development feedback.
+* whether the coverage reports provide useful development feedback.
 
-Coverage requirements shall evolve together with the test strategy and project scope.
+Coverage requirements should evolve together with the test strategy and the scope of the project.

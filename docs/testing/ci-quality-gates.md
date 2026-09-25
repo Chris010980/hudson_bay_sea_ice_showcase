@@ -1,8 +1,8 @@
-# CI Quality Gates
+# CI Quality Gates — v0.1
 
 ## 1. Purpose
 
-This document defines the automated quality checks used to verify changes to the `hudson_bay_sea_ice` project.
+This document defines the automated quality checks intended for changes to the `hudson_bay_sea_ice` project.
 
 Continuous Integration (CI) provides an automated and reproducible verification layer in addition to local development and manual review.
 
@@ -16,17 +16,19 @@ The purpose of the CI quality gates is to detect changes that:
 * break the website build,
 * or otherwise violate defined project requirements.
 
-CI checks are intended to support the development process, not to replace scientific review or engineering judgment.
+CI checks support the development process but do not replace scientific review or engineering judgment.
+
+The v0.1 document defines the intended quality-gate model. It does not imply that every described gate is already implemented.
 
 ---
 
 ## 2. Quality Gate Principle
 
-A quality gate defines a condition that must be satisfied before a change can be integrated into the stable project state.
+A quality gate defines a condition that should be satisfied before a change is integrated into the stable project state.
 
 The general principle is:
 
-```text id="3rj8yf"
+```text
 Change
   ↓
 Automated CI checks
@@ -38,7 +40,7 @@ Review / integration
 main
 ```
 
-A failed mandatory quality gate should normally prevent integration until the underlying problem has been resolved or the expected behavior has been deliberately changed and the corresponding tests or requirements have been updated.
+A failed mandatory quality gate should normally prevent integration until the underlying problem has been resolved or the expected behavior has deliberately changed and the corresponding tests or requirements have been updated.
 
 Quality gates should provide objective and reproducible criteria wherever practical.
 
@@ -65,25 +67,25 @@ The project will progressively strengthen its CI quality gates as the automated 
 
 ## 4. Current Development State
 
-The project has been operated through an automated daily pipeline for an extended period.
+The project has been operated through an automated daily processing workflow.
 
-This operational experience provides practical evidence that the current pipeline works under its normal operating conditions.
+This operational experience provides practical evidence that the current pipeline functions under its normal operating conditions.
 
 However, operational success does not provide the same type of evidence as systematic automated testing.
 
 The CI quality gates therefore form part of the transition from:
 
-```text id="p6w3g8"
+```text
 practical operational verification
 ```
 
 towards:
 
-```text id="u1p8mj"
+```text
 systematic and reproducible automated verification
 ```
 
-The existence of a quality gate does not imply that the corresponding verification is already fully implemented.
+The existence of a documented quality gate does not imply that the corresponding verification is already fully implemented.
 
 ---
 
@@ -113,25 +115,17 @@ Code coverage is used as a quantitative indicator of how much implementation cod
 
 The initial project target is:
 
-```text id="z65x3f"
+```text
 Minimum line coverage: 70 %
 ```
 
 Coverage should be measured together with the test suite.
 
-Coverage is not considered a measure of scientific correctness by itself.
+Coverage is not considered a measure of scientific correctness by itself. A test suite with high coverage may still fail to verify important numerical or scientific behavior.
 
-A test suite with high coverage may still fail to verify important numerical or scientific behavior.
+The detailed coverage policy is defined in `test-coverage.md`.
 
-The detailed coverage policy is defined in:
-
-```text id="1h3m0f"
-coverage.md
-```
-
-The initial coverage threshold is intended as a project-wide quality gate.
-
-Additional component-specific thresholds may be introduced later when a meaningful baseline has been established.
+The 70% threshold is an initial project target and should become a mandatory gate only once the coverage infrastructure has been established and the baseline is meaningful.
 
 ---
 
@@ -168,7 +162,7 @@ The formatter and its configuration should be defined centrally rather than diff
 
 Formatting failures should normally be corrected before integration.
 
-The exact formatter and configuration are established as part of the project's development tooling.
+The exact formatter and configuration are part of the project's development tooling and may be introduced progressively.
 
 ---
 
@@ -201,7 +195,7 @@ Type checking should initially focus on identifying genuine interface and data-f
 
 A type-checking gate may therefore be introduced progressively.
 
-The selected tool and strictness level should be documented in the project development tooling.
+The selected tool and strictness level should be documented in the project's development tooling.
 
 ---
 
@@ -228,11 +222,9 @@ Findings that require human judgment should be reviewed rather than automaticall
 
 The project's architectural separation should be supported by automated checks where practical.
 
-Examples include preventing inappropriate dependencies between architectural areas.
+The current system is organized around components for:
 
-The intended direction is:
-
-```text id="j7c8z4"
+```text
 Data Acquisition
        ↓
 Spatial Analysis
@@ -246,11 +238,11 @@ Visualization
 Website Build
 ```
 
-Actual dependencies do not necessarily form a strict linear chain, but components should not arbitrarily depend on unrelated implementation details.
+This is a conceptual dependency direction rather than a strict statement that every component depends exclusively on the preceding component.
 
-Architecture checks should therefore focus on enforcing clearly defined boundaries rather than preventing all cross-component dependencies.
+Architecture checks should therefore focus on clearly defined boundaries rather than preventing all cross-component dependencies.
 
-Such checks may be introduced after the current architecture has been finalized.
+Such checks may be introduced after the current architecture and dependency boundaries have been sufficiently established.
 
 ---
 
@@ -260,7 +252,7 @@ Important generated outputs should be validated automatically.
 
 Validation should cover, where applicable:
 
-### Analysis results
+### Analysis Results
 
 * required files exist,
 * required columns exist,
@@ -274,7 +266,7 @@ Validation should cover, where applicable:
 ### Metadata
 
 * `latest.json` is structurally valid,
-* reported dates are consistent with the generated results,
+* reported dates are consistent with generated results,
 * required metadata fields exist.
 
 ### Website
@@ -285,7 +277,7 @@ Validation should cover, where applicable:
 * generated paths are consistent,
 * the build contains the expected structure.
 
-The exact validation rules should be developed together with the output-validation tests.
+The exact validation rules should be developed together with the corresponding output-validation tests.
 
 ---
 
@@ -295,7 +287,7 @@ Changes affecting the pipeline should be verified at an appropriate integration 
 
 Depending on the change, CI should verify relevant stages such as:
 
-```text id="s4b9kt"
+```text
 download
    ↓
 process
@@ -309,7 +301,7 @@ The complete production data pipeline should not necessarily run against externa
 
 Tests should use controlled fixtures or representative test data where practical.
 
-A separate end-to-end or scheduled pipeline can verify the complete operational workflow.
+A separate scheduled or extended workflow may verify the complete operational workflow.
 
 This distinction prevents CI from becoming unnecessarily slow or dependent on external network availability for every development change.
 
@@ -329,7 +321,7 @@ At minimum, the build gate should detect:
 
 The build should remain self-contained and should not depend on files that are intentionally excluded from the deployment artifact.
 
-The build artifact should represent the same scientific output state as the corresponding analysis results.
+The deployment artifact should represent the corresponding scientific output state.
 
 ---
 
@@ -339,7 +331,7 @@ Known defects and previously verified scientific behavior should be protected by
 
 When a defect is fixed:
 
-```text id="tr8y2e"
+```text
 Defect
   ↓
 Fix
@@ -359,7 +351,11 @@ Regression tests are particularly important for scientific algorithms where appa
 
 Changes that modify documented behavior should update the corresponding documentation.
 
-The CI system may initially verify only basic documentation properties, such as required files or build validity.
+The CI system may initially verify only basic documentation properties, such as:
+
+* required documentation files exist,
+* documentation pages can be built,
+* required generated resources are available.
 
 More advanced documentation consistency checks may be introduced later.
 
@@ -389,18 +385,18 @@ Not every check has the same importance.
 
 The project distinguishes between:
 
-### Mandatory gates
+### Mandatory Gates
 
 Failure blocks integration.
 
-Examples:
+Examples include:
 
 * test suite failures,
-* coverage below the defined mandatory threshold,
+* coverage below a defined mandatory threshold,
 * required build failures,
-* critical output validation failures.
+* critical output-validation failures.
 
-### Advisory checks
+### Advisory Checks
 
 Findings are reported but do not initially block integration.
 
@@ -416,7 +412,7 @@ Advisory checks may become mandatory once the project has established a reliable
 
 ## 19. Initial Gate Set
 
-The initial quality-gate strategy should be introduced incrementally.
+The initial quality-gate strategy is introduced incrementally.
 
 ### v0.1
 
@@ -439,7 +435,7 @@ The planned v0.2 quality baseline should introduce the first systematic mandator
 
 The initial target is:
 
-```text id="x0z9rv"
+```text
 pytest
    +
 coverage
@@ -499,7 +495,7 @@ CI quality gates provide verification evidence for requirements.
 
 The relationship is:
 
-```text id="n3xq7v"
+```text
 Requirement
      ↓
 Acceptance Criteria
@@ -517,7 +513,7 @@ Not every requirement is verified by a single CI check.
 
 For example:
 
-```text id="0h5k6n"
+```text
 FR-10 Threshold Events
        │
        ├── unit tests
@@ -530,7 +526,7 @@ FR-10 Threshold Events
 
 Likewise:
 
-```text id="9lq5dm"
+```text
 NFR-05 Testability
        │
        ├── pytest
@@ -541,7 +537,7 @@ NFR-05 Testability
 
 The detailed requirement relationships are maintained in:
 
-```text id="pl3g5q"
+```text
 docs/requirements/requirements-traceability.md
 ```
 
@@ -588,7 +584,7 @@ Quality gates should remain aligned with the project's requirements and should n
 
 The CI quality-gate strategy follows the principle:
 
-```text id="h7v5qf"
+```text
 Run the tests
       ↓
 Measure coverage
