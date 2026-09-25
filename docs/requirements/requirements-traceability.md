@@ -4,26 +4,29 @@
 
 This document defines how requirements in the `hudson_bay_sea_ice` project are traced to their implementation, verification, and release state.
 
-The purpose of requirements traceability is to ensure that important project requirements can be related to:
+The purpose of requirements traceability is to establish a structured connection between:
 
-* the affected architectural components,
-* the relevant implementation,
+* the project scope,
+* functional and non-functional requirements,
+* the architectural components affected by those requirements,
+* their implementation,
 * acceptance criteria,
-* automated tests,
-* regression tests,
+* verification activities,
 * documentation,
 * and project releases.
 
-Traceability provides a structured connection between what the system is required to do and how the corresponding behavior is implemented and verified.
+Traceability provides a means of determining not only whether a requirement is implemented, but also whether sufficient evidence exists to demonstrate that the implemented behavior satisfies the requirement.
 
-It also helps identify gaps, such as:
+It also helps identify gaps such as:
 
 * requirements without an identifiable implementation,
 * implemented behavior without a documented requirement,
 * requirements without appropriate verification,
-* tests that do not clearly correspond to an expected behavior.
+* verification that covers only part of a requirement,
+* tests that do not clearly correspond to expected behavior,
+* or implementation behavior that is not adequately represented by the current requirements.
 
-The traceability matrix maintained in this document is the central overview of these relationships.
+The traceability matrix maintained in this document provides the central overview of these relationships.
 
 ---
 
@@ -32,6 +35,9 @@ The traceability matrix maintained in this document is the central overview of t
 The project uses the following general relationship:
 
 ```text
+Project Scope
+     │
+     ▼
 Requirement
      │
      ▼
@@ -51,6 +57,7 @@ Verification
      ├── Output Validation
      ├── Static Analysis
      ├── Documentation Review
+     ├── Reproducibility Check
      └── Operational Evidence
      │
      ▼
@@ -60,18 +67,19 @@ Verification Result
 Release / Version
 ```
 
-Not every requirement necessarily maps to exactly one component or one test.
+The model describes a logical relationship rather than a mandatory one-to-one mapping.
 
 A requirement may:
 
 * be implemented by several components,
-* require several tests,
+* affect several architectural areas,
+* require several verification mechanisms,
 * be verified at different test levels,
-* or consist of multiple independently verifiable aspects.
+* or contain several independently verifiable aspects.
 
-Likewise, a test may provide evidence for more than one requirement where the tested behavior genuinely overlaps.
+Likewise, one test or verification activity may provide evidence for more than one requirement where the tested behavior genuinely overlaps.
 
-Traceability should therefore represent meaningful relationships rather than enforcing a one-to-one mapping.
+Traceability should therefore represent meaningful relationships rather than artificially enforcing one-to-one mappings.
 
 ---
 
@@ -100,16 +108,22 @@ NFR-05
 NFR-12
 ```
 
-The authoritative definitions of these requirements are maintained in:
+The authoritative definitions are maintained in:
 
 ```text
 functional-requirements.md
 non-functional-requirements.md
 ```
 
-Requirement identifiers should remain stable once they are used in implementation, tests, documentation, or release records.
+The project scope is defined separately in:
 
-If a requirement is substantially changed in meaning, the change should be documented rather than silently reusing an identifier for an unrelated requirement.
+```text
+scope.md
+```
+
+Requirement identifiers should remain stable once they are referenced by implementation, tests, documentation, or release records.
+
+If a requirement changes substantially in meaning, the change should be documented explicitly rather than silently reusing the identifier for unrelated behavior.
 
 ---
 
@@ -117,11 +131,38 @@ If a requirement is substantially changed in meaning, the change should be docum
 
 Traceability is maintained at several levels.
 
-### 4.1 Requirements to Architecture
+### 4.1 Scope to Requirements
+
+The project scope defines the system boundary and distinguishes:
+
+* currently supported functionality,
+* current data and scientific scope,
+* operational scope,
+* current quality and verification scope,
+* explicit non-goals,
+* and potential future extensions.
+
+Requirements formalize the capabilities and quality conditions within that scope.
+
+The relationship is therefore:
+
+```text
+Project Scope
+     │
+     ├── Functional Requirements
+     │
+     └── Non-Functional Requirements
+```
+
+A topic listed only as a future extension or non-goal should not automatically be treated as a current requirement.
+
+---
+
+### 4.2 Requirements to Architecture
 
 Each relevant requirement should be associated with one or more architectural components or areas.
 
-Example:
+For example:
 
 ```text
 FR-10 Threshold Events
@@ -130,15 +171,37 @@ FR-10 Threshold Events
 TimeSeriesAnalyzer
 ```
 
-For cross-cutting requirements, several components may be involved.
+Cross-cutting requirements may involve several components.
+
+For example, pipeline consistency may involve:
+
+```text
+NFR-11 Pipeline Consistency
+        │
+        ├── main.py
+        ├── update_pipeline.py
+        ├── process_data.py
+        ├── generate_plots.py
+        └── build_pages.py
+```
+
+The architectural documentation describes these relationships in more detail.
 
 ---
 
-### 4.2 Requirements to Implementation
+### 4.3 Requirements to Implementation
 
 Where practical, the affected implementation should be identifiable.
 
-Example:
+Implementation references should normally identify:
+
+* a module,
+* a class,
+* a function,
+* a configuration area,
+* or a clearly defined filesystem/output area.
+
+For example:
 
 ```text
 FR-10
@@ -147,34 +210,36 @@ FR-10
 TimeSeriesAnalyzer
   │
   ├── threshold-event calculation
-  └── threshold crossing detection
+  ├── threshold crossing detection
+  └── persistence handling
 ```
-
-The implementation reference should identify the relevant module, class, or function rather than depending exclusively on line numbers.
 
 Line numbers are intentionally not used as stable traceability identifiers because they change frequently during development.
 
+Implementation references describe the current implementation and should not be interpreted as a target architecture.
+
 ---
 
-### 4.3 Requirements to Acceptance Criteria
+### 4.4 Requirements to Acceptance Criteria
 
 Requirements should be expressed in a way that allows their fulfillment to be verified.
 
-Acceptance criteria describe observable conditions that indicate that the requirement has been fulfilled.
+Acceptance criteria describe observable conditions indicating that the requirement has been fulfilled.
 
-For example, a threshold-event requirement may include criteria such as:
+For example, FR-10 may require that:
 
-* the configured thresholds are evaluated,
-* a valid crossing requires the defined persistence,
+* the defined thresholds are evaluated,
+* the defined persistence period is respected,
 * missing calendar days are not incorrectly bridged,
-* break-up and freeze-up seasons use the defined date ranges,
-* resulting event dates are stored in the expected output.
+* break-up and freeze-up use the defined seasonal windows,
+* threshold crossings are determined according to the documented method,
+* and resulting event information is stored in the expected output.
 
 Acceptance criteria should describe expected behavior rather than implementation details where possible.
 
 ---
 
-### 4.4 Requirements to Verification
+### 4.5 Requirements to Verification
 
 Verification provides evidence that the implemented behavior satisfies the requirement.
 
@@ -188,16 +253,18 @@ Depending on the requirement, verification may be provided by:
 * automated output validation,
 * static analysis,
 * documentation review,
-* operational inspection,
-* or reproducibility procedures.
+* reproducibility procedures,
+* or operational evidence.
 
 The appropriate verification mechanism depends on the nature and risk of the requirement.
 
-Operational evidence may demonstrate that a component has been exercised successfully, but it is not automatically equivalent to systematic automated verification.
+Operational evidence demonstrates that functionality has been exercised successfully, but it is not automatically equivalent to systematic automated verification.
+
+This distinction is particularly important for the current v0.1 baseline.
 
 ---
 
-### 4.5 Requirements to Tests
+### 4.6 Requirements to Tests
 
 Tests provide automated verification evidence for requirements.
 
@@ -213,30 +280,42 @@ FR-10
  │      complete event calculation
  │
  └── Regression test
-        previously observed event result
+        previously validated event result
 ```
 
-The appropriate test level depends on the requirement and its risk.
+The appropriate test level depends on the requirement and its associated risk.
 
-The testing strategy is defined separately in:
+The testing strategy is defined in:
 
 ```text
 docs/testing/test-strategy.md
 ```
 
-and the relevant test levels are described in:
+The available test levels are described in:
 
 ```text
 docs/testing/test-levels.md
 ```
 
-Test references should be added to the traceability matrix as the automated test suite is developed.
+Coverage is described in:
+
+```text
+docs/testing/coverage.md
+```
+
+CI quality gates are described in:
+
+```text
+docs/testing/ci-quality-gates.md
+```
+
+Test references should be added to the traceability matrix as the automated test suite is expanded.
 
 ---
 
-### 4.6 Requirements to Documentation
+### 4.7 Requirements to Documentation
 
-Some requirements also require documentation evidence.
+Some requirements require documentation evidence in addition to executable implementation.
 
 This is particularly relevant for:
 
@@ -246,23 +325,25 @@ This is particularly relevant for:
 * CLI behavior,
 * project scope,
 * reproducibility,
-* operational behavior.
+* operational behavior,
+* limitations,
+* and development procedures.
 
-A requirement should therefore not automatically be considered fully satisfied merely because executable code exists.
+The existence of executable code therefore does not by itself establish complete fulfillment of a documentation-related requirement.
 
 ---
 
-### 4.7 Requirements to Releases
+### 4.8 Requirements to Releases
 
-Traceability should allow a requirement to be associated with a project version in which it is considered implemented or verified.
+Traceability should allow a requirement to be associated with the project version in which it is implemented and, where applicable, the version in which systematic verification is established.
 
 For example:
 
 ```text
-FR-01
+FR-04
 
-    implemented: v0.1
-    verified:    v0.2
+implementation baseline: v0.1
+verification extended:   v0.2
 ```
 
 or:
@@ -270,127 +351,161 @@ or:
 ```text
 FR-10
 
-    implementation baseline: v0.1
-    verification extended:   v0.2
+implementation baseline: v0.1
+automated verification: v0.2
 ```
 
-This distinction is useful where functionality already exists but its systematic verification is introduced later.
+This distinction is useful because functionality may already exist in an operational baseline while its formal verification is introduced later.
 
 ---
 
 ## 5. Traceability Status
 
-The following status categories are used to describe the current state of a requirement:
+The following status categories are used:
 
-| Status               | Meaning                                                                          |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `defined`            | Requirement is documented but implementation status has not yet been established |
-| `implemented`        | Relevant functionality exists                                                    |
-| `verified`           | Appropriate verification has been established                                    |
-| `partially verified` | Some relevant behavior is verified, but verification coverage is incomplete      |
-| `planned`            | Requirement is intentionally deferred to a future version                        |
-| `not applicable`     | Requirement does not apply to the current implementation                         |
+| Status               | Meaning                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `defined`            | Requirement is documented, but implementation status has not yet been established.         |
+| `implemented`        | Relevant functionality exists in the current implementation.                               |
+| `verified`           | Appropriate verification evidence has been established for the relevant requirement.       |
+| `partially verified` | Meaningful verification evidence exists, but relevant verification coverage is incomplete. |
+| `planned`            | The requirement or corresponding capability is intentionally deferred to a future version. |
+| `not applicable`     | The requirement does not apply to the current implementation.                              |
 
-A requirement may therefore be `implemented` without yet being `verified`.
+The status describes the **current state**, not necessarily the version in which the functionality was first introduced.
 
-This distinction is particularly important for the transition from the current operational baseline to systematic test coverage.
+A requirement may therefore be:
 
-For requirements where implementation exists but systematic verification is incomplete, `partially verified` should be used only when there is already meaningful verification evidence. Otherwise, `implemented` is appropriate.
+```text
+implemented
+```
+
+while still lacking systematic automated verification.
+
+`partially verified` should only be used when meaningful verification evidence already exists.
+
+Where functionality exists but no meaningful verification beyond implementation and operational use has yet been established, `implemented` is preferable to `partially verified`.
+
+The version column separately records the relevant implementation or verification baseline.
 
 ---
 
 ## 6. Current Baseline
 
-The current project has been practically exercised through regular pipeline operation.
+The current project has been practically exercised through regular operation of the processing pipeline.
 
-The automated pipeline has therefore already provided operational evidence for a substantial part of the implemented functionality.
+This provides operational evidence for a substantial part of the implemented functionality. The software has therefore been exercised in realistic processing runs rather than remaining purely theoretical or unexecuted.
 
-This operational experience should not be treated as equivalent to a complete automated test suite.
+This operational experience is deliberately distinguished from systematic automated verification.
 
-For v0.1, traceability therefore distinguishes between:
-
-```text
-Implemented and operationally exercised
-```
-
-and:
-
-```text
-Systematically verified by defined automated tests
-```
-
-The current automated test suite is still limited. At present, it contains tests for the GeoTIFF visualization component:
+The current automated test suite is limited to the GeoTIFF visualization component:
 
 ```text
 tests/
 └── test_visualization_geotiff.py
 ```
 
-These tests currently verify:
+The existing tests verify:
 
-* handling of invalid values in plot preparation,
+* handling of invalid values during plot preparation,
 * normalization of concentration values,
 * successful generation of a GeoTIFF plot output.
 
-This provides initial automated verification evidence, but does not constitute systematic verification of the complete scientific analysis pipeline.
+This provides initial automated verification evidence for the visualization subsystem.
 
-The distinction prevents the current project state from being incorrectly characterized as either completely untested or already comprehensively verified.
+The current suite does not yet systematically verify:
+
+* regional sea-ice coverage calculations,
+* persistent result management,
+* temporal interpolation,
+* climatological statistics,
+* anomaly calculations,
+* annual statistics,
+* threshold-event detection,
+* incremental pipeline behavior,
+* output consistency,
+* website generation,
+* or the complete end-to-end update process.
+
+The current baseline should therefore be described as:
+
+```text
+Implemented and operationally exercised
+```
+
+rather than:
+
+```text
+Untested
+```
+
+and also not as:
+
+```text
+Comprehensively verified
+```
+
+This distinction is central to the transition from v0.1 to v0.2.
 
 ---
 
 ## 7. Functional Requirements Traceability Matrix
 
-The following matrix records the current implementation baseline.
+The following matrix records the current implementation baseline and the available verification evidence.
 
-The matrix deliberately distinguishes implementation from verification. An entry in the implementation column does not imply that the corresponding requirement has already been systematically verified.
+The matrix deliberately distinguishes implementation from verification.
 
-| ID    | Requirement             | Component(s)                       | Implementation                              | Acceptance / Verification                                                     | Test / Evidence                                                      | Status             | Version |
-| ----- | ----------------------- | ---------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------ | ------- |
-| FR-01 | Data acquisition        | `NSIDCDownloader`, download stage  | Downloader implementation                   | Required observations can be acquired incrementally                           | Operational pipeline evidence; automated verification to be added    | implemented        | v0.1    |
-| FR-02 | Temporary data handling | `NSIDCDownloader`, update pipeline | Temporary-data cleanup                      | Temporary data removed or retained according to configuration                 | Operational pipeline evidence; cleanup tests to be added             | implemented        | v0.1    |
-| FR-03 | Reference data          | `ReferenceBuilder`                 | Reference preparation and regional masks    | Required masks and summary generated and reusable                             | Operational pipeline evidence; component tests to be added           | implemented        | v0.1    |
-| FR-04 | Daily regional analysis | `RegionAnalyzer`                   | Regional analysis                           | Absolute and relative coverage calculated according to definition             | Scientific unit/component tests to be added                          | implemented        | v0.1    |
-| FR-05 | Persistent results      | `ResultsManager`                   | Result persistence                          | Historical results preserved and duplicate `(date, region)` entries prevented | Existing implementation; persistence tests to be added               | implemented        | v0.1    |
-| FR-06 | Time-series processing  | `TimeSeriesAnalyzer`               | Interpolation and moving-average processing | Calendar continuity and defined gap handling                                  | Scientific unit/component tests to be added                          | implemented        | v0.1    |
-| FR-07 | Climatology             | `TimeSeriesAnalyzer`               | Climatology calculation                     | 1981–2010 statistics generated for relevant metrics                           | Scientific unit tests to be added                                    | implemented        | v0.1    |
-| FR-08 | Anomalies               | `TimeSeriesAnalyzer`               | Anomaly calculation                         | Absolute and relative anomalies correspond to climatological mean             | Scientific unit tests to be added                                    | implemented        | v0.1    |
-| FR-09 | Annual statistics       | `TimeSeriesAnalyzer`               | Yearly analysis                             | Complete calendar years and annual statistics generated                       | Scientific unit/component tests to be added                          | implemented        | v0.1    |
-| FR-10 | Threshold events        | `TimeSeriesAnalyzer`               | Threshold-event calculation                 | Valid crossings, persistence, seasons and event dates                         | Scientific unit/component/regression tests to be added               | implemented        | v0.1    |
-| FR-11 | Visualization           | Plotter components                 | Visualization modules                       | Required plot types and configured regions generated                          | Existing GeoTIFF visualization tests; further plot tests to be added | partially verified | v0.1    |
-| FR-12 | Pipeline orchestration  | Pipeline / update stages           | `main.py`, `update_pipeline.py`             | Required stages execute in defined order                                      | Operational pipeline evidence; integration/E2E tests to be added     | implemented        | v0.1    |
-| FR-13 | Website generation      | `build_pages.py`                   | Pages build                                 | Website contains current generated results and resources                      | Operational build evidence; build validation to be added             | implemented        | v0.1    |
-| FR-14 | CLI                     | Pipeline stages                    | Stage entry points                          | Supported arguments and stage behavior work as documented                     | Operational usage; CLI tests to be added                             | implemented        | v0.1    |
+| ID    | Requirement                          | Component(s)                                              | Current Implementation                                                                                                                  | Acceptance / Verification                                                                                   | Current Evidence                                                                                     | Status             | Version |
+| ----- | ------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ------- |
+| FR-01 | Sea-ice data acquisition             | `NSIDCDownloader`, download stage                         | Incremental synchronization with configured NSIDC source; missing observations and equivalent product versions are handled              | Required observations can be identified and acquired incrementally                                          | Regular pipeline operation; downloader tests to be added                                             | implemented        | v0.1    |
+| FR-02 | Temporary data management            | `NSIDCDownloader`, update pipeline                        | GeoTIFF observations are stored temporarily and can be removed after processing; `--keep-data` controls cleanup                         | Temporary data is removed or retained according to the execution option                                     | Regular update operation; cleanup tests to be added                                                  | implemented        | v0.1    |
+| FR-03 | Spatial reference data preparation   | `ReferenceBuilder`                                        | Fixed `src/config/reference.tif`; reusable regional masks and reference summary under `output/reference/`                               | Reference masks are available, reusable, and derived from the fixed reference dataset                       | Regular pipeline operation; reference-builder tests to be added                                      | implemented        | v0.1    |
+| FR-04 | Daily regional sea-ice analysis      | `RegionAnalyzer`                                          | Regional absolute and relative sea-ice coverage calculated from daily GeoTIFF observations                                              | Coverage follows the documented concentration threshold, pixel area, region masks, and coverage definitions | Operational results; scientific unit/component tests outstanding                                     | implemented        | v0.1    |
+| FR-05 | Persistent analysis results          | `ResultsManager`                                          | Historical daily regional results stored in CSV; duplicate `(date, region)` entries are removed on save; latest state stored separately | Results remain identifiable by date and region and are persisted without unintended duplicate records       | Existing implementation and generated outputs; persistence tests outstanding                         | implemented        | v0.1    |
+| FR-06 | Time-series preparation              | `TimeSeriesAnalyzer`                                      | Calendar reindexing, interpolation, and centered moving-average processing are implemented                                              | Calendar continuity and maximum interpolation-gap behavior follow the defined method                        | Existing generated time-series products; scientific tests outstanding                                | implemented        | v0.1    |
+| FR-07 | Climatological analysis              | `TimeSeriesAnalyzer`                                      | 1981–2010 daily climatology with mean, standard deviation, minimum, and maximum is generated                                            | Climatological statistics correspond to the defined reference period and calendar treatment                 | Generated climatological products; scientific tests outstanding                                      | implemented        | v0.1    |
+| FR-08 | Anomaly analysis                     | `TimeSeriesAnalyzer`                                      | Absolute and relative anomalies are calculated from climatological means                                                                | Anomalies equal observation minus corresponding climatological mean and retain the defined units            | Generated analysis products; scientific tests outstanding                                            | implemented        | v0.1    |
+| FR-09 | Annual analysis                      | `TimeSeriesAnalyzer`                                      | Complete calendar years are identified and annual means are generated                                                                   | Annual statistics use complete years according to the defined calendar-year criterion                       | Generated yearly products; scientific tests outstanding                                              | implemented        | v0.1    |
+| FR-10 | Seasonal threshold events            | `TimeSeriesAnalyzer`                                      | Break-up, freeze-up, threshold crossing and persistence logic implemented for 10 %, 50 %, and 90 % thresholds                           | Seasonal windows, persistence, crossing logic and stored event results satisfy the documented definitions   | Generated event products and operational use; scientific unit/component/regression tests outstanding | implemented        | v0.1    |
+| FR-11 | Scientific visualization             | `SeaIcePlotter`, `TimeSeriesPlotter`, `generate_plots.py` | Spatial, regional, temporal, anomaly, threshold, polar and annual visualizations are implemented                                        | Required plot types can be generated from current analysis products                                         | Existing GeoTIFF visualization tests and generated figures; broader plot tests outstanding           | partially verified | v0.1    |
+| FR-12 | Pipeline execution and orchestration | `main.py`, `update_pipeline.py`                           | Individual stages and an incremental end-to-end update are available                                                                    | Required processing sequence produces consistent downstream products when new observations are processed    | Regular pipeline operation; integration/E2E tests outstanding                                        | implemented        | v0.1    |
+| FR-13 | Website generation                   | `build_pages.py`                                          | Static website source from `docs/` is combined with generated `output/` into `build/`                                                   | Generated deployment artifact contains the current website and required analysis products                   | Successful local/CI builds; automated build validation outstanding                                   | implemented        | v0.1    |
+| FR-14 | Command-line interface               | `main.py` and stage entry points                          | Pipeline stages expose documented command-line options for logging, processing, plotting, updating and building                         | Supported options produce the documented stage behavior                                                     | Operational CLI use; CLI tests outstanding                                                           | implemented        | v0.1    |
 
-The functional matrix is therefore a **current implementation baseline**, not a claim that all requirements already have complete automated verification.
+The matrix represents the **current implementation baseline**.
+
+It does not imply that every requirement has already achieved complete automated verification.
 
 ---
 
 ## 8. Non-Functional Requirements Traceability Matrix
 
-Non-functional requirements are traced using the same general model, but their verification may involve multiple mechanisms.
+Non-functional requirements are traced using the same general model, but their verification often spans multiple components and verification mechanisms.
 
-| ID     | Requirement                        | Relevant Area                            | Current Implementation / Evidence                                                                     | Verification Mechanism                           | Status             | Version |
-| ------ | ---------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------ | ------- |
-| NFR-01 | Scientific correctness             | Analysis / methodology                   | Scientific methods are documented and implemented across the analysis components                      | Scientific tests and methodology review          | partially verified | v0.1    |
-| NFR-02 | Data integrity                     | `ResultsManager`, processing, downloader | Persistent results, duplicate prevention and separate temporary data handling exist                   | Output validation and persistence tests          | partially verified | v0.1    |
-| NFR-03 | Reliability / error handling       | Downloader, processing, pipeline         | Error handling and logging exist in individual components                                             | Error-path and integration tests                 | partially verified | v0.1    |
-| NFR-04 | Maintainability                    | Architecture / source code               | Modular source structure with separated analysis, download, visualization and update components       | Code review and static analysis                  | partially verified | v0.1    |
-| NFR-05 | Testability / QA                   | `tests/`, pytest                         | pytest is available and an initial GeoTIFF test module exists                                         | Test suite, coverage and CI                      | partially verified | v0.1    |
-| NFR-06 | Static code quality                | Source tree / CI                         | No dedicated static-analysis configuration currently exists                                           | Automated linting, formatting and type checks    | defined            | v0.2    |
-| NFR-07 | Performance                        | Pipeline                                 | Incremental processing and reusable reference masks are implemented                                   | Representative benchmarks                        | defined            | v0.2    |
-| NFR-08 | Reproducibility                    | Code / dependencies / data               | Methodology, fixed reference data, source code and `requirements.txt` are documented                  | Reproducibility procedure                        | partially verified | v0.1    |
-| NFR-09 | Version / methodology traceability | Git / documentation                      | Requirements, methodology and source are version controlled                                           | Version and release records                      | partially verified | v0.1    |
-| NFR-10 | Logging                            | Pipeline                                 | Central logging configuration and persistent log file are implemented                                 | Logging configuration and operational inspection | implemented        | v0.1    |
-| NFR-11 | Pipeline consistency               | Pipeline orchestration                   | Defined update sequence and website build exist                                                       | Integration / E2E tests and output validation    | partially verified | v0.1    |
-| NFR-12 | Automated output validation        | Analysis / website                       | No independent systematic output-validation layer currently exists                                    | Automated output validation                      | defined            | v0.2    |
-| NFR-13 | Configurability                    | Configuration / analysis / CLI           | CLI configuration exists; several scientific parameters remain implementation-defined                 | Configuration tests and review                   | partially verified | v0.1    |
-| NFR-14 | Extensibility                      | Architecture / components                | Functional areas are separated into dedicated modules                                                 | Architectural review and extension tests         | partially verified | v0.1    |
-| NFR-15 | Platform                           | Python / CI                              | Python 3.12 and `ubuntu-latest` are explicitly defined; dependencies are listed in `requirements.txt` | CI environment                                   | implemented        | v0.1    |
-| NFR-16 | Website quality                    | Build / deployment                       | `docs/` and generated `build/` are separated; Pages deployment is automated                           | Build and resource validation                    | partially verified | v0.1    |
-| NFR-17 | Documentation                      | Documentation tree                       | Requirements, architecture, methodology, development and testing documentation exist                  | Documentation review                             | implemented        | v0.1    |
-| NFR-18 | Security / operational safety      | Downloader / cleanup / CI                | External downloads and destructive file operations are explicitly identifiable                        | Review and destructive-operation tests           | partially verified | v0.1    |
+| ID     | Requirement                          | Relevant Area                                                | Current Implementation / Evidence                                                                                 | Verification Mechanism                                                        | Status             | Version |
+| ------ | ------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------ | ------- |
+| NFR-01 | Scientific correctness               | Analysis / methodology                                       | Scientific methods are documented and implemented across spatial and temporal analysis components                 | Scientific unit tests, component tests, result validation, methodology review | partially verified | v0.1    |
+| NFR-02 | Data integrity                       | Downloader / processing / `ResultsManager`                   | Persistent derived results, duplicate handling, temporary raw-data separation and reference masks exist           | Input/output validation, persistence tests, integrity checks                  | partially verified | v0.1    |
+| NFR-03 | Reliability and error handling       | Downloader / processing / pipeline                           | Individual components contain exception handling and logging; processing failures are recorded                    | Error-path tests, integration tests, controlled failure tests                 | partially verified | v0.1    |
+| NFR-04 | Maintainability                      | Architecture / source tree                                   | Acquisition, analysis, visualization, update and website-build responsibilities are separated into modules        | Code review, static analysis, architectural review                            | partially verified | v0.1    |
+| NFR-05 | Testability and quality assurance    | `tests/`, pytest                                             | pytest is available and an initial GeoTIFF visualization test module exists                                       | Expanded test suite, coverage, CI execution and quality gates                 | partially verified | v0.1    |
+| NFR-06 | Static code quality                  | Source tree / CI                                             | No dedicated formatting, linting or type-checking configuration is currently established                          | Automated static-analysis checks                                              | defined            | v0.1    |
+| NFR-07 | Performance                          | Incremental pipeline / reference processing                  | Incremental processing and reusable reference masks reduce unnecessary work                                       | Representative benchmarks and performance measurements                        | defined            | v0.1    |
+| NFR-08 | Reproducibility                      | Source / configuration / data / dependencies                 | Methodology, fixed reference data, source code and dependency requirements are documented                         | Reproducibility procedure using defined inputs and environment                | partially verified | v0.1    |
+| NFR-09 | Version and methodology traceability | Git / requirements / methodology / releases                  | Source, requirements and methodology are version controlled and documented                                        | Release review and change traceability                                        | partially verified | v0.1    |
+| NFR-10 | Logging and diagnostics              | `logging_config.py`, pipeline stages                         | Central logging configuration and persistent log file are implemented                                             | Configuration review and operational inspection                               | implemented        | v0.1    |
+| NFR-11 | Pipeline operational consistency     | `main.py`, `update_pipeline.py`, processing, plotting, build | Defined update sequence connects acquisition, processing, visualization and website generation                    | Integration/E2E tests and output consistency validation                       | partially verified | v0.1    |
+| NFR-12 | Automated output validation          | Analysis / visualization / website                           | No independent systematic output-validation layer currently exists                                                | Automated schema, range, file, consistency and website checks                 | defined            | v0.1    |
+| NFR-13 | Configurability                      | Configuration / analysis / CLI                               | CLI configuration exists, while some scientific parameters remain implementation-defined or hard-coded            | Configuration tests and review of parameter handling                          | partially verified | v0.1    |
+| NFR-14 | Extensibility                        | Architecture / components                                    | Functional areas are separated into dedicated modules and configuration areas                                     | Architectural review and extension tests                                      | partially verified | v0.1    |
+| NFR-15 | Platform and environment             | Python / dependencies / CI                                   | Python 3.12 and `ubuntu-latest` are explicitly defined in CI; dependencies are declared in `requirements.txt`     | CI execution and environment documentation                                    | implemented        | v0.1    |
+| NFR-16 | Website quality                      | `docs/`, `build/`, GitHub Pages                              | Website source and generated deployment artifact are separated; build combines documentation and current outputs  | Build validation, resource validation and deployment checks                   | partially verified | v0.1    |
+| NFR-17 | Documentation                        | Documentation tree                                           | Scope, requirements, architecture, methodology, development and testing documentation are established             | Documentation review                                                          | implemented        | v0.1    |
+| NFR-18 | Security and operational safety      | Downloader / cleanup / build / CI                            | External downloads and destructive filesystem operations are identifiable and restricted to project-managed areas | Safety review, failure-path tests and destructive-operation tests             | partially verified | v0.1    |
 
-The NFR matrix is likewise a current baseline. Statuses should be updated as verification mechanisms are introduced.
+The NFR matrix represents the current state of the project.
+
+In particular, `defined` does not mean that the requirement is unimportant or postponed as a project feature. It means that the requirement is established, but the corresponding verification or quality mechanism is not yet sufficiently implemented.
 
 ---
 
@@ -405,7 +520,7 @@ def test_threshold_crossing_requires_persistence():
     """Verify FR-10: threshold crossings require persistence."""
 ```
 
-The exact mechanism used to associate tests with requirements may be implemented through:
+The exact mechanism used to associate tests with requirements may include:
 
 * test names,
 * docstrings,
@@ -413,19 +528,27 @@ The exact mechanism used to associate tests with requirements may be implemented
 * test module structure,
 * or an explicit traceability table.
 
-The project should avoid introducing unnecessary metadata solely for the purpose of traceability.
+The project should avoid introducing unnecessary metadata solely for traceability.
 
 The selected mechanism should remain maintainable as the test suite grows.
 
-The current tests provide an initial example of automated verification, but requirement identifiers are not yet systematically embedded in the test suite.
+The current test suite does not yet systematically embed requirement identifiers.
+
+The initial tests currently provide direct evidence for visualization behavior, but the scientific core of the pipeline does not yet have equivalent automated requirement-level coverage.
+
+As the v0.2 test suite is developed, test references should be added to the traceability matrix.
 
 ---
 
 ## 10. Regression Traceability
 
-Regression tests should be associated with the requirement or defect that motivated them where practical.
+Regression tests should be associated with the requirement, behavior, or defect that motivated them where practical.
 
-A regression test should document what previously failed or what behavior must remain stable.
+A regression test should document:
+
+* what previously failed,
+* which behavior must remain stable,
+* and which requirement is affected.
 
 For example:
 
@@ -440,23 +563,25 @@ regression case:
 late break-up / early freeze-up
 ```
 
-Regression tests are particularly important for scientific calculations where a seemingly small algorithmic change can alter historical results.
+Regression testing is particularly important for scientific calculations because apparently small algorithmic changes may alter historical results.
+
+Where an intentional methodological change changes previously generated results, the change should be documented as a scientific or implementation change rather than treated automatically as a regression.
 
 ---
 
 ## 11. Scientific Result Changes
 
-When a code change intentionally modifies scientific results, the change should be traceable to:
+When a code or methodology change intentionally modifies scientific results, the change should be traceable to:
 
 1. the relevant requirement or methodological decision,
 2. the affected implementation,
-3. the tests verifying the new behavior,
-4. the affected outputs,
-5. the version containing the change.
+3. the tests or verification activities supporting the change,
+4. the affected generated outputs,
+5. and the project version containing the change.
 
-Existing results should not be treated as an absolute reference if the underlying methodology has intentionally changed.
+Existing results should not automatically be treated as an immutable reference if the underlying scientific methodology has intentionally changed.
 
-Instead, the change should make clear:
+Instead, the traceability should distinguish:
 
 ```text
 Previous implementation
@@ -471,65 +596,74 @@ New implementation
 Updated expected results
 ```
 
-This distinction is essential for separating genuine regressions from intentional changes to the scientific method.
+This distinction is necessary to separate genuine regressions from intentional changes to the scientific method.
 
 ---
 
 ## 12. Traceability and v0.1
 
-For v0.1, the primary objective is to establish the traceability structure and document the current implementation baseline.
+For v0.1, the primary objective is to establish and document the current implementation baseline.
 
-Complete test-level traceability is not required for every requirement at this stage.
+The project has already been exercised through regular pipeline operation. Consequently, the v0.1 traceability baseline records both implementation and available operational evidence.
+
+Complete automated test-level traceability is not required for every requirement at this stage.
 
 The v0.1 baseline should nevertheless make it possible to identify:
 
-* what the project is required to do,
+* what the project is intended to do,
 * where the relevant functionality is implemented,
-* which requirements are operationally exercised,
-* which requirements have systematic automated verification,
-* which verification gaps remain.
+* which requirements have been exercised operationally,
+* which requirements have automated verification,
+* which requirements have only partial verification evidence,
+* and which verification gaps remain.
 
-This provides the basis for the systematic testing and quality-assurance work planned for subsequent development.
+This establishes a factual baseline for the subsequent quality-assurance work.
 
 ---
 
 ## 13. Traceability and v0.2
 
-During the development of v0.2, the traceability matrix should be extended as the test suite and CI quality gates are established.
+v0.2 extends the existing implementation baseline with systematic quality assurance and formal verification.
 
-The goal is to progressively move relevant requirements from:
+The traceability matrix should therefore evolve together with the v0.2 development work.
 
-```text
-implemented
-```
+The main verification improvements are expected to include:
 
-through:
-
-```text
-partially verified
-```
-
-to:
-
-```text
-verified
-```
-
-where appropriate.
-
-Verification should include the relevant combination of:
-
-* unit tests,
+* scientific unit tests,
 * component tests,
 * integration tests,
-* end-to-end tests,
+* end-to-end pipeline tests,
 * regression tests,
-* output validation,
-* static analysis,
+* automated output validation,
+* static code analysis,
 * coverage measurement,
-* CI quality gates.
+* CI quality gates,
+* and verification of pipeline consistency.
 
-The target is not to maximize the number of tests, but to provide appropriate and reproducible evidence that the defined requirements are fulfilled.
+The objective is not to maximize the number of tests.
+
+The objective is to establish appropriate and reproducible evidence that important requirements are fulfilled.
+
+Where functionality already exists in v0.1, v0.2 may therefore change the verification state without changing the underlying functional requirement.
+
+For example:
+
+```text
+v0.1
+FR-04
+implemented
+operationally exercised
+
+        │
+        ▼
+
+v0.2
+FR-04
+implemented
+systematically verified
+```
+
+This distinction avoids treating the introduction of tests as the introduction of the scientific functionality itself.
 
 ---
 
@@ -543,9 +677,10 @@ The traceability information should be updated when:
 * a scientific method changes,
 * a test is added or removed,
 * a significant regression is identified,
+* a verification mechanism is introduced or removed,
 * a requirement becomes verified,
 * functionality is deferred or becomes obsolete,
-* a release changes the supported project behavior.
+* or a release changes supported project behavior.
 
 Traceability should be reviewed as part of significant releases.
 
@@ -555,44 +690,56 @@ Small implementation changes do not necessarily require changes to the matrix if
 
 ## 15. Relationship to Other Documentation
 
-Requirements traceability connects several areas of the project documentation.
+Requirements traceability connects the project scope, requirements, architecture, implementation, methodology, testing and releases.
+
+The overall relationship is:
 
 ```text
-Requirements
-     │
-     ├── Scope
-     ├── Functional Requirements
-     └── Non-Functional Requirements
-             │
-             ▼
-       Architecture
-             │
-             ▼
-       Implementation
-             │
-             ▼
-          Testing
-             │
-             ├── Test Strategy
-             ├── Test Levels
-             ├── Coverage
-             └── CI Quality Gates
-             │
-             ▼
-          Releases
+                         Project Scope
+                              │
+                              ▼
+                  Functional / Non-Functional
+                       Requirements
+                              │
+                              ▼
+                         Architecture
+                              │
+                              ▼
+                        Implementation
+                              │
+             ┌────────────────┼────────────────┐
+             ▼                ▼                ▼
+        Methodology       Testing         Operations
+             │                │                │
+             │                ├── Test Strategy│
+             │                ├── Test Levels  │
+             │                ├── Coverage     │
+             │                └── CI Gates     │
+             │                                 │
+             └────────────────┬────────────────┘
+                              ▼
+                        Verification
+                              │
+                              ▼
+                           Release
 ```
 
-The relevant documents are:
+The relevant documentation includes:
 
-* `scope.md` — project boundaries
+* `scope.md` — project boundaries, current scope, non-goals and future extensions
 * `functional-requirements.md` — functional requirements
 * `non-functional-requirements.md` — quality and operational requirements
-* `../architecture/overview.md` — architectural structure
+* `../architecture/overview.md` — architectural structure and system boundaries
 * `../architecture/components.md` — component responsibilities
-* `../architecture/data-flow.md` — data flow
+* `../architecture/data-flow.md` — data and processing flow
+* `../methodology/data-and-inputs.md` — input data and reference data methodology
+* `../methodology/spatial-processing.md` — spatial processing methodology
+* `../methodology/coverage-metrics.md` — coverage definitions and calculations
+* `../methodology/temporal-analysis.md` — temporal and climatological analysis
+* `../methodology/event-detection.md` — seasonal event detection
 * `../testing/test-strategy.md` — testing strategy
 * `../testing/test-levels.md` — test levels
-* `../testing/coverage.md` — coverage
+* `../testing/coverage.md` — test coverage
 * `../testing/ci-quality-gates.md` — automated quality gates
 
-Traceability therefore acts as a connection between requirements, implementation, verification, and releases rather than replacing any of these documents.
+Requirements traceability therefore acts as the connection between **scope, requirements, architecture, implementation, methodology, verification and releases**. It does not replace these documents; it provides the relationship between them.
