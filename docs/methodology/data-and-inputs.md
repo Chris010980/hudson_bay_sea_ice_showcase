@@ -1,268 +1,233 @@
 # Data and Inputs
 
-## Purpose
+## 1. Purpose
 
-This document describes the input data used by the Hudson Bay Sea Ice Analysis pipeline and the handling of input data before spatial and temporal analysis.
+This document describes the scientific input data, spatial reference data and configuration used by the `hudson_bay_sea_ice` analysis pipeline.
 
-The project uses daily sea-ice concentration GeoTIFF files as its primary observational input. In addition, a dedicated reference GeoTIFF and predefined geographic region polygons are used to establish the spatial basis for the regional analysis.
-
-The methodology described here reflects the current implementation of v0.1.
+The current v0.1 implementation is based on daily sea-ice concentration GeoTIFF observations and a fixed spatial reference configuration.
 
 ---
 
-## 1. Primary observational data
+## 2. Primary Scientific Dataset
 
-The primary input consists of daily sea-ice concentration GeoTIFF files.
+The primary input consists of daily sea-ice concentration GeoTIFF products provided through the configured NSIDC/NOAA data archive.
 
-The files are obtained from the NSIDC/NOAA data source and contain sea-ice concentration on a regular raster grid.
+The downloader accesses the remote archive and compares available observations with the locally available dataset.
 
-Each raster cell represents an area of:
-**625 km²**
-corresponding to the 25 km × 25 km spatial resolution used by the product.
+The acquisition process supports:
 
-The daily files are treated as independent observations. The processing pipeline determines which observations are available and processes only newly available data during incremental updates.
+* inspection of available remote observations,
+* comparison with local files,
+* incremental download of missing observations,
+* recognition of equivalent product-version filenames,
+* optional removal of temporary downloaded GeoTIFF files.
 
----
-
-## 2. Sea-ice concentration encoding
-
-Sea-ice concentration values are stored as integer values on a scale from 0 to 1000 for valid concentration measurements.
-
-The concentration is interpreted as:
-
-|        Stored value | Interpretation                                            |
-| ------------------: | --------------------------------------------------------- |
-|                 `0` | 0% sea-ice concentration                                  |
-|              `1000` | 100% sea-ice concentration                                |
-|            `0–1000` | valid concentration range                                 |
-|              `2550` | missing data                                              |
-| values above `1000` | non-water / special values and excluded from the analysis |
-
-The analysis therefore treats values in the interval
-
-`0 <= concentration <= 1000`
-
-as valid water-related concentration values.
-
-Values above `1000` are not included in the regional coverage calculations.
+The downloaded GeoTIFF files are treated as processing inputs. They are not part of the persistent analytical result dataset.
 
 ---
 
-## 3. Missing data
+## 3. Concentration Encoding
 
-The value `2550` is explicitly treated as a missing-data marker.
+The current processing assumes the product encoding documented by the configured NSIDC dataset.
 
-Missing data are handled differently during reference generation and daily analysis.
+The principal concentration range is:
 
-### Reference data
+```text
+0–1000
+```
 
-The reference GeoTIFF must not contain any `2550` values.
+corresponding to:
 
-If missing pixels are detected anywhere in the reference raster, reference generation is aborted.
+```text
+0–100 %
+```
 
-This ensures that the reference masks are generated from a spatially complete reference raster.
+The current implementation uses the following special-value interpretation:
 
-The reference GeoTIFF is not selected as part of each processing run.
-It is a fixed project-level reference dataset selected during initial
-project setup and subsequently stored under src/config/reference.tif.
+|  Value | Interpretation      |
+| -----: | ------------------- |
+| 0–1000 | Valid concentration |
+|   2510 | Pole hole           |
+|   2530 | Coast               |
+|   2540 | Land                |
+|   2550 | Missing data        |
 
-### Daily observations
+Values above `1000` are excluded from numerical concentration processing.
 
-For daily regional analysis, the predefined reference masks identify the pixels belonging to each region.
-
-If any of these pixels contains the missing-data value `2550`, the corresponding region/day is not included in the analysis.
-
-The region is skipped rather than replacing the missing value by an estimate.
-
-This preserves the distinction between an unavailable observation and an observed concentration value.
+The explicit special-value encoding is retained as part of the input-data assumptions rather than replacing it with generic `NaN` semantics at the source-data level.
 
 ---
 
-## 4. Reference GeoTIFF
+## 4. Raster Characteristics
 
-A dedicated GeoTIFF is used as the spatial reference for the regional analysis:
+The current analysis operates on a 25 km sea-ice concentration raster grid.
+
+The configured pixel area is:
+
+```text
+25 km × 25 km = 625 km²
+```
+
+The analysis uses the raster grid as the common spatial reference for the regional masks and daily observations.
+
+---
+
+## 5. Spatial Reference Dataset
+
+A fixed reference GeoTIFF is stored at:
 
 ```text
 src/config/reference.tif
 ```
 
-The reference raster is used to:
+This reference dataset provides the raster grid used to construct the persistent regional masks.
 
-* establish the spatial grid,
-* identify valid water pixels,
-* construct the region masks,
-* determine the fixed reference water area of each region.
+The reference processing identifies the spatial characteristics required for subsequent daily analysis and generates reusable reference products below:
 
-The reference raster is therefore part of the methodological definition of the regional analysis rather than merely an auxiliary visualization input.
+```text
+output/reference/
+```
+
+The reference configuration is therefore separated from the individual daily observations.
 
 ---
 
-## 5. Region definitions
+## 6. Regional Configuration
 
-The analysis regions are defined in:
+The spatial analysis regions are defined separately from the analysis implementation in:
 
 ```text
 src/config/regions.json
 ```
 
-The current regions are:
+The current configured regions are:
 
 * Hudson Bay
 * Gulf of Boothia
 * Foxe Basin
 * Hudson Strait
-* overall analysis region
+* Hudson Bay Area
 
-Region polygons are provided as geographic coordinates.
+The exact polygon definitions are maintained by the configuration rather than being embedded directly in the analysis code.
 
-The input coordinates may use a longitude convention in which longitudes exceed 180°. During reference generation, longitudes greater than 180° are converted to the corresponding range between −180° and +180°.
+The regions are processed using the same raster reference grid.
 
-For example:
-
-```text
-longitude > 180°
-        ↓
-longitude - 360°
-```
-
-This conversion provides a consistent coordinate convention for the spatial analysis.
+Interactive region selection and arbitrary user-defined regions are not part of the v0.1 implementation.
 
 ---
 
-## 6. Coordinate reference systems
+## 7. Coordinate Reference Systems
 
-The current implementation assumes the raster grid uses:
+The daily sea-ice raster is processed using the configured NSIDC polar stereographic coordinate system:
 
 ```text
 EPSG:3411
 ```
 
-This CRS is used when transforming raster pixel-center coordinates to geographic coordinates for region assignment.
+Region geometries are represented in geographic coordinates and transformed to the raster coordinate system for spatial processing.
 
-The region polygons themselves are interpreted as:
+Longitude values supplied in the 0–360° representation are normalized to the conventional -180–180° range where required by the spatial processing.
 
-```text
-EPSG:4326
-```
-
-The current implementation uses these CRS definitions explicitly rather than deriving them dynamically from the GeoTIFF metadata.
+The current implementation uses explicit CRS assumptions rather than dynamically deriving a new analysis projection for each observation.
 
 ---
 
-## 7. Reference water area
+## 8. Reference Water Area
 
-For each analysis region, the reference processing determines the number of valid water pixels.
+The reference processing determines the water pixels belonging to each configured region.
 
-The water mask is defined by:
+For every region, the number of selected water pixels is stored together with the corresponding fixed area:
 
-```text
-0 <= concentration <= 1000
-```
+$$
+A_{\mathrm{water}}
+=
+N_{\mathrm{water}}
+\cdot
+625\ \mathrm{km^2}
+$$
 
-The resulting number of water pixels is multiplied by the fixed pixel area:
-
-```text
-625 km²
-```
-
-This produces the reference water area used as the denominator for subsequent daily coverage calculations.
-
-The reference summary is stored in:
+The reference information is retained below:
 
 ```text
-output/reference/reference_summary.json
+output/reference/
 ```
 
-The summary contains, among other values:
+and can be reused for subsequent daily processing.
 
-* number of polygon pixels,
-* number of reference water pixels,
-* pixel area,
+---
+
+## 9. Reference Summary
+
+The reference-processing stage generates summary information describing the spatial reference configuration.
+
+The reference summary contains quantities such as:
+
+* polygon pixel count,
+* water-pixel count,
+* configured pixel area,
 * reference water area,
-* Natural Earth water-area comparison,
-* absolute and relative area differences.
+* comparison with Natural Earth water-area information,
+* absolute area differences,
+* relative area differences.
+
+The Natural Earth comparison is used as an external plausibility check of the spatial reference definition.
+
+Natural Earth is not used as the operational daily water mask.
 
 ---
 
-## 8. Spatial reference validation
+## 10. Persistent and Temporary Data
 
-The reference water area is additionally compared with a water-area estimate derived from Natural Earth ocean data.
+The project distinguishes between temporary input data and persistent analytical products.
 
-Natural Earth is used only for this reference comparison.
-
-It does **not** define the daily analysis masks or daily sea-ice coverage.
-
-The comparison provides an independent spatial plausibility check on the reference area represented by the raster grid.
-
-The comparison values are stored in `reference_summary.json`.
-
----
-
-## 9. Incremental input processing
-
-The daily update pipeline does not require all historical GeoTIFF files to remain permanently available.
-
-The GeoTIFF observations can be treated as temporary processing inputs.
-
-The persistent analytical state is represented by the generated result files, including:
+Temporary daily GeoTIFF files are stored under:
 
 ```text
-output/analysis/ice_coverage_summary.csv
+data/geotiff/
 ```
 
-During an update, the pipeline determines the latest processed observation and processes subsequent available observations.
+Persistent analytical results are stored under:
 
-This allows the historical analysis to be extended without reprocessing the complete input archive during every update.
+```text
+output/analysis/
+```
 
----
+Persistent spatial reference products are stored under:
 
-## 10. Methodological assumptions
+```text
+output/reference/
+```
 
-The current implementation relies on the following assumptions:
+Generated visualizations are stored under:
 
-1. Daily input GeoTIFFs use the expected spatial grid.
-2. The raster grid is compatible with the reference masks.
-3. The raster encoding uses the documented concentration and special-value scheme.
-4. The reference raster is spatially complete.
-5. Each analysis region can be represented by its predefined polygon.
-6. Each valid reference water pixel represents 625 km².
-7. The fixed reference water area is an appropriate denominator for the regional coverage metrics.
+```text
+output/plots/
+```
 
-These assumptions are currently enforced partly through implementation checks and partly through the structure of the processing pipeline.
-
-Systematic automated validation of all assumptions is part of the planned quality-assurance work for v0.2.
+The raw GeoTIFF archive is therefore not required to reproduce the derived result files after successful processing, although retaining the raw inputs can be useful for inspection and debugging.
 
 ---
 
-## 11. Outputs relevant to subsequent analysis
+## 11. Input Assumptions
 
-The spatial processing stage produces persistent regional observations containing:
+The v0.1 processing relies on the following assumptions:
 
-* observation date,
-* region,
-* reference water-pixel count,
-* reference water area,
-* absolute ice area,
-* relative ice area,
-* absolute coverage,
-* relative coverage,
-* missing-pixel status.
+* observations use the expected raster grid,
+* concentration values follow the configured 0–1000 encoding,
+* special values use the expected product codes,
+* the raster uses the expected spatial reference,
+* the configured polygons represent the intended analysis regions,
+* the fixed pixel-area assumption is appropriate for the current analysis,
+* the reference water mask remains applicable to subsequent observations.
 
-These results form the input to the subsequent temporal analysis.
+These assumptions define the current processing contract.
 
 ---
 
-## 12. Scope of this methodology
+## 12. Current Validation Scope
 
-This document describes the input data and their interpretation within the current pipeline.
+The current implementation contains processing-time consistency checks, particularly for the validity of selected regional water pixels.
 
-It does not define:
+A more comprehensive input-data validation layer covering all raster metadata and scientific assumptions is planned as a future quality expansion.
 
-* the spatial polygon-to-raster procedure,
-* the detailed coverage metrics,
-* temporal interpolation,
-* climatology,
-* anomaly calculation,
-* threshold-event detection.
-
-These topics are described in the corresponding methodology documents.
+Therefore, v0.1 should be understood as an implementation with explicit input assumptions and selected validation checks, rather than as a fully formalized scientific data-validation framework.

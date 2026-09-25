@@ -1,273 +1,243 @@
 # Coverage Metrics
 
-## Purpose
+## 1. Purpose
 
-This document defines the sea-ice coverage metrics calculated for each analysis region and observation date.
+This document defines the sea-ice coverage metrics calculated by the `hudson_bay_sea_ice` analysis pipeline.
 
-The current implementation distinguishes between absolute and relative sea-ice coverage.
+The metrics are calculated independently for each configured spatial region and observation date. They distinguish between a binary, threshold-based ice coverage and a concentration-weighted ice coverage.
 
-Both metrics use the same spatial reference area and the same pixel-level sea-ice detection threshold.
+The current implementation uses the regional water area derived from a fixed spatial reference dataset as the denominator for the reported coverage percentages.
 
 ---
 
-## 1. Input data
+## 2. Input Concentration Values
 
-For every region, `RegionAnalyzer` extracts the concentration values corresponding to the persistent reference water mask.
+The NSIDC sea-ice concentration product stores concentration values on a scaled integer representation.
 
-Only values in the valid concentration range
+The current implementation treats values in the range
 
 ```text
-0 <= concentration <= 1000
+0–1000
 ```
 
-are considered valid water observations.
+as valid sea-ice concentration values.
 
-The special value:
+The physical concentration is obtained by dividing the stored value by `1000`.
+
+Values above `1000` represent special or non-concentration classifications and are not treated as valid concentration values during regional analysis.
+
+The value
 
 ```text
 2550
 ```
 
-is treated as missing data.
+represents missing data.
 
-If a missing value is present in the selected region, the complete region/day is skipped.
+If a missing value occurs within the selected reference water pixels of a daily observation, the corresponding region/day is rejected rather than being evaluated using a partially available water mask.
 
 ---
 
-## 2. Pixel-level sea-ice detection threshold
+## 3. Pixel Detection Threshold
 
-A concentration threshold of:
+A water pixel is classified as ice-covered when its sea-ice concentration reaches the configured pixel detection threshold.
+
+The current threshold is:
 
 ```text
-150 = 15%
+150 / 1000 = 0.15 = 15 %
 ```
 
-is used to identify sea-ice-covered pixels.
+Thus:
 
-The current implementation uses:
-
-```python
-ice = water >= 150
+```text
+ice pixel = concentration >= 15 %
 ```
 
-Therefore, a concentration of exactly 15% is classified as ice-covered.
+This threshold is used for the calculation of the binary absolute ice area.
 
-This threshold is the **pixel-level detection threshold** used for the coverage metrics.
-
-It is distinct from the seasonal event thresholds of 10%, 50%, and 90%, which are used only for break-up and freeze-up detection.
+It is distinct from the seasonal event thresholds of 10 %, 50 % and 90 %. The 15 % threshold is applied at pixel level, whereas the 10/50/90 % thresholds are applied to regional coverage time series.
 
 ---
 
-## 3. Absolute ice area
+## 4. Spatial Resolution and Pixel Area
 
-The absolute ice area counts all pixels whose concentration is at least 15%.
+The analysis uses a 25 km × 25 km raster grid.
 
-Each detected ice pixel contributes its full pixel area:
+For the current implementation, one raster cell is assigned an area of:
 
 ```text
 625 km²
 ```
 
-The calculation is therefore:
+This fixed pixel area is used for all regional area calculations.
 
-```text
-absolute ice area
-=
-number of pixels with concentration >= 15%
-× 625 km²
-```
+The implementation therefore assumes that a selected raster cell contributes its complete configured pixel area to the corresponding regional area.
 
-A pixel with a concentration of 15% contributes the same full pixel area as a pixel with a concentration of 100%.
-
-The metric therefore represents the spatial extent of pixels meeting the detection threshold rather than concentration-weighted ice area.
+No partial pixel-area weighting is currently applied at polygon boundaries.
 
 ---
 
-## 4. Relative ice area
+## 5. Absolute Ice Area
 
-The relative ice-area calculation uses the concentration of each detected ice pixel.
+The absolute ice area uses a binary classification of the water pixels.
 
-Only pixels satisfying:
+For every selected water pixel:
 
-```text
-concentration >= 15%
-```
+* concentration below 15 % → `0 km²`
+* concentration of at least 15 % → `625 km²`
 
-contribute to the sum.
+The absolute ice area is therefore:
 
-For each such pixel:
-
-```text
-ice area contribution
+$$
+A_{\mathrm{absolute}}
 =
-concentration / 1000 × 625 km²
-```
+N_{\mathrm{ice}}
+\cdot
+625\ \mathrm{km^2}
+$$
 
-The total relative ice area is therefore:
+where \(N_{\mathrm{ice}}\) is the number of selected water pixels with a concentration of at least 15 %.
 
-```text
-relative ice area
-=
-Σ(concentration / 1000 × 625 km²)
-```
-
-where the sum is taken only over pixels meeting the 15% detection threshold.
-
-Sub-threshold pixels are not included in this sum.
-
-This is therefore **not** equivalent to taking the simple mean concentration over all water pixels.
+This metric represents the area of pixels classified as ice-covered according to the configured detection threshold.
 
 ---
 
-## 5. Reference water area
+## 6. Relative Ice Area
 
-Both coverage metrics use the fixed reference water area calculated during reference generation.
+The relative ice area uses the measured sea-ice concentration as an area weighting factor.
+
+For an individual pixel:
+
+$$
+A_{\mathrm{ice,pixel}}
+=
+\frac{C}{1000}
+\cdot
+625\ \mathrm{km^2}
+$$
+
+where \(C\) is the stored concentration value.
+
+The regional relative ice area is therefore the sum of the concentration-weighted contributions of the selected water pixels.
+
+In the current implementation, only pixels meeting the 15 % pixel detection threshold contribute to this calculation.
+
+The metric therefore does not represent the arithmetic mean concentration over all water pixels. It represents a concentration-weighted ice-covered area based on the configured pixel classification.
+
+---
+
+## 7. Reference Water Area
+
+The reference water area is derived from the fixed spatial reference dataset.
 
 For each region:
 
-```text
-reference water area
+$$
+A_{\mathrm{water}}
 =
-reference water pixels × 625 km²
-```
+N_{\mathrm{water}}
+\cdot
+625\ \mathrm{km^2}
+$$
 
-The value is stored in:
+where \(N_{\mathrm{water}}\) is the number of water pixels contained in the reusable regional reference mask.
 
-```text
-output/reference/reference_summary.json
-```
+This denominator remains fixed for subsequent daily observations.
 
-and subsequently loaded by `RegionAnalyzer`.
-
-The denominator is therefore fixed across the time series.
+The daily processing additionally verifies that the number of valid selected water pixels agrees with the reference configuration.
 
 ---
 
-## 6. Absolute coverage
+## 8. Absolute Coverage
 
-Absolute coverage is calculated as:
+Absolute coverage is the fraction of the reference water area classified as ice-covered:
 
-```text
-absolute coverage
+$$
+\mathrm{Coverage}_{\mathrm{absolute}}
 =
-absolute ice area
-/
-reference water area
-× 100
-```
+\frac{A_{\mathrm{absolute}}}
+{A_{\mathrm{water}}}
+\cdot 100
+$$
 
-This metric describes the fraction of the predefined reference water area occupied by pixels that meet the 15% sea-ice detection threshold.
+The resulting value is reported as a percentage.
 
 ---
 
-## 7. Relative coverage
+## 9. Relative Coverage
 
-Relative coverage is calculated as:
+Relative coverage is calculated from the concentration-weighted ice area:
 
-```text
-relative coverage
+$$
+\mathrm{Coverage}_{\mathrm{relative}}
 =
-relative ice area
-/
-reference water area
-× 100
-```
+\frac{A_{\mathrm{relative}}}
+{A_{\mathrm{water}}}
+\cdot 100
+$$
 
-Because the numerator is concentration-weighted, the metric accounts for the concentration of the detected ice pixels.
+The metric accounts for the fractional sea-ice concentration of the selected pixels rather than treating every detected pixel as completely ice-covered.
 
-A pixel with 100% concentration contributes 625 km² to the numerator, while a pixel with 50% concentration contributes 312.5 km².
-
-Pixels below the 15% detection threshold do not contribute.
+Under the current definitions, the relative coverage is expected to be less than or equal to the absolute coverage because the latter assigns the full pixel area to every pixel exceeding the 15 % detection threshold.
 
 ---
 
-## 8. Interpretation
+## 10. Quality Checks
 
-The two metrics describe different aspects of sea-ice conditions.
+Before a daily regional result is accepted, the current analysis performs consistency checks including:
 
-### Absolute coverage
+* detection of missing values within the selected reference water pixels,
+* comparison of the current valid water-pixel count with the reference water-pixel count.
 
-Measures the spatial extent of pixels classified as ice-covered according to the 15% detection threshold.
+If these checks fail, the corresponding regional observation is skipped.
 
-### Relative coverage
-
-Measures the concentration-weighted ice area within the same fixed reference water domain.
-
-The relative metric is therefore sensitive not only to how many pixels are classified as ice-covered but also to the concentration within those pixels.
+The resulting dataset records the relevant area and coverage quantities together with the associated water-pixel information.
 
 ---
 
-## 9. Relationship between the metrics
+## 11. Stored Metrics
 
-For the same observation:
+The persistent daily analysis contains the quantities required to reconstruct and interpret the coverage calculation, including:
 
 ```text
-relative coverage <= absolute coverage
+water_pixels
+water_area_km2
+absolute_ice_area_km2
+relative_ice_area_km2
+absolute_coverage_percent
+relative_coverage_percent
+missing_pixels
 ```
 
-is generally expected because the relative metric weights each detected pixel by its concentration, which is at most 100%.
-
-The two metrics become similar when most detected pixels have high concentration.
-
-They diverge more strongly when a substantial fraction of detected pixels has concentrations close to the 15% threshold.
+These values form the basis for the subsequent temporal analysis.
 
 ---
 
-## 10. Quality checks
+## 12. Distinction Between Thresholds
 
-Before calculating coverage, the implementation checks that:
+Three different concepts must be distinguished:
 
-1. no selected reference pixel contains the missing-data value `2550`;
-2. the number of valid water pixels agrees with the reference value.
+| Threshold        | Purpose                                     |
+| ---------------- | ------------------------------------------- |
+| 15 %             | Pixel-level ice detection                   |
+| 10 %, 50 %, 90 % | Regional seasonal event detection           |
+| 7 days           | Persistence requirement for seasonal events |
 
-If either condition fails, the region/day is skipped.
-
-This prevents a partial daily observation from silently changing the effective spatial denominator.
-
----
-
-## 11. Output fields
-
-For every successfully processed region/day, the analysis stores:
-
-* `water_pixels`
-* `water_area_km2`
-* `absolute_ice_area_km2`
-* `relative_ice_area_km2`
-* `absolute_coverage_percent`
-* `relative_coverage_percent`
-* `missing_pixels`
-
-The date and region are stored alongside these metrics.
-
-The resulting observations form the persistent input for the temporal analysis.
+The thresholds therefore operate at different levels of the analysis and must not be interpreted interchangeably.
 
 ---
 
-## 12. Threshold terminology
+## 13. Current Limitations
 
-The following thresholds must be kept conceptually separate:
+The v0.1 implementation uses a fixed spatial representation and fixed reference water area.
 
-| Threshold                       | Current value | Purpose                                             |
-| ------------------------------- | ------------: | --------------------------------------------------- |
-| Pixel detection threshold       |           15% | Classifies pixels as ice for coverage metrics       |
-| Break-up / freeze-up thresholds | 10%, 50%, 90% | Defines seasonal event levels                       |
-| Event persistence               |        7 days | Prevents short-lived crossings from defining events |
-| Moving-average window           |       ±3 days | Smoothing for temporal visualization/analysis       |
+It does not currently account for:
 
-Changing one of these parameters does not automatically imply changing the others.
+* partial pixel intersections at region boundaries,
+* dynamically changing water areas,
+* spatially varying pixel areas,
+* uncertainty propagation,
+* uncertainty in the underlying sea-ice concentration product.
 
----
-
-## 13. Methodological scope
-
-The current coverage metrics use a fixed reference water area and a fixed pixel area.
-
-They do not currently account for:
-
-* fractional pixel intersection at region boundaries,
-* dynamic daily water-area changes,
-* uncertainty estimates of the satellite product,
-* concentration uncertainty propagation.
-
-These topics are outside the current v0.1 implementation.
+The calculated metrics should therefore be interpreted as results of the defined raster-based methodology rather than as an exact geometrical reconstruction of the physical coastline or water area.

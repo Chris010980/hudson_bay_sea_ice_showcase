@@ -1,312 +1,236 @@
 # Spatial Processing
 
-## Purpose
+## 1. Purpose
 
-This document describes how the raster data are spatially assigned to the predefined analysis regions and how the reference water areas are established.
+This document describes how the `hudson_bay_sea_ice` pipeline converts the configured geographic regions into reusable raster masks and applies those masks to daily sea-ice concentration observations.
 
-The methodology reflects the current implementation of v0.1.
+The central design principle is that the spatial reference is prepared once and reused during daily processing.
 
 ---
 
-## 1. Spatial analysis concept
+## 2. Reference-Based Processing
 
-The daily sea-ice concentration data are provided on a regular raster grid.
-
-The project does not dynamically rasterize the region polygons for every daily observation. Instead, a dedicated reference processing step creates reusable pixel masks for each analysis region.
-
-The resulting masks are subsequently applied to every daily GeoTIFF.
-
-The workflow is therefore:
+The spatial workflow consists of two principal stages:
 
 ```text
-Reference GeoTIFF
-       ↓
-Region polygons
-       ↓
-Pixel-center coordinates
-       ↓
-Point-in-polygon test
-       ↓
-Water-pixel mask
-       ↓
-Reusable region mask
-       ↓
-Daily GeoTIFF analysis
+Reference preparation
+        ↓
+Reusable regional masks
+        ↓
+Daily raster analysis
 ```
 
-This separates the spatial definition of the analysis regions from the processing of individual observations.
+The polygon geometry is therefore not evaluated against every daily raster independently.
+
+Instead, the reference-processing stage creates persistent masks describing which raster cells belong to each configured analysis region.
 
 ---
 
-## 2. Coordinate transformation
+## 3. Spatial Reference Grid
 
-The reference raster is assumed to use:
+The fixed reference raster is:
+
+```text
+src/config/reference.tif
+```
+
+It establishes the raster grid used for regional analysis.
+
+The regional masks generated from this grid are stored below:
+
+```text
+output/reference/
+```
+
+The same reference grid is subsequently assumed for daily sea-ice concentration observations.
+
+---
+
+## 4. Coordinate Transformation
+
+The raster reference grid is processed in the configured NSIDC polar stereographic CRS:
 
 ```text
 EPSG:3411
 ```
 
-For every raster cell, the center coordinate is calculated from the raster transform.
+Region geometries are transformed from geographic coordinates to the raster coordinate system using a coordinate transformation based on `pyproj`.
 
-The raster coordinates are then transformed to geographic coordinates:
+The transformation is performed explicitly using the configured coordinate reference systems.
 
-```text
-EPSG:3411 → EPSG:4326
-```
-
-The transformation uses `pyproj.Transformer` with `always_xy=True`.
-
-The resulting longitude/latitude coordinates are used for comparison with the region polygons.
+Longitude values represented in a 0–360° system are normalized to the -180–180° representation where required.
 
 ---
 
-## 3. Region polygons
+## 5. Pixel-Center Representation
 
-The region definitions are stored in:
+The current reference implementation evaluates the position of raster-cell centers relative to the configured region polygons.
+
+The relevant pixel-center coordinates are transformed into geographic coordinates for the polygon test.
+
+The polygon membership test uses:
 
 ```text
-src/config/regions.json
-```
-
-Each region contains a polygon defined by geographic coordinates.
-
-Before the polygons are used, longitudes greater than 180° are converted to the corresponding negative longitude:
-
-```python
-coords[:, 0] = np.where(
-    coords[:, 0] > 180,
-    coords[:, 0] - 360,
-    coords[:, 0],
-)
-```
-
-This converts a possible 0–360° longitude convention to the −180–180° convention used by the geographic coordinates generated from the raster.
-
----
-
-## 4. Pixel-center point-in-polygon method
-
-The current implementation assigns raster cells to a region based on the location of their center point.
-
-For every raster cell:
-
-1. calculate the cell center,
-2. transform the center to longitude/latitude,
-3. test whether the point lies inside the region polygon.
-
-The implementation uses:
-
-```python
 matplotlib.path.Path.contains_points()
 ```
 
-The method therefore represents a **pixel-center point-in-polygon classification**.
-
-It is not equivalent to a polygon rasterization or an area-weighted intersection between raster cells and polygons.
-
-Consequently, a pixel is either included or excluded as a complete 625 km² cell.
-
-Partial pixel coverage at polygon boundaries is not represented.
+A raster cell is therefore classified according to whether its center lies inside the region geometry.
 
 ---
 
-## 5. Region mask construction
+## 6. Raster Mask Generation
 
-For every region, the polygon mask is first generated from the pixel-center test.
+For each configured region, the reference-processing stage determines:
 
-The number of pixels inside the polygon is recorded as:
+1. the raster pixels whose centers fall within the region polygon,
+2. the subset corresponding to valid water pixels,
+3. the number of selected pixels,
+4. the corresponding reference water area.
 
-```text
-polygon_pixels
-```
+The resulting masks are stored as reusable flattened raster indices.
 
-The polygon mask is then combined with the valid-water condition:
-
-```text
-0 <= concentration <= 1000
-```
-
-This produces the water mask used for the regional analysis.
-
-The resulting number of valid reference water pixels is recorded as:
+A typical mask has the form:
 
 ```text
-water_pixels
+output/reference/filters/<region>_water.npy
 ```
+
+The use of flattened indices allows the daily analyzer to access only the relevant raster values.
 
 ---
 
-## 6. Fixed pixel area
+## 7. Daily Mask Application
 
-Each valid raster cell is assigned an area of:
+For a daily GeoTIFF, the `RegionAnalyzer` loads the corresponding regional water mask and extracts the selected raster values.
 
-```text
-625 km²
-```
-
-The reference water area is therefore calculated as:
+Conceptually, the operation is:
 
 ```text
-water_pixels × 625 km²
+daily raster
+     ↓
+flatten raster
+     ↓
+apply stored water-pixel indices
+     ↓
+regional concentration values
 ```
 
-This value is stored as:
-
-```text
-water_area_pixel_km2
-```
-
-and is subsequently used as the fixed denominator for daily regional coverage calculations.
-
-The daily denominator is therefore not recalculated from each individual observation.
+This avoids repeating the polygon-to-raster conversion for every daily observation.
 
 ---
 
-## 7. Persistent reference masks
+## 8. Validity Checks
 
-The generated masks are stored as NumPy arrays:
+After applying a regional mask, the daily analyzer checks the selected values before calculating the regional statistics.
 
-```text
-output/reference/filters/
-```
+In particular:
 
-Each region receives a file of the form:
+* missing value `2550` within the selected region causes the region/day to be rejected;
+* the number of valid selected water pixels must agree with the reference configuration.
 
-```text
-<region>_water.npy
-```
-
-The stored values are flattened raster indices.
-
-For a daily observation, these indices can therefore be applied directly to the flattened raster:
-
-```python
-values = self.band.flat[indices]
-```
-
-This avoids repeating the geometric region calculation for every daily observation.
+This ensures that the daily observation is evaluated against the same spatial denominator as the reference dataset.
 
 ---
 
-## 8. Reference summary
+## 9. Pixel Classification
 
-The reference-processing stage writes:
+The current regional analysis uses the concentration values of the selected water pixels.
+
+The configured pixel-level detection threshold is:
 
 ```text
-output/reference/reference_summary.json
+15 %
 ```
 
-For each region, the summary contains values including:
+or:
 
-* polygon pixel count,
-* water pixel count,
-* pixel area,
-* reference water area,
-* Natural Earth water area,
-* absolute area difference,
-* relative area difference.
+```text
+150
+```
 
-The summary is subsequently loaded by `RegionAnalyzer`.
+on the original 0–1000 concentration scale.
+
+Pixels below this threshold do not contribute to the binary absolute ice area.
+
+Pixels at or above this threshold contribute their complete configured pixel area to the absolute ice area.
+
+Their fractional concentration is additionally used for the relative ice-area calculation.
 
 ---
 
-## 9. Natural Earth comparison
+## 10. Polygon Boundary Treatment
 
-An independent water-area comparison is performed using Natural Earth ocean geometry.
+The current implementation uses pixel-center inclusion.
 
-For each region, the region polygon is intersected with the Natural Earth ocean dataset.
+It does not calculate the exact geometrical intersection between a raster cell and a polygon boundary.
 
-The resulting geometry is transformed to:
+Consequently, a boundary pixel is either fully included or fully excluded.
+
+No fractional boundary weighting is applied.
+
+This is an explicit characteristic of the v0.1 raster-mask methodology.
+
+---
+
+## 11. Reference Area Validation
+
+The reference-processing stage calculates regional spatial quantities that can be compared with an independent geographic reference.
+
+Natural Earth water/ocean geometry is used for this purpose.
+
+For the comparison, the relevant geometries are transformed to an equal-area projection:
 
 ```text
 EPSG:6933
 ```
 
-and its area is calculated in square kilometres.
+and their areas are calculated in square kilometres.
 
-This value is stored as:
+The resulting Natural Earth area is used as a plausibility reference.
+
+It does not replace the operational raster-based water mask.
+
+---
+
+## 12. Fixed Spatial Denominator
+
+The operational analysis uses a fixed reference water area.
+
+The daily water area is therefore not dynamically reconstructed from the individual sea-ice raster.
+
+This provides a consistent denominator across the historical time series but also means that changes in the effective coastline or water mask are not represented dynamically.
+
+---
+
+## 13. Spatial Outputs
+
+The reference-processing stage produces reusable spatial products below:
 
 ```text
-naturalearth_water_area_km2
+output/reference/
 ```
 
-The difference between the raster-derived reference area and the Natural Earth area is also stored.
+These include regional masks and reference metadata required by the daily analyzer.
 
-The Natural Earth result is therefore a reference comparison rather than the source of the operational daily water mask.
+The daily analysis results are stored separately below:
 
----
-
-## 10. Daily application of the masks
-
-During daily analysis, `RegionAnalyzer` loads the reference mask for each region and extracts the corresponding raster values.
-
-For example:
-
-```python
-indices = np.load(
-    self.filter_dir / f"{region_name}_water.npy"
-)
-
-values = self.band.flat[indices]
+```text
+output/analysis/
 ```
 
-The daily values are then checked against the reference expectations.
-
-A region/day is rejected if:
-
-* one or more selected pixels contains `2550`, or
-* the number of valid water pixels differs from the reference water-pixel count.
-
-This ensures that the daily calculation is performed only when the expected spatial set of valid water pixels is available.
+This separation distinguishes spatial reference products from observation-specific analytical results.
 
 ---
 
-## 11. Spatial consistency
+## 14. Current Limitations
 
-The reference masks establish a fixed spatial basis for the entire time series.
+The v0.1 spatial methodology does not currently include:
 
-This has two important consequences:
+* partial-pixel polygon intersection,
+* dynamic water masks,
+* dynamic coastline information,
+* spatial uncertainty propagation,
+* area weighting beyond the fixed 625 km² pixel assumption,
+* arbitrary user-defined regions at runtime.
 
-### Fixed spatial domain
-
-The same raster cells are used for a region on every day.
-
-### Fixed reference denominator
-
-The same reference water area is used as the denominator for daily coverage.
-
-Consequently, temporal changes in the resulting coverage values represent changes in the sea-ice concentration of the predefined spatial domain rather than changes in the spatial definition of the region.
-
----
-
-## 12. Current methodological limitations
-
-The current implementation has several documented characteristics that should be considered when interpreting the results:
-
-* the raster CRS is assumed to be EPSG:3411 rather than read dynamically from the file;
-* region assignment is based on pixel centers;
-* boundary pixels are not area-weighted;
-* every included pixel contributes its full 625 km²;
-* the reference mask is based on one reference GeoTIFF;
-* reference-mask consistency is checked by expected pixel count, but the source raster/grid identity is not comprehensively validated.
-
-These are methodological and implementation characteristics of v0.1. They should not be interpreted as evidence that the pipeline is untested; the pipeline has been operationally exercised and its outputs have been inspected during development.
-
-More systematic validation of these assumptions is planned for v0.2.
-
----
-
-## 13. Scope of this methodology
-
-This document defines the spatial processing required to establish and apply the regional masks.
-
-It does not define:
-
-* sea-ice coverage metrics,
-* temporal interpolation,
-* climatology,
-* anomaly calculation,
-* annual statistics,
-* seasonal threshold events.
-
-These are described in the corresponding methodology documents.
+The method is therefore intentionally based on a fixed raster reference and reusable binary spatial masks.

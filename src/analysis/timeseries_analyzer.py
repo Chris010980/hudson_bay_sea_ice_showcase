@@ -74,7 +74,7 @@ class TimeSeriesAnalyzer:
         self.yearly_df = pd.DataFrame()
         self.events_df = pd.DataFrame()
 
-        self.threshold_persistence = 3
+        self.threshold_persistence = 7
 
     # ---------------------------------------------------------
     # public API
