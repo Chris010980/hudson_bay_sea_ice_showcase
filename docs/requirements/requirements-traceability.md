@@ -392,60 +392,21 @@ The version column separately records the relevant implementation or verificatio
 
 ## 6. Current Baseline
 
-The current project has been practically exercised through regular operation of the processing pipeline.
+The current v0.1 baseline represents an implemented and operationally exercised version of the system.
 
-This provides operational evidence for a substantial part of the implemented functionality. The software has therefore been exercised in realistic processing runs rather than remaining purely theoretical or unexecuted.
+The pipeline has been executed repeatedly in its intended operational workflow, including data acquisition, spatial processing, temporal analysis, visualization, and website generation. This provides practical operational evidence for the implemented functionality.
 
-This operational experience is deliberately distinguished from systematic automated verification.
+However, operational execution is not considered equivalent to systematic automated verification. The repository contains pytest-based test infrastructure, but the currently existing tests originate from an earlier implementation phase and no longer match the current software interfaces. They are therefore not considered valid automated verification of the current implementation.
 
-The current automated test suite is limited to the GeoTIFF visualization component:
+Consequently, requirements shall distinguish between:
 
-```text
-tests/
-└── test_visualization_geotiff.py
-```
+* **implemented** – the required functionality exists in the current implementation,
+* **operationally exercised** – the functionality has been exercised through the operational pipeline,
+* **automatically verified** – the functionality is covered by valid automated tests or automated validation,
+* **partially implemented / verified** – only part of the requirement is currently fulfilled,
+* **planned** – the requirement is intentionally assigned to a later development phase.
 
-The existing tests verify:
-
-* handling of invalid values during plot preparation,
-* normalization of concentration values,
-* successful generation of a GeoTIFF plot output.
-
-This provides initial automated verification evidence for the visualization subsystem.
-
-The current suite does not yet systematically verify:
-
-* regional sea-ice coverage calculations,
-* persistent result management,
-* temporal interpolation,
-* climatological statistics,
-* anomaly calculations,
-* annual statistics,
-* threshold-event detection,
-* incremental pipeline behavior,
-* output consistency,
-* website generation,
-* or the complete end-to-end update process.
-
-The current baseline should therefore be described as:
-
-```text
-Implemented and operationally exercised
-```
-
-rather than:
-
-```text
-Untested
-```
-
-and also not as:
-
-```text
-Comprehensively verified
-```
-
-This distinction is central to the transition from v0.1 to v0.2.
+The v0.1 baseline therefore provides substantial implementation and operational evidence, but does not claim comprehensive automated verification.
 
 ---
 
@@ -511,32 +472,24 @@ In particular, `defined` does not mean that the requirement is unimportant or po
 
 ## 9. Test Traceability
 
-Tests should reference the requirement or behavior they verify where this improves traceability.
+Test traceability links requirements to automated verification where valid tests exist.
 
-For example:
+The existing test files from the early development phase are not considered part of the valid v0.1 verification baseline because their tested interfaces no longer correspond to the current implementation.
 
-```python
-def test_threshold_crossing_requires_persistence():
-    """Verify FR-10: threshold crossings require persistence."""
-```
+In particular, tests that depend on obsolete functions or interfaces shall not be adapted solely to restore a passing test result. Such tests are treated as obsolete and are replaced by tests derived from the current software interfaces and requirements.
 
-The exact mechanism used to associate tests with requirements may include:
+The v0.2 test strategy shall establish systematic automated verification for the current implementation, including:
 
-* test names,
-* docstrings,
-* pytest markers,
-* test module structure,
-* or an explicit traceability table.
+* unit tests for critical scientific calculations,
+* component tests for analysis and data-processing components,
+* integration tests for interactions between pipeline stages,
+* end-to-end tests for representative pipeline workflows,
+* regression tests for established scientific results where appropriate,
+* invalid-input and edge-case tests,
+* visualization and output validation,
+* and CI-based execution of the applicable test suite.
 
-The project should avoid introducing unnecessary metadata solely for traceability.
-
-The selected mechanism should remain maintainable as the test suite grows.
-
-The current test suite does not yet systematically embed requirement identifiers.
-
-The initial tests currently provide direct evidence for visualization behavior, but the scientific core of the pipeline does not yet have equivalent automated requirement-level coverage.
-
-As the v0.2 test suite is developed, test references should be added to the traceability matrix.
+Until this test suite has been established, the absence of an automated test does not imply that the corresponding functionality is unimplemented. It indicates that the functionality currently lacks systematic automated verification.
 
 ---
 
@@ -600,70 +553,43 @@ This distinction is necessary to separate genuine regressions from intentional c
 
 ---
 
-## 12. Traceability and v0.1
+## 12. v0.1
 
-For v0.1, the primary objective is to establish and document the current implementation baseline.
+The v0.1 baseline comprises the implemented and operationally exercised functionality documented by the current architecture, requirements, and methodology.
 
-The project has already been exercised through regular pipeline operation. Consequently, the v0.1 traceability baseline records both implementation and available operational evidence.
+This includes:
 
-Complete automated test-level traceability is not required for every requirement at this stage.
+* daily data acquisition,
+* incremental processing,
+* spatial reference preparation,
+* regional sea-ice analysis,
+* persistent daily results,
+* temporal analysis,
+* climatological and event-related analysis implemented in the current pipeline,
+* generated scientific plots,
+* automated website generation,
+* and the GitHub Actions-based operational update workflow.
 
-The v0.1 baseline should nevertheless make it possible to identify:
+The v0.1 baseline is considered an operationally established implementation rather than a formally validated software release.
 
-* what the project is intended to do,
-* where the relevant functionality is implemented,
-* which requirements have been exercised operationally,
-* which requirements have automated verification,
-* which requirements have only partial verification evidence,
-* and which verification gaps remain.
+Systematic automated testing, output validation, static code-quality checks, and corresponding CI quality gates are part of v0.2.
 
-This establishes a factual baseline for the subsequent quality-assurance work.
+## 13. v0.2
 
----
+The v0.2 quality-assurance and formalization phase shall build on the existing v0.1 implementation.
 
-## 13. Traceability and v0.2
+Its primary goals include:
 
-v0.2 extends the existing implementation baseline with systematic quality assurance and formal verification.
+* establishing valid automated tests for the current implementation,
+* covering critical scientific calculations and data transformations,
+* adding integration and end-to-end verification,
+* introducing regression and edge-case testing,
+* adding automated output validation,
+* introducing static code-quality checks,
+* strengthening reproducibility and provenance information,
+* and integrating the resulting quality checks into continuous integration.
 
-The traceability matrix should therefore evolve together with the v0.2 development work.
-
-The main verification improvements are expected to include:
-
-* scientific unit tests,
-* component tests,
-* integration tests,
-* end-to-end pipeline tests,
-* regression tests,
-* automated output validation,
-* static code analysis,
-* coverage measurement,
-* CI quality gates,
-* and verification of pipeline consistency.
-
-The objective is not to maximize the number of tests.
-
-The objective is to establish appropriate and reproducible evidence that important requirements are fulfilled.
-
-Where functionality already exists in v0.1, v0.2 may therefore change the verification state without changing the underlying functional requirement.
-
-For example:
-
-```text
-v0.1
-FR-04
-implemented
-operationally exercised
-
-        │
-        ▼
-
-v0.2
-FR-04
-implemented
-systematically verified
-```
-
-This distinction avoids treating the introduction of tests as the introduction of the scientific functionality itself.
+The v0.2 work shall verify and formalize the existing functionality rather than redefining the v0.1 scientific baseline.
 
 ---
 

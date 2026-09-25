@@ -344,12 +344,12 @@ The `update` stage is the end-to-end incremental workflow, while `all` provides 
 
 ## 12. Operational and Verification Flow
 
-In addition to the scientific data flow, the project contains supporting quality and operational processes.
+In addition to the scientific data flow, the project contains supporting operational and quality processes.
 
 ```text
 Source Code
     │
-    ├──────────────► Automated Tests
+    ├──────────────► Test Infrastructure
     │
     ├──────────────► CI Execution
     │
@@ -362,9 +362,11 @@ Source Code
                     Website Deployment
 ```
 
-The current automated test suite verifies selected functionality.
+The CI workflow currently provides automated operational execution of the pipeline.
 
-Systematic output validation and comprehensive CI quality gates are requirements for the evolving quality strategy but are not yet fully implemented.
+The repository contains pytest-based test infrastructure, but the existing tests originate from an earlier implementation phase and are not considered valid automated verification of the current implementation.
+
+Systematic automated testing, output validation and comprehensive CI quality gates are part of the evolving quality strategy and are not yet fully implemented.
 
 ---
 

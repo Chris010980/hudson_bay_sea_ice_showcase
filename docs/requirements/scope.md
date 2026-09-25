@@ -281,24 +281,24 @@ The website is currently static. Interactive application functionality is outsid
 
 ## 11. Quality and Verification Scope
 
-Testing and quality assurance are part of the project scope.
+The project includes quality assurance and verification as an integral part of its development process. The current v0.1 baseline has been operationally exercised through repeated daily pipeline execution, including data acquisition, processing, analysis, visualization, and website generation.
 
-The current project contains an automated pytest-based test infrastructure and tests for selected visualization functionality.
+The repository also contains a pytest-based test infrastructure. However, the currently existing automated tests originate from an earlier implementation phase and are no longer valid for the current software structure. They therefore do not constitute systematic automated verification of the current implementation.
 
-However, systematic automated verification does not yet cover all functional and non-functional requirements.
+The quality and verification scope covers, or is intended to cover:
 
-The current scope therefore includes:
+* verification of scientific calculations and data transformations,
+* validation of input, intermediate, and persistent output data,
+* unit and component-level testing,
+* integration and end-to-end testing of pipeline stages,
+* regression testing,
+* testing of invalid inputs and relevant edge cases,
+* output and structural validation,
+* static code quality checks,
+* reproducibility checks,
+* and automated quality gates in continuous integration.
 
-* automated unit/component testing where implemented,
-* regression testing as the test suite is expanded,
-* CI-based quality checks,
-* validation of generated outputs,
-* verification of scientific calculations,
-* reproducibility checks.
-
-The current implementation should not be interpreted as having complete automated verification coverage.
-
-The detailed verification strategy is defined separately in the testing documentation.
+Systematic automated verification of the current implementation is part of the v0.2 quality-assurance work. The distinction between operational evidence from the v0.1 pipeline and formal automated verification is maintained explicitly.
 
 ---
 

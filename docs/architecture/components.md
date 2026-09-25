@@ -4,25 +4,25 @@
 
 The current implementation consists of components with distinct technical responsibilities.
 
-| Component             | Location                               | Responsibility                                         |
-| --------------------- | -------------------------------------- | ------------------------------------------------------ |
-| Pipeline Dispatcher   | `src/main.py`                          | CLI dispatch and stage selection                       |
-| NSIDC Downloader      | `src/data_download/downloader.py`      | Remote data acquisition and temporary data management  |
-| Download CLI          | `src/data_download/download_data.py`   | CLI entry point for data acquisition                   |
-| Reference Builder     | `src/analysis/reference_builder.py`    | Static spatial reference and regional mask preparation |
-| Region Analyzer       | `src/analysis/region_analyzer.py`      | Daily regional sea-ice analysis                        |
-| Results Manager       | `src/analysis/results_manager.py`      | Persistent daily result management                     |
-| Processing Stage      | `src/analysis/process_data.py`         | Spatial processing and temporal-analysis orchestration |
-| Time Series Analyzer  | `src/analysis/timeseries_analyzer.py`  | Temporal, climatological and event analysis            |
-| GeoTIFF Plotter       | `src/visualization/geotiff_plot.py`    | Spatial visualization                                  |
-| Time Series Plotter   | `src/visualization/timeseries_plot.py` | Temporal and derived visualization                     |
-| Plot Generator        | `src/visualization/generate_plots.py`  | Visualization-stage orchestration                      |
-| Update Pipeline       | `src/update/update_pipeline.py`        | Incremental end-to-end orchestration                   |
-| Pages Builder         | `src/update/build_pages.py`            | GitHub Pages deployment artifact generation            |
-| Logging Configuration | `src/config/logging_config.py`         | Central logging configuration                          |
-| Project Paths         | `src/config/paths.py`                  | Central project path definitions                       |
-| Region Configuration  | `src/config/regions.json`              | Spatial region definitions                             |
-| Test Suite            | `tests/`                               | Automated verification of selected functionality       |
+| Component             | Location                               | Responsibility                                            |
+| --------------------- | -------------------------------------- | --------------------------------------------------------- |
+| Pipeline Dispatcher   | `src/main.py`                          | CLI dispatch and stage selection                          |
+| NSIDC Downloader      | `src/data_download/downloader.py`      | Remote data acquisition and temporary data management     |
+| Download CLI          | `src/data_download/download_data.py`   | CLI entry point for data acquisition                      |
+| Reference Builder     | `src/analysis/reference_builder.py`    | Static spatial reference and regional mask preparation    |
+| Region Analyzer       | `src/analysis/region_analyzer.py`      | Daily regional sea-ice analysis                           |
+| Results Manager       | `src/analysis/results_manager.py`      | Persistent daily result management                        |
+| Processing Stage      | `src/analysis/process_data.py`         | Spatial processing and temporal-analysis orchestration    |
+| Time Series Analyzer  | `src/analysis/timeseries_analyzer.py`  | Temporal, climatological and event analysis               |
+| GeoTIFF Plotter       | `src/visualization/geotiff_plot.py`    | Spatial visualization                                     |
+| Time Series Plotter   | `src/visualization/timeseries_plot.py` | Temporal and derived visualization                        |
+| Plot Generator        | `src/visualization/generate_plots.py`  | Visualization-stage orchestration                         |
+| Update Pipeline       | `src/update/update_pipeline.py`        | Incremental end-to-end orchestration                      |
+| Pages Builder         | `src/update/build_pages.py`            | GitHub Pages deployment artifact generation               |
+| Logging Configuration | `src/config/logging_config.py`         | Central logging configuration                             |
+| Project Paths         | `src/config/paths.py`                  | Central project path definitions                          |
+| Region Configuration  | `src/config/regions.json`              | Spatial region definitions                                |
+| Test Infrastructure   | `tests/`                               | Location for automated verification of the implementation |
 
 ---
 
@@ -144,10 +144,12 @@ It:
 * loads the raster,
 * applies the predefined regional masks,
 * checks the relevant spatial data,
-* determines sea-ice pixels using the configured detection threshold,
+* determines sea-ice pixels using the current sea-ice detection threshold,
 * calculates absolute sea-ice coverage,
 * calculates relative sea-ice coverage,
 * produces regional analysis records.
+
+The current detection threshold is defined by the implementation rather than being fully configurable.
 
 The results are passed to `ResultsManager`.
 
@@ -423,7 +425,7 @@ Provides the fixed spatial reference dataset used to establish the analysis grid
 
 ## Quality Assurance Components
 
-### Automated Test Suite
+### Test Infrastructure
 
 Location:
 
@@ -431,13 +433,27 @@ Location:
 tests/
 ```
 
-The current test suite uses pytest.
+The project contains pytest-based test infrastructure.
 
-The currently implemented tests cover selected visualization functionality.
+The existing test files originate from an earlier implementation phase and no longer correspond to the current component interfaces. They are therefore not considered a valid automated test suite for the current implementation.
 
-The test suite is therefore part of the current project structure, but it does not yet provide complete requirement coverage.
+The `tests/` directory remains the designated location for automated verification.
 
-Additional scientific, integration, regression and output-validation tests are part of the planned quality expansion.
+Future test coverage is intended to include:
+
+* scientific calculation tests,
+* component tests,
+* integration tests,
+* end-to-end tests,
+* regression tests,
+* invalid-input and edge-case tests,
+* and output-validation tests.
+
+The corresponding testing strategy is documented separately under:
+
+```text
+docs/testing/
+```
 
 ---
 

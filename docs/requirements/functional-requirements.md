@@ -263,27 +263,34 @@ Event dates shall be persisted together with the associated region, event type, 
 
 ## FR-11 – Scientific Visualization
 
-The system shall provide scientific visualizations of the processed sea-ice observations and derived analysis results.
+The system shall provide scientific visualizations for the generated sea-ice analysis products.
 
-The visualization system shall support, where corresponding analysis data is available:
+The visualization scope shall include:
 
-* daily time-series plots,
-* climatological plots,
-* anomaly plots,
-* threshold-duration plots,
-* polar seasonal plots,
-* annual mean plots,
-* annual trend plots,
-* overview sea-ice maps,
-* regional sea-ice maps.
+* daily sea-ice coverage time series,
+* climatological analysis products and their visualization where implemented,
+* anomaly time series,
+* threshold-duration and seasonal event visualizations,
+* polar seasonal representations,
+* annual mean coverage,
+* annual trend information,
+* overview maps,
+* regional sea-ice maps,
+* and maps showing the defined analysis regions.
 
-The system shall support generation of all standard visualization products as part of a complete plot-generation run.
+Standard visualization products shall be generated as part of a complete plot run. Individual plot types may be selected through the command-line interface where supported.
 
-The system shall provide command-line options for restricting plot generation by visualization type.
+Visualization generation shall:
 
-Where supported by the respective visualization, the system shall allow plot generation to be restricted to selected analysis regions or to all configured regions.
+* use the persistent analysis results as input,
+* preserve the distinction between absolute and relative sea-ice coverage,
+* apply documented temporal smoothing only as a presentation aid where configured,
+* support regional selection where applicable,
+* and generate reproducible output files in the configured plot directory.
 
-Visualization smoothing shall be treated as a presentation aid and shall not modify the underlying daily analysis results.
+The visualization layer shall not alter the underlying scientific analysis results.
+
+Not all planned visualization products are required to be fully implemented in the v0.1 baseline. Missing or incomplete visualization components are tracked as implementation work and may be completed as part of subsequent development iterations.
 
 ---
 

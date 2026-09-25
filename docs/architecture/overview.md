@@ -167,10 +167,12 @@ It uses the reference masks to:
 
 * extract the configured analysis regions,
 * identify valid water pixels,
-* apply the configured sea-ice detection threshold,
+* apply the sea-ice detection threshold,
 * calculate absolute sea-ice coverage,
 * calculate relative sea-ice coverage,
 * produce regional daily observations.
+
+The current implementation uses a fixed sea-ice pixel detection threshold. Parameterizing this value is covered by the project's configurability requirements but is not yet fully implemented.
 
 The resulting records are passed to `ResultsManager`.
 
@@ -265,17 +267,39 @@ The architecture contains two levels of orchestration.
 
 ```text
 NSIDCDownloader
+
        ↓
+
 process_data
+
        ↓
+
 generate_plots
+
        ↓
+
 build_pages
+
        ↓
+
 temporary data cleanup
 ```
 
-The `all` stage in `main.py` provides a sequential complete pipeline using the individual processing stages.
+The `update` stage therefore combines acquisition, processing, visualization, website generation and temporary-data cleanup into a single incremental workflow.
+
+The `all` stage in `main.py` provides sequential execution of the individual processing stages:
+
+```text
+download
+    ↓
+process
+    ↓
+plots
+    ↓
+build
+```
+
+The two orchestration paths are intentionally separate: `all` provides explicit sequential stage execution, while `update` implements the operational incremental workflow.
 
 ---
 
@@ -392,21 +416,34 @@ This is part of the current quality gap identified by the requirements.
 
 ### Testing and Quality Assurance
 
-Automated tests are maintained under:
+The project contains a dedicated test directory:
 
 ```text
 tests/
 ```
 
-The current test suite covers selected visualization functionality.
+A pytest-based test infrastructure is available through the project dependencies. However, the currently existing test files originate from an earlier implementation phase and no longer correspond to the current component interfaces.
 
-Testing is therefore part of the project architecture, but systematic verification of all requirements is not yet implemented.
+They are therefore not considered valid automated verification of the current implementation.
 
-The testing strategy, test levels and CI quality gates are documented separately under:
+Testing is nevertheless an explicit architectural concern. The quality strategy defined by the project requirements includes:
+
+* unit and component testing,
+* integration testing,
+* end-to-end testing,
+* regression testing,
+* invalid-input and edge-case testing,
+* scientific calculation verification,
+* output validation,
+* and CI-based quality gates.
+
+Systematic automated verification of the current implementation is part of the subsequent quality-assurance work and is documented separately under:
 
 ```text
 docs/testing/
 ```
+
+The distinction between operational pipeline execution and formal automated verification is intentional. The current CI workflow provides operational execution of the application, but does not yet constitute a comprehensive automated quality gate.
 
 ---
 
@@ -453,12 +490,14 @@ GitHub Actions provides the current automated execution environment.
 The workflow:
 
 * installs the Python dependencies,
-* executes the update pipeline,
-* builds the website artifact,
+* executes the incremental update pipeline,
+* generates the website deployment artifact,
 * uploads the GitHub Pages artifact,
 * commits updated scientific output.
 
-The current CI workflow does not yet implement the complete quality-gate strategy defined by the requirements.
+The update pipeline itself includes website generation. The current workflow additionally invokes the build stage explicitly before uploading the Pages artifact. This currently results in the website build being executed more than once during an update workflow.
+
+The CI environment therefore provides automated operational execution of the project. It does not yet implement the complete quality-gate strategy defined by the requirements, including systematic automated testing, output validation and static code-quality checks.
 
 ---
 
