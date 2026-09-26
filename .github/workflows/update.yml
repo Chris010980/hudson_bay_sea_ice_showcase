@@ -2,7 +2,7 @@ name: Update Hudson Bay Sea Ice
 
 on:
   schedule:
-    # täglich um 17:00 UTC (=19:00 MESZ)
+    # Daily at 17:00 UTC (= 19:00 CEST)
     - cron: "0 17 * * *"
 
   workflow_dispatch:
@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout stable branch
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: stable
           fetch-depth: 0
 
       - name: Set up Python
@@ -39,11 +39,6 @@ jobs:
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
-
-      - name: Sync with remote
-        run: |
-          git fetch origin master
-          git reset --hard origin/master
 
       - name: Run update pipeline
         run: |
@@ -69,9 +64,8 @@ jobs:
             echo "Nothing to commit."
           else
             git commit -m "Automatic daily sea ice update"
-            git push
+            git push origin HEAD:stable
           fi
-
 
   deploy:
     needs: update
