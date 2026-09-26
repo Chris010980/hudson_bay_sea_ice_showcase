@@ -792,7 +792,7 @@ The generated `build/` directory can then be used as the static deployment artif
 
 ## Project Status
 
-### Version: v0.1
+### Version: v0.1.0
 
 The v0.1 baseline represents a functioning automated scientific processing pipeline with:
 
