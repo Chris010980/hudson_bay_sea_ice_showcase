@@ -1,2 +1,9 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    # Stummschalten der Affine-Multiplikations-Warnung aus rasterio
+    "ignore:.*matmul instead of.*mul operator.*:PendingDeprecationWarning",
+    
+    # Stummschalten der NumPy 2.5 Shape-Warnung, ausgelöst durch rasterio
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning"
+]
