@@ -200,3 +200,19 @@ def expected_reference_masks() -> dict[str, np.ndarray]:
             dtype=np.int64,
         ),
     }
+
+@pytest.fixture
+def fixture_dir() -> Path:
+    """Return the directory containing static test fixtures."""
+    return Path(__file__).parent / "fixtures"
+
+@pytest.fixture
+def daily_observations_csv(fixture_dir: Path) -> Path:
+    """Return the deterministic daily observations fixture."""
+    return fixture_dir / "analysis" / "daily_observations.csv"
+
+
+@pytest.fixture
+def test_regions_json(fixture_dir: Path) -> Path:
+    """Return the deterministic region configuration fixture."""
+    return fixture_dir / "config" / "test_regions.json"

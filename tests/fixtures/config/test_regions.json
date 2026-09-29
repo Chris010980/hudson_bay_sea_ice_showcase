@@ -1,0 +1,22 @@
+{
+    "regions": {
+        "Test Region A": {
+            "description": "Synthetic test region A",
+            "polygon": [
+                [0.0, 0.0],
+                [1.0, 0.0],
+                [1.0, 1.0],
+                [0.0, 1.0]
+            ]
+        },
+        "Test Region B": {
+            "description": "Synthetic test region B",
+            "polygon": [
+                [1.0, 0.0],
+                [2.0, 0.0],
+                [2.0, 1.0],
+                [1.0, 1.0]
+            ]
+        }
+    }
+}
