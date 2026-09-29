@@ -17,7 +17,7 @@ def test_synthetic_reference_raster(
         assert dataset.width == 5
         assert dataset.height == 5
         assert dataset.count == 1
-        assert dataset.dtypes == ("uint8",)
+        assert dataset.dtypes == ("uint16",)
         assert dataset.crs.to_epsg() == 3411
 
         assert dataset.transform.a == 25_000
@@ -25,13 +25,13 @@ def test_synthetic_reference_raster(
 
         expected = np.array(
             [
-                [1, 1, 1, 0, 0],
-                [1, 1, 1, 0, 0],
-                [0, 1, 1, 1, 0],
-                [0, 1, 1, 1, 0],
-                [0, 0, 1, 1, 1],
+                [1, 1, 1, 2510, 2510],
+                [1, 1, 1, 2510, 2510],
+                [2510, 1, 1, 1, 2510],
+                [2510, 1, 1, 1, 2510],
+                [2510, 2510, 1, 1, 1],
             ],
-            dtype=np.uint8,
+            dtype=np.uint16,
         )
 
         assert np.array_equal(data, expected)
