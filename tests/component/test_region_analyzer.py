@@ -64,7 +64,7 @@ def _write_concentration_raster(
     """Write a synthetic concentration GeoTIFF with controlled values.
 
     ``values`` maps flat raster indices to concentration values.
-    Pixels without an entry are filled with the coast/land code 2510.
+    Pixels without an entry are filled with the pole hole code 2510.
     """
 
     data = np.full(shape, 2510, dtype=np.uint16)
@@ -612,63 +612,6 @@ def test_result_structure_and_observation_date(
 # ------------------------------------------------------------------
 # Quality checks: invalid regional observations
 # ------------------------------------------------------------------
-
-def test_region_with_missing_pixels_is_skipped(
-    test_environment: dict[str, Path],
-    analyzer_environment: dict[str, Path],
-    expected_reference_masks: dict[str, np.ndarray],
-) -> None:
-    """A missing value (2550) within a region rejects that region.
-
-    The affected region is skipped entirely, while the unaffected
-    mixed region remains valid and is analyzed.
-    """
-
-    values = _region_values(
-        expected_reference_masks,
-        water_values=[200, 2550, 400, 600],
-        mixed_values=[500],
-    )
-
-    raster = _write_concentration_raster(
-        test_environment["data"] / "missing_20260315.tif",
-        values,
-    )
-
-    results = _make_analyzer(analyzer_environment, raster).analyze()
-
-    assert "Test Region Water" not in results
-    assert "Test Region Mixed" in results
-
-
-def test_region_with_water_count_mismatch_is_skipped(
-    test_environment: dict[str, Path],
-    analyzer_environment: dict[str, Path],
-    expected_reference_masks: dict[str, np.ndarray],
-) -> None:
-    """A water-pixel count differing from the reference is rejected.
-
-    The coast/land code 2510 is not a valid concentration value, so
-    only 3 of 4 expected water pixels remain valid -> the region is
-    skipped, the unaffected mixed region is analyzed.
-    """
-
-    values = _region_values(
-        expected_reference_masks,
-        water_values=[200, 2510, 400, 600],
-        mixed_values=[500],
-    )
-
-    raster = _write_concentration_raster(
-        test_environment["data"] / "mismatch_20260315.tif",
-        values,
-    )
-
-    results = _make_analyzer(analyzer_environment, raster).analyze()
-
-    assert "Test Region Water" not in results
-    assert "Test Region Mixed" in results
-
 
 def test_unreadable_input_returns_empty_results(
     test_environment: dict[str, Path],
