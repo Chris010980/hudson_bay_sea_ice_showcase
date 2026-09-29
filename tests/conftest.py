@@ -72,18 +72,23 @@ def synthetic_raster(test_environment: dict[str, Path]) -> Path:
 
 @pytest.fixture
 def synthetic_reference_raster(test_environment: dict[str, Path]) -> Path:
-    """Create a small deterministic reference water raster."""
+    """Create a small deterministic reference water raster.
+
+    Water pixels carry a valid concentration-like value (1), non-water
+    pixels carry the coast/land encoding 2510, matching the production
+    reference value ranges.
+    """
     raster_path = test_environment["data"] / "synthetic_reference.tif"
 
     data = np.array(
         [
-            [1, 1, 1, 0, 0],
-            [1, 1, 1, 0, 0],
-            [0, 1, 1, 1, 0],
-            [0, 1, 1, 1, 0],
-            [0, 0, 1, 1, 1],
+            [1, 1, 1, 2510, 2510],
+            [1, 1, 1, 2510, 2510],
+            [2510, 1, 1, 1, 2510],
+            [2510, 1, 1, 1, 2510],
+            [2510, 2510, 1, 1, 1],
         ],
-        dtype=np.uint8,
+        dtype=np.uint16,
     )
 
     transform = from_origin(
@@ -115,7 +120,13 @@ def _pixel_rectangle(
     col_start: int,
     col_end: int,
 ) -> list[list[float]]:
-    """Create a geographic polygon around a raster pixel block."""
+    """Create a geographic polygon covering a raster pixel block.
+
+    The polygon is constructed around the centers of the selected
+    raster pixels. A small margin is used so that the selected pixel
+    centers are inside the polygon while neighboring pixel centers
+    remain outside.
+    """
 
     transformer = Transformer.from_crs(
         "EPSG:3411",
@@ -123,22 +134,61 @@ def _pixel_rectangle(
         always_xy=True,
     )
 
-    x_min = transform.c
-    x_max = transform.c + col_end * transform.a
+    # Pixel-center coordinates of the selected block.
+    center_row_start = row_start
+    center_row_end = row_end - 1
+    center_col_start = col_start
+    center_col_end = col_end - 1
 
-    y_max = transform.f + row_start * transform.e
-    y_min = transform.f + row_end * transform.e
+    x_min = (
+        transform.c
+        + (center_col_start + 0.5) * transform.a
+    )
+    x_max = (
+        transform.c
+        + (center_col_end + 0.5) * transform.a
+    )
 
-    corners_x = [x_min, x_max, x_max, x_min]
-    corners_y = [y_max, y_max, y_min, y_min]
+    y_max = (
+        transform.f
+        + (center_row_start + 0.5) * transform.e
+    )
+    y_min = (
+        transform.f
+        + (center_row_end + 0.5) * transform.e
+    )
 
-    lon, lat = transformer.transform(corners_x, corners_y)
+    # Half a pixel in raster coordinates.
+    margin_x = abs(transform.a) * 0.49
+    margin_y = abs(transform.e) * 0.49
+
+    x_min -= margin_x
+    x_max += margin_x
+    y_min -= margin_y
+    y_max += margin_y
+
+    corners_x = [
+        x_min,
+        x_max,
+        x_max,
+        x_min,
+    ]
+
+    corners_y = [
+        y_max,
+        y_max,
+        y_min,
+        y_min,
+    ]
+
+    lon, lat = transformer.transform(
+        corners_x,
+        corners_y,
+    )
 
     return [
-        [float(lon[0]), float(lat[0])],
-        [float(lon[1]), float(lat[1])],
-        [float(lon[2]), float(lat[2])],
-        [float(lon[3]), float(lat[3])],
+        [float(lon_i), float(lat_i)]
+        for lon_i, lat_i in zip(lon, lat)
     ]
 
 @pytest.fixture
