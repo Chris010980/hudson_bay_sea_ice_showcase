@@ -25,6 +25,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-005 | #21   | TimeSeriesAnalyzer | design    | open       |
 | F-006 | #21   | TimeSeriesAnalyzer | design    | documented |
 | F-007 | #25   | TimeSeriesPlotter  | design    | open       |
+| F-008 | #26   | TimeSeriesAnalyzer | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -153,3 +154,36 @@ whether the trend calculation should live on the
 `TimeSeriesAnalyzer` (data product, e.g. a trend column in the  
 yearly/events datasets) or as a small helper next to the plotting  
 code (presentation-only quantity).
+
+## F-008 — Dead branches and strict-threshold edge in `_find_threshold_crossing`
+
+**Component:** `src/analysis/timeseries_analyzer.py`  
+(`_find_threshold_crossing()`)
+
+**Finding (dead code):** the special cases  
+`if y0 == threshold: return previous["date"]` and  
+`if y1 == y0: return current["date"]` are unreachable. The  
+crossing conditions require `y0 > threshold and y1 <= threshold`  
+("down") or `y0 < threshold and y1 >= threshold` ("up"), which  
+exclude both `y0 == threshold` and `y1 == y0`.
+
+**Finding (semantic edge):** a series that sits *exactly on* the  
+threshold on the day before it falls below registers no crossing  
+at all, because `y0 > threshold` fails strictly. Example: SIC is  
+50 % on March 17 and 40 % on March 18 — the 50 % break-up is  
+missed, while 60 % → 40 % on the same days would be interpolated  
+correctly. The asymmetry is deliberate for `y1 == threshold`  
+(exact observation returns the current day) but undocumented for  
+the `y0 == threshold` side.
+
+**Impact:** possible missed events when observations land exactly  
+on a threshold (10/50/90) before continuing in the event  
+direction.
+
+**Recommendation:** decide whether "at the threshold the day  
+before" should count as a crossing; either relax the condition or  
+seed the first observation of the window as strictly above/below.  
+Otherwise remove the two dead branches to avoid confusion. The  
+behavior is documented by  
+`tests/component/test_timeseries_threshold_crossing.py`  
+(`test_exact_threshold_observation`).
