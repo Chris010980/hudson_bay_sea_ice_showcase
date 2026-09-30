@@ -24,6 +24,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-004 | #21   | TimeSeriesAnalyzer | design    | open       |
 | F-005 | #21   | TimeSeriesAnalyzer | design    | open       |
 | F-006 | #21   | TimeSeriesAnalyzer | design    | documented |
+| F-007 | #25   | TimeSeriesPlotter  | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -126,3 +127,29 @@ analyzer's behavior differs from its sibling class.
 `tests/conftest.py` creates the analysis directory eagerly  
 (`analysis_dir.mkdir()`). Production behavior left unchanged and  
 documented as a design difference.
+
+## F-007 — Trend and R² calculation is not testable as a unit
+
+**Component:** `src/visualization/timeseries_plot.py`  
+(`_plot_threshold_duration_region()`)
+
+**Finding:** the linear trend  
+(`np.polyfit(event_year, duration_days, 1)`) and the coefficient of  
+determination (`r_squared = 1 - ss_res / ss_tot`, `NaN` for fewer  
+than two points or zero total variance) are computed inline inside a  
+plotting method and are never returned or stored. There is no  
+testable unit for the trend in `src/analysis/`.
+
+**Impact:** the issue #25 tasks "Test linear trend" and "Test R²"  
+cannot be implemented as component tests against the current  
+structure; assertions would require figure-level tests of  
+matplotlib label text.
+
+**Recommendation:** extract the calculation into a small testable  
+function or method and have the plotter consume it; then add the  
+component tests. Deferred to a follow-up issue (issue #25 closed  
+without the trend part). Open design decision for that issue:  
+whether the trend calculation should live on the  
+`TimeSeriesAnalyzer` (data product, e.g. a trend column in the  
+yearly/events datasets) or as a small helper next to the plotting  
+code (presentation-only quantity).
