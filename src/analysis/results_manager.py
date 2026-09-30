@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 import json
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 import pandas as pd
 
 from src.config.paths import PROJECT_ROOT
@@ -103,13 +103,13 @@ class ResultsManager:
             ignore_index=True,
         )
 
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
+
         df.drop_duplicates(
             subset=["date", "region"],
             keep="last",
             inplace=True,
         )
-
-        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
 
         df.sort_values(
             [
@@ -217,7 +217,7 @@ class ResultsManager:
         payload = {
             "dataset": "NSIDC G02135",
             "date": latest_date,
-            "generated": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "generated": datetime.now(timezone.utc).isoformat(timespec="seconds") + "Z",
             "observations": len(df),
             "regions": latest.to_dict(orient="records"),
         }
