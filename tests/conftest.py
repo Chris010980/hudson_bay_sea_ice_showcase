@@ -266,3 +266,27 @@ def daily_observations_csv(fixture_dir: Path) -> Path:
 def test_regions_json(fixture_dir: Path) -> Path:
     """Return the deterministic region configuration fixture."""
     return fixture_dir / "config" / "test_regions.json"
+
+# Shared fixture for all TimeSeriesAnalyzer component tests
+# (issues #21-#27): isolated input and output paths.
+#
+# The analysis directory is created eagerly because the
+# TimeSeriesAnalyzer, unlike the ResultsManager, does not create
+# the parent directory of its input path itself. The controlled
+# summary CSV is written by the tests before the analyzer is
+# constructed, so the directory must already exist at that point.
+
+@pytest.fixture
+def timeseries_paths(test_environment: dict[str, Path]) -> dict[str, Path]:
+    """Provide isolated input and output paths for TimeSeriesAnalyzer."""
+
+    analysis_dir = test_environment["output"] / "analysis"
+
+    analysis_dir.mkdir()
+
+    return {
+        "csv": analysis_dir / "ice_coverage_summary.csv",
+        "timeseries": analysis_dir / "ice_coverage_timeseries.csv",
+        "yearly": analysis_dir / "ice_coverage_yearly.csv",
+        "events": analysis_dir / "ice_coverage_events.csv",
+    }
