@@ -33,6 +33,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-013 | #29   | ReferenceBuilder                    | design    | open       |
 | F-014 | #30   | update\_pipeline                    | bug       | open       |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
+| F-016 | #31   | update\_pipeline / downloader       | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -346,3 +347,34 @@ untouched pipeline end to end.
 output, build directories) through the pipeline stages for  
 milestone V0.2-07, so integration tests can run the real  
 orchestration against isolated directories.
+
+## F-016 — Locally present files can mask unprocessed observations as "no new data"
+
+**Component:** `src/update/update_pipeline.py` (`main()`),  
+`src/data_download/downloader.py` (`sync()`)
+
+**Finding:** the pipeline treats `downloaded_files == 0` as the  
+no-new-data condition and terminates after the sync stage. But  
+`sync()` also counts nothing when a requested file is already  
+present locally: an observation that was downloaded in an  
+earlier run but never processed (the `new_results == 0` early  
+exit keeps downloaded files — pinned by the issue #30 tests; a  
+crash between download and processing; a partial file from  
+F-011) is skipped by every later sync. The pipeline then  
+reports "no new data" forever, although an observation in the  
+requested date range is missing from the results.
+
+**Impact:** unprocessed observations can become permanently  
+invisible to the incremental update once their file exists in  
+the local archive.
+
+**Recommendation:** base the no-new-data decision on the  
+processed-state boundary (e.g. also run the process stage when  
+processable files from `start_date` onwards exist locally), or  
+let `sync()` re-validate existing files, or remove downloaded  
+files on the no-new-results exit path.
+
+**Test note:** issue #31 pins the documented no-new-data  
+behavior for a fully processed state; the masking scenario  
+requires the real `sync()` semantics (local file check) and is  
+documented here instead.
