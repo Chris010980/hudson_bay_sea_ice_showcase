@@ -270,3 +270,27 @@ same pattern as F-004). Harmless because `os` is always
 available, but dead code.
 
 **Recommendation:** remove the import line.
+
+## F-013 — ReferenceBuilder writes to non-injectable module constants
+
+**Component**: `src/analysis/reference_builder.py`
+(`FILTER_DIR`, `REFERENCE_SUMMARY`, `_calculate_reference_areas()`)
+
+**Finding**: the builder saves water masks and the reference
+summary to the module-level constants `FILTER_DIR` and
+`REFERENCE_SUMMARY` (derived from `PROJECT_ROOT`), and reads the
+naturalearth ocean dataset via a `PROJECT_ROOT` path. None of
+these paths can be redirected through the constructor. Tests must
+monkeypatch the module constants and stub the gpd import to
+avoid reading or writing production data (pattern established in
+`tests/component/test_reference_builder.py` and reused by the
+issue #29 integration chain). Same design pattern as F-010.
+
+**Impact**: not a production bug, but a testability constraint:
+every test that runs the real build() needs module-level
+patching instead of plain dependency injection.
+
+**Recommendation**: add injectable output paths (mask directory
+and summary path) to the constructor with the current constants
+as defaults, analogous to RegionAnalyzer, which already accepts
+`reference_json` and `filter_dir` parameters.
