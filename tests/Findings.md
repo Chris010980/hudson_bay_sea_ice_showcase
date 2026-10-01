@@ -16,16 +16,20 @@ documentation pending) · `documented` (accepted as-is)
 
 ## Overview
 
-| ID    | Issue | Component          | Category  | Status     |
-| ----- | ----- | ------------------ | --------- | ---------- |
-| F-001 | #20   | ResultsManager     | bug       | fixed      |
-| F-002 | #20   | ResultsManager     | bug       | fixed      |
-| F-003 | #21   | TimeSeriesAnalyzer | semantics | open       |
-| F-004 | #21   | TimeSeriesAnalyzer | design    | open       |
-| F-005 | #21   | TimeSeriesAnalyzer | design    | open       |
-| F-006 | #21   | TimeSeriesAnalyzer | design    | documented |
-| F-007 | #25   | TimeSeriesPlotter  | design    | open       |
-| F-008 | #26   | TimeSeriesAnalyzer | design    | open       |
+| ID    | Issue | Component                           | Category  | Status     |
+| ----- | ----- | ----------------------------------- | --------- | ---------- |
+| F-001 | #20   | ResultsManager                      | bug       | fixed      |
+| F-002 | #20   | ResultsManager                      | bug       | fixed      |
+| F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open       |
+| F-004 | #21   | TimeSeriesAnalyzer                  | design    | open       |
+| F-005 | #21   | TimeSeriesAnalyzer                  | design    | open       |
+| F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented |
+| F-007 | #25   | TimeSeriesPlotter                   | design    | open       |
+| F-008 | #26   | TimeSeriesAnalyzer                  | design    | open       |
+| F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | open       |
+| F-010 | #28   | NSIDCDownloader                     | design    | open       |
+| F-011 | #28   | NSIDCDownloader                     | design    | open       |
+| F-012 | #28   | NSIDCDownloader                     | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -187,3 +191,82 @@ Otherwise remove the two dead branches to avoid confusion. The
 behavior is documented by  
 `tests/component/test_timeseries_threshold_crossing.py`  
 (`test_exact_threshold_observation`).
+
+## F-009 — CLI passes unsupported arguments to `sync()`
+
+**Component:** `src/data_download/download_data.py` (`main()`),  
+`src/data_download/downloader.py` (`NSIDCDownloader.sync()`)
+
+**Finding:** the CLI entry point calls  
+`downloader.sync(years=args.years, months=args.months, dry_run=args.dry_run)`, but `sync()` only accepts `start_date`,  
+`end_date` and `dry_run`. Every invocation of `download_data.py`  
+therefore fails at runtime with  
+`TypeError: sync() got an unexpected keyword argument 'years'`.
+
+**Impact:** the documented CLI flags `--year` and `--month`  
+cannot work; the raw-data download stage is currently not  
+operable from the command line.
+
+**Recommendation:** align the CLI with the API — either map the  
+selected years/months to a `start_date`/`end_date` range or  
+extend `sync()` with explicit year/month filters. Requires a  
+design decision and a functional-correction issue (milestone  
+V0.2-07).
+
+**Test note:** not covered by issue #28, which tests the  
+downloader component directly; the CLI wiring belongs to the  
+pipeline integration tests.
+
+## F-010 — `delete_local_data()` is hard-wired to `DATA_DIR / "geotiff"`
+
+**Component:** `src/data_download/downloader.py`  
+(`NSIDCDownloader.delete_local_data()`)
+
+**Finding:** the cleanup is a `@staticmethod` that always  
+operates on the module-level `DATA_DIR / "geotiff"` and ignores  
+the instance's `local_base`. It cannot be redirected through the  
+constructor, so tests must monkeypatch the module-level  
+`DATA_DIR` to avoid touching production data. In addition, the  
+docstring promises to remove the files "while preserving the  
+directory structure", but the implementation also removes empty  
+year/month directories (`rmdir`).
+
+**Recommendation:** make the cleanup operate on the configured  
+`local_base` (instance method or explicit root parameter) and  
+align the docstring with the implemented semantics.
+
+**Test note:** `tests/component/test_nsidc_downloader.py`  
+(`test_delete_local_data`) pins the implemented behavior:  
+`.tif` files removed, other files preserved, empty directories  
+removed.
+
+## F-011 — `download_file()` writes non-atomically and lets request exceptions escape
+
+**Component:** `src/data_download/downloader.py`  
+(`download_file()`, `sync()`)
+
+**Finding:** downloads are written directly to the final  
+destination. A request that fails mid-stream (exception during  
+`iter_content`) leaves a partial `.tif` behind, which later  
+synchronization runs treat as an existing file and skip — a  
+corrupted observation can enter the archive permanently. Request  
+exceptions (timeouts, connection errors) are not caught at all:  
+they propagate out of `download_file()` and abort the entire  
+`sync()` run instead of being counted in `failed_files`.
+
+**Recommendation:** download to a temporary file and rename it  
+after success; catch per-file request exceptions and count them  
+as failed downloads.
+
+**Test note:** issue #28 covers only the handled error path  
+(non-OK HTTP status → `False`, no file, counted as failed).
+
+## F-012 — Stray `from os import link` import
+
+**Component:** `src/data_download/downloader.py` (module header)
+
+**Finding:** unused, accidental import (IDE auto-import artifact,  
+same pattern as F-004). Harmless because `os` is always  
+available, but dead code.
+
+**Recommendation:** remove the import line.
