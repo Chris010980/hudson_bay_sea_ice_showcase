@@ -34,6 +34,9 @@ documentation pending) · `documented` (accepted as-is)
 | F-014 | #30   | update\_pipeline                    | bug       | open       |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
 | F-016 | #31   | update\_pipeline / downloader       | design    | open       |
+| F-017 | #32   | timeseries\_plot                    | design    | open       |
+| F-018 | #32   | visualization stage                 | design    | open       |
+| F-019 | #32   | generate\_plots                     | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -378,3 +381,73 @@ files on the no-new-results exit path.
 behavior for a fully processed state; the masking scenario  
 requires the real `sync()` semantics (local file check) and is  
 documented here instead.
+
+## F-017 — `polar_output_dir` is configured but never used
+
+**Component:** `src/visualization/timeseries_plot.py`  
+(`_configure_style()`, `_plot_polar_region()`)
+
+**Finding:** `_configure_style()` sets  
+`self.polar_output_dir = OUTPUT_DIR / "polar"`, but  
+`_plot_polar_region()` saves to `self.output_dir` (the  
+timeseries directory) as `{region}_polar_{suffix}.png`. The  
+attribute is never read, so the polar products land in  
+`output/plots/timeseries/` next to the Cartesian plots instead  
+of the configured `output/plots/polar/` directory.
+
+**Recommendation:** save the polar plots to  
+`self.polar_output_dir` or remove the unused attribute. The  
+issue #32 tests pin the implemented behavior (polar files in  
+the timeseries directory).
+
+## F-018 — Non-injectable production paths in the visualization stage
+
+**Component:** `src/visualization/timeseries_plot.py`,  
+`src/visualization/geotiff_plot.py`
+
+**Finding:** several production paths of the visualization  
+stage cannot be redirected through constructors or arguments  
+(same design family as F-010, F-013 and F-015):
+
+- `TimeSeriesPlotter.__init__` binds the default input paths  
+(`RESULTS_CSV`, `YEARLY_CSV`, `EVENTS_CSV`) as default  
+argument values at function-definition time; patching the  
+module constants does not change the defaults. Callers that  
+construct the plotter without arguments  
+(`generate_plots.main`) always read the production analysis  
+directory.
+- `SeaIcePlotter.load_regions()` defaults to  
+`PROJECT_ROOT / "src/config/regions.json"` and `load()` never  
+passes `region_file`, so the region definitions cannot be  
+injected through the public API.
+- `SeaIcePlotter.save()` without arguments writes to the  
+import-time constant `DEFAULT_OUTPUT_PLOT_PATH`; the  
+`generate_plots` "all" mode relies on this for every map  
+product.
+
+**Impact:** not a production bug, but tests must replace  
+module constants or classes in the caller's namespace to keep  
+plot generation away from the production `output/` tree (the  
+pattern used by the issue #32 tests).
+
+**Recommendation:** pass an injectable configuration through  
+the visualization stage (milestone V0.2-07).
+
+## F-019 — Inconsistent `generate_plots.main()` CLI contract
+
+**Component:** `src/visualization/generate_plots.py` (`main()`)
+
+**Finding:** `main()` is annotated `-> None` but returns `True`  
+at the end of the "overview" branch and `None` on every other  
+path ("timeseries", "polar", "all"). In addition, the `--output`  
+option is only honored in "overview" mode: in "all" mode the map  
+products are always written to `DEFAULT_OUTPUT_PLOT_PATH` and  
+its suffix variants, and the parsed `args.output` value is  
+ignored.
+
+**Recommendation:** unify the return behavior (return `None`  
+everywhere or a small result object) and honor `--output` in  
+"all" mode as documented. Minor cosmetic defect in the same  
+function: the `--regions` help text contains an accidental  
+line break ("Overlay a  
+nalysis regions").
