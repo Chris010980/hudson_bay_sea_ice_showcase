@@ -8,3 +8,77 @@ filterwarnings = [
     # Stummschalten der NumPy 2.5 Shape-Warnung, ausgelöst durch rasterio
     "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning"
 ]
+
+# Append to the existing pyproject.toml (which currently
+# contains only the [tool.pytest.ini_options] section).
+#
+# Policy basis: docs/development/static-analysis-policy.md
+# (issue #35); tool basis: docs/development/static-analysis.md
+# (issue #34).
+#
+# Installation into the project venv (issue #36, task: add the
+# selected tools to the project environment):
+#
+#     pip install ruff vulture radon
+#
+# Reproducibility: record the installed versions once with
+#
+#     pip freeze | grep -iE "^(ruff|vulture|radon)="
+#
+# in docs/development/static-analysis-findings.md.
+#
+# Checks (policy section 8/9):
+#
+#     ruff check .                       # mandatory lint gate
+#     ruff format --check .              # mandatory format gate
+#     vulture src tests \
+#         tests/vulture_whitelist.py \
+#         --min-confidence 90            # advisory dead-code report
+#     radon cc src -s -n C               # advisory, local only
+
+[tool.ruff]
+
+# The project targets Python 3.12
+# (docs/development/coding-standards.md, section 3).
+target-version = "py312"
+
+# House style: 72 character lines
+# (docs/development/coding-standards.md, section 4).
+line-length = 72
+
+# Policy section 7: analysis applies to Python source only.
+extend-exclude = [
+    "build",
+    "output",
+    "data",
+    "docs",
+    "releases",
+    ".idea",
+    ".venv",
+]
+
+[tool.ruff.lint]
+
+# Mandatory checks (policy severity "error"):
+#   E, W  -- pycodestyle style rules (incl. E501)
+#   F     -- pyflakes: F401 unused imports, F811 shadowed or
+#            duplicate imports, F841 unused local variables
+#   I     -- isort import order (auto-fixable)
+#
+# Advisory checks (policy severity "warning", triage required):
+#   B     -- flake8-bugbear likely-bug patterns
+#   UP    -- pyupgrade syntax modernization for Python 3.12
+#   C90   -- mccabe complexity (threshold below; src/ only in
+#            practice, see policy section 5)
+select = ["E", "W", "F", "I", "B", "UP", "C90"]
+
+[tool.ruff.lint.mccabe]
+
+# Policy section 5: complexity findings are warnings, not
+# errors. The threshold is deliberately generous for a
+# pipeline codebase.
+max-complexity = 10
+
+# Documented exceptions are inline `# noqa` directives with a
+# justification comment (policy section 6); no per-file rule
+# exceptions are configured.
