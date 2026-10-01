@@ -37,6 +37,8 @@ documentation pending) · `documented` (accepted as-is)
 | F-017 | #32   | timeseries\_plot                    | design    | open       |
 | F-018 | #32   | visualization stage                 | design    | open       |
 | F-019 | #32   | generate\_plots                     | design    | open       |
+| F-020 | #33   | build\_pages                        | design    | open       |
+| F-021 | #33   | build\_pages                        | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -451,3 +453,47 @@ everywhere or a small result object) and honor `--output` in
 function: the `--regions` help text contains an accidental  
 line break ("Overlay a  
 nalysis regions").
+
+## F-020 — The CLI options of `build_pages` are dead
+
+**Component:** `src/update/build_pages.py` (`parse_args()`,  
+`main()`)
+
+**Finding:** `main()` calls `parse_args(argv)` but discards the  
+result, so none of the three options has any effect:
+
+- `--clean` suggests opt-in removal of the build directory,  
+but `main()` unconditionally deletes `BUILD_DIR` on every  
+run if it exists,
+- `--log-level` and `--log-file` are parsed but never used; the  
+module logger is not configured anywhere in `main()`.
+
+**Impact:** misleading CLI contract. Also a test-relevant edge  
+case: `main()` without arguments would parse the *pytest*  
+command line and fail on unknown options, so callers must  
+always pass an explicit argv.
+
+**Recommendation:** either wire the options (configure logging,  
+make `--clean` the opt-out it documents) or remove them  
+(milestone V0.2-07).
+
+## F-021 — Missing `output/` only logs a warning
+
+**Component:** `src/update/build_pages.py` (`copy_directory()`,  
+`main()`)
+
+**Finding:** `main()` guards `DOCS_DIR` with an explicit  
+`FileNotFoundError`, but not `OUTPUT_DIR`: if the output  
+directory is missing, `copy_directory()` only logs a warning  
+and the build succeeds, silently deploying a website without  
+any scientific products (`build/output/` is absent).
+
+Related design note: `DOCS_DIR`, `OUTPUT_DIR` and `BUILD_DIR`  
+are definition-time module constants of the same  
+non-injectable family as F-010, F-013, F-015 and F-018; the  
+issue #33 tests redirect them with `monkeypatch.setattr` on  
+the `build_pages` module.
+
+**Recommendation:** fail fast on a missing output directory or  
+document the tolerance explicitly as intended behavior  
+(milestone V0.2-07).
