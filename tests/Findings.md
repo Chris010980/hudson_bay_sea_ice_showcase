@@ -30,6 +30,9 @@ documentation pending) · `documented` (accepted as-is)
 | F-010 | #28   | NSIDCDownloader                     | design    | open       |
 | F-011 | #28   | NSIDCDownloader                     | design    | open       |
 | F-012 | #28   | NSIDCDownloader                     | design    | open       |
+| F-013 | #29   | ReferenceBuilder                    | design    | open       |
+| F-014 | #30   | update\_pipeline                    | bug       | open       |
+| F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -273,24 +276,73 @@ available, but dead code.
 
 ## F-013 — ReferenceBuilder writes to non-injectable module constants
 
-**Component**: `src/analysis/reference_builder.py`
+**Component:** `src/analysis/reference_builder.py`  
 (`FILTER_DIR`, `REFERENCE_SUMMARY`, `_calculate_reference_areas()`)
 
-**Finding**: the builder saves water masks and the reference
-summary to the module-level constants `FILTER_DIR` and
-`REFERENCE_SUMMARY` (derived from `PROJECT_ROOT`), and reads the
-naturalearth ocean dataset via a `PROJECT_ROOT` path. None of
-these paths can be redirected through the constructor. Tests must
-monkeypatch the module constants and stub the gpd import to
-avoid reading or writing production data (pattern established in
-`tests/component/test_reference_builder.py` and reused by the
+**Finding:** the builder saves water masks and the reference  
+summary to the module-level constants `FILTER_DIR` and  
+`REFERENCE_SUMMARY` (derived from `PROJECT_ROOT`), and reads the  
+naturalearth ocean dataset via a `PROJECT_ROOT` path. None of  
+these paths can be redirected through the constructor. Tests must  
+monkeypatch the module constants and stub the `gpd` import to  
+avoid reading or writing production data (pattern established in  
+`tests/component/test_reference_builder.py` and reused by the  
 issue #29 integration chain). Same design pattern as F-010.
 
-**Impact**: not a production bug, but a testability constraint:
-every test that runs the real build() needs module-level
+**Impact:** not a production bug, but a testability constraint:  
+every test that runs the real `build()` needs module-level  
 patching instead of plain dependency injection.
 
-**Recommendation**: add injectable output paths (mask directory
-and summary path) to the constructor with the current constants
-as defaults, analogous to RegionAnalyzer, which already accepts
+**Recommendation:** add injectable output paths (mask directory  
+and summary path) to the constructor with the current constants  
+as defaults, analogous to `RegionAnalyzer`, which already accepts  
 `reference_json` and `filter_dir` parameters.
+
+## F-014 — First pipeline run crashes with `None.isoformat()`
+
+**Component:** `src/update/update_pipeline.py` (`main()`)
+
+**Finding:** on the first update run (no persisted results yet),  
+`get_latest_processed_date()` returns `None`, so the pipeline  
+computes `start_date = None + 1 day = None` and passes it on:  
+`process_data([..., "--start-date", start_date.isoformat(), ...])`  
+raises `AttributeError: 'NoneType' object has no attribute 'isoformat'`.
+
+**Impact:** a complete first run (empty results state) is currently  
+not operable; only incremental updates over an existing results  
+state work.
+
+**Recommendation:** pass `--start-date` only when `start_date is not None` (`process_data` already treats it as an optional  
+argument) or define an explicit fallback (e.g. earliest observation  
+date).
+
+**Test note:** issue #30 deliberately covers only the incremental  
+path; a first-run test can be added once the fix is decided  
+(milestone V0.2-07).
+
+## F-015 — Pipeline stages wire collaborators with hard-wired production defaults
+
+**Component:** `src/update/update_pipeline.py`,  
+`src/analysis/process_data.py`
+
+**Finding:** the pipeline and the processing stage construct all  
+collaborators with hard-coded production defaults  
+(`NSIDCDownloader()`, `ResultsManager()`, `ReferenceBuilder()`,  
+`RegionAnalyzer(tif)`, `TimeSeriesAnalyzer()`), and several of  
+these defaults are bound at function-definition time rather than  
+read from module constants at call time. As a result, a complete  
+update run cannot be redirected into an isolated test environment  
+by patching module constants; the collaborators would read and  
+write production directories. Same design pattern as F-010 and  
+F-013.
+
+**Impact:** not a production bug, but a testability constraint:  
+issue #30 replaces the collaborators in the  
+`src.update.update_pipeline` namespace with controlled  
+implementations of the same contracts instead of running the  
+untouched pipeline end to end.
+
+**Recommendation:** pass an injectable configuration (data,  
+output, build directories) through the pipeline stages for  
+milestone V0.2-07, so integration tests can run the real  
+orchestration against isolated directories.
