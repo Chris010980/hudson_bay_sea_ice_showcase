@@ -25,7 +25,7 @@ from src.config.paths import DATA_DIR
 logger = logging.getLogger(__name__)
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass  # noqa: E402
 
 
 @dataclass(slots=True)

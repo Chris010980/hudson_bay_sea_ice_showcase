@@ -335,7 +335,10 @@ def test_results_are_sorted_and_persisted(
 
     df = _read_csv(results_paths["csv"])
 
-    assert list(zip(df["date"], df["region"])) == expected_order
+    assert (
+        list(zip(df["date"], df["region"], strict=True))
+        == expected_order
+    )
 
     reloaded = _make_manager(results_paths)
 
@@ -347,6 +350,7 @@ def test_results_are_sorted_and_persisted(
             zip(
                 reloaded.df_existing["date"],
                 reloaded.df_existing["region"],
+                strict=True,
             )
         )
         == expected_order

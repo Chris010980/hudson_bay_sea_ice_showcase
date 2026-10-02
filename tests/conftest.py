@@ -176,7 +176,8 @@ def _pixel_rectangle(
     )
 
     return [
-        [float(lon_i), float(lat_i)] for lon_i, lat_i in zip(lon, lat)
+        [float(lon_i), float(lat_i)]
+        for lon_i, lat_i in zip(lon, lat, strict=True)
     ]
 
 

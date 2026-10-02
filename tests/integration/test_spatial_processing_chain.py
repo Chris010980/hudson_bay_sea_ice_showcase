@@ -308,11 +308,13 @@ def _region_values(
         zip(
             expected_reference_masks["Test Region Water"],
             water_values,
+            strict=True,
         )
     ) | dict(
         zip(
             expected_reference_masks["Test Region Mixed"],
             mixed_values,
+            strict=True,
         )
     )
 

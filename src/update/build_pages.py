@@ -16,7 +16,11 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-from src.config.paths import BUILD_DIR, DOCS_DIR, OUTPUT_DIR
+from src.config.paths import (  # noqa: E402
+    BUILD_DIR,
+    DOCS_DIR,
+    OUTPUT_DIR,
+)
 
 
 def parse_args(argv: Sequence[str] | None = None):

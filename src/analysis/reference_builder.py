@@ -160,7 +160,7 @@ class ReferenceBuilder:
 
         points = np.column_stack((lon, lat))
 
-        for name, region in self.regions.items():
+        for name, _region in self.regions.items():
             coords = self.regions[name]["coords"]
 
             path = MplPath(coords)
@@ -216,7 +216,7 @@ class ReferenceBuilder:
             PROJECT_ROOT / "data" / "naturalearth" / "ocean.shp"
         )
 
-        for name, region in self.regions.items():
+        for name, _region in self.regions.items():
             polygon = self.regions[name]["polygon"]
 
             region_gdf = gpd.GeoDataFrame(

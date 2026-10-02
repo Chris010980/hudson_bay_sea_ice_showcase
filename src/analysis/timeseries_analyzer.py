@@ -275,7 +275,7 @@ class TimeSeriesAnalyzer:
             new_column = f"{column}_ma"
             self.df[new_column] = np.nan
 
-            for region, indices in self.df.groupby(
+            for _region, indices in self.df.groupby(
                 "region"
             ).groups.items():
                 region_df = self.df.loc[indices].sort_values("date")
