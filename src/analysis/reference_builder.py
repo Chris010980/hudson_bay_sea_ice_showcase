@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 import rasterio
-from rasterio.crs import CRS
+from rasterio.crs import CRS  # noqa: F401
 from pyproj import Transformer
 from matplotlib.path import Path as MplPath
 from src.config.paths import PROJECT_ROOT

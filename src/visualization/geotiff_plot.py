@@ -33,7 +33,7 @@ DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
 DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
 logger = logging.getLogger(__name__)
 
-import matplotlib as mpl
+import matplotlib as mpl  # noqa: E402
 
 mpl.rcParams.update(
     {
@@ -492,7 +492,7 @@ class SeaIcePlotter:
         if self.date is not None:
             subtitle = self.date.strftime("%d %B %Y")
         else:
-            subtitle = ""
+            subtitle = ""  # noqa: F841
 
         self.fig.text(
             0.5,

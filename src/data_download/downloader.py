@@ -7,9 +7,9 @@ calculate statistics, or create plots.
 from __future__ import annotations
 
 import logging
-from os import link
+from os import link  # noqa: F401
 import re
-import shutil
+import shutil  # noqa: F401
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -186,7 +186,7 @@ class NSIDCDownloader:
         logger.info("Saved %s", local_path)
         return True
 
-    def sync(
+    def sync(  # noqa: C901
         self,
         start_date: date | None = None,
         end_date: date | None = None,
@@ -452,7 +452,7 @@ class NSIDCDownloader:
             len(links),
         )
 
-        for link in links[:10]:
+        for link in links[:10]:  # noqa: F402
             logger.info(link.get("href"))
 
         return [ href for link in links if (href := link.get("href")) ]

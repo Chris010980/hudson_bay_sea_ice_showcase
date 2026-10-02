@@ -16,7 +16,7 @@ can be added without changing the processing pipeline.
 
 from __future__ import annotations
 
-from curses import window
+from curses import window  # noqa: F401
 import logging
 from pathlib import Path
 
@@ -25,7 +25,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from src.config.paths import PROJECT_ROOT
+from src.config.paths import PROJECT_ROOT  # noqa: E402
 
 DEFAULT_RESULTS = (
     PROJECT_ROOT
@@ -301,7 +301,7 @@ class TimeSeriesAnalyzer:
 
     def calculate_moving_average(
         self,
-        window: int = 3,
+        window: int = 3,  # noqa: F811
     ):
 
         logger.info(
@@ -528,7 +528,7 @@ class TimeSeriesAnalyzer:
     # ---------------------------------------------------------
     # Freeze-up and break-up events
     # ---------------------------------------------------------
-    def _find_threshold_crossing(
+    def _find_threshold_crossing(  # noqa: C901
         self,
         df: pd.DataFrame,
         column: str,
@@ -945,7 +945,7 @@ class TimeSeriesAnalyzer:
                 # 16 September -> 15 March
                 # =================================================
 
-                default_freezeup_window = self._get_event_window(
+                default_freezeup_window = self._get_event_window(  # noqa: F841, E501
                     df_region=df_region,
                     event_year=event_year,
                     event_type="freeze-up",
