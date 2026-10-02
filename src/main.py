@@ -12,11 +12,14 @@ if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.analysis.process_data import main as process_data
-from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
+from src.config.logging_config import (
+    DEFAULT_LOG_FILE,
+    configure_logging,
+)
 from src.data_download.download_data import main as download_data
-from src.visualization.generate_plots import main as generate_plots
-from src.update.update_pipeline import main as update_pipeline
 from src.update.build_pages import main as build_pages
+from src.update.update_pipeline import main as update_pipeline
+from src.visualization.generate_plots import main as generate_plots
 
 logger = logging.getLogger(__name__)
 
@@ -180,7 +183,6 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
 
     if args.stage == "all":
-
         logger.info("Running complete pipeline.")
 
         download_data(
@@ -228,7 +230,6 @@ def main(argv: Sequence[str] | None = None) -> None:
     ]
 
     if args.stage == "plots":
-
         stage_args.append(args.plot_type)
 
         if args.regions:
@@ -245,7 +246,6 @@ def main(argv: Sequence[str] | None = None) -> None:
             stage_args.append("--show")
 
     elif args.stage == "update":
-
         if args.keep_data:
             stage_args.append("--keep-data")
 

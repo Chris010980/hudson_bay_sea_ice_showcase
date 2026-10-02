@@ -4,11 +4,11 @@ Collect and store analysis results.
 
 from __future__ import annotations
 
-import logging
-from pathlib import Path
 import json
+import logging
+from datetime import UTC, date, datetime
+from pathlib import Path
 
-from datetime import date, datetime, timezone
 import pandas as pd
 
 from src.config.paths import PROJECT_ROOT
@@ -16,21 +16,13 @@ from src.config.paths import PROJECT_ROOT
 logger = logging.getLogger(__name__)
 
 DEFAULT_RESULTS = (
-    PROJECT_ROOT
-    / "output"
-    / "analysis"
-    / "ice_coverage_summary.csv"
+    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
 )
 
-DEFAULT_LATEST = (
-    PROJECT_ROOT
-    / "output"
-    / "analysis"
-    / "latest.json"
-)
+DEFAULT_LATEST = PROJECT_ROOT / "output" / "analysis" / "latest.json"
+
 
 class ResultsManager:
-
     def __init__(
         self,
         csv_path: str | Path = DEFAULT_RESULTS,
@@ -52,13 +44,11 @@ class ResultsManager:
         )
 
         if self.csv_path.exists():
-
             self.df_existing = pd.read_csv(
                 self.csv_path,
             )
 
         else:
-
             self.df_existing = pd.DataFrame()
 
     # ---------------------------------------------------------
@@ -80,17 +70,13 @@ class ResultsManager:
         if self.df_existing.empty:
             return False
 
-        return (
-            self.df_existing["date"]
-            == str(date)
-        ).any()
+        return (self.df_existing["date"] == str(date)).any()
 
     def save(self):
 
         df_new = pd.DataFrame(self.results)
 
         if df_new.empty:
-
             logger.info("No new results.")
 
             return self.df_existing
@@ -132,7 +118,7 @@ class ResultsManager:
         )
 
         return df
-    
+
     def get_latest_processed_date(self) -> date | None:
         """
         Return the latest processed date stored in the summary CSV.
@@ -145,7 +131,6 @@ class ResultsManager:
         """
 
         if not self.csv_path.exists():
-
             logger.info(
                 "Results summary not found: %s",
                 self.csv_path,
@@ -160,20 +145,14 @@ class ResultsManager:
         )
 
         if df.empty:
-
-            logger.info(
-                "Results summary is empty."
-            )
+            logger.info("Results summary is empty.")
 
             return None
 
         latest = df["date"].max()
 
         if pd.isna(latest):
-
-            logger.warning(
-                "Results summary contains no valid dates."
-            )
+            logger.warning("Results summary contains no valid dates.")
 
             return None
 
@@ -185,7 +164,7 @@ class ResultsManager:
         )
 
         return latest
-        
+
     def has_results(self) -> bool:
         """
         Return True if the summary CSV exists and contains data.
@@ -193,8 +172,8 @@ class ResultsManager:
 
         latest = self.get_latest_processed_date()
 
-        return latest is not None 
-    
+        return latest is not None
+
     def _save_latest_json(
         self,
         df: pd.DataFrame,
@@ -217,7 +196,8 @@ class ResultsManager:
         payload = {
             "dataset": "NSIDC G02135",
             "date": latest_date,
-            "generated": datetime.now(timezone.utc).isoformat(timespec="seconds") + "Z",
+            "generated": datetime.now(UTC).isoformat(timespec="seconds")
+            + "Z",
             "observations": len(df),
             "regions": latest.to_dict(orient="records"),
         }
@@ -227,7 +207,6 @@ class ResultsManager:
             "w",
             encoding="utf-8",
         ) as f:
-
             json.dump(
                 payload,
                 f,

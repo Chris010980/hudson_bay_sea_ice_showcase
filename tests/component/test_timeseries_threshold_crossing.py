@@ -44,10 +44,10 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _analyzer(
     timeseries_paths: dict[str, Path],
@@ -115,9 +115,7 @@ def _assert_crossing(
 
     assert result.normalize() == pd.Timestamp(day)
 
-    offset_days = (
-        result - pd.Timestamp(day)
-    ).total_seconds() / 86400.0
+    offset_days = (result - pd.Timestamp(day)).total_seconds() / 86400.0
 
     assert offset_days == pytest.approx(fraction)
 
@@ -133,6 +131,7 @@ def _assert_no_crossing(
 # ------------------------------------------------------------------
 # Task: test downward crossings
 # ------------------------------------------------------------------
+
 
 def test_downward_crossing_is_detected(
     timeseries_paths: dict[str, Path],
@@ -168,17 +167,20 @@ def test_downward_crossing_is_detected(
     _assert_crossing(result, date(2026, 6, 2), 0.75)
 
     # The direction is distinguished: no upward crossing exists.
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="up",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="up",
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test upward crossings
 # ------------------------------------------------------------------
+
 
 def test_upward_crossing_is_detected(
     timeseries_paths: dict[str, Path],
@@ -214,17 +216,20 @@ def test_upward_crossing_is_detected(
     _assert_crossing(result, date(2026, 6, 2), 0.6)
 
     # The direction is distinguished: no downward crossing exists.
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test the 10 % threshold
 # ------------------------------------------------------------------
+
 
 def test_10_percent_threshold(
     timeseries_paths: dict[str, Path],
@@ -257,7 +262,15 @@ def test_10_percent_threshold(
                 pd.Timestamp(2026, 6, 8),
             ],
             "relative_coverage_percent": [
-                0.0, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                0.0,
+                30.0,
+                0.0,
+                30.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
             ],
         }
     )
@@ -275,6 +288,7 @@ def test_10_percent_threshold(
 # ------------------------------------------------------------------
 # Task: test the 50 % threshold
 # ------------------------------------------------------------------
+
 
 def test_50_percent_threshold(
     timeseries_paths: dict[str, Path],
@@ -309,6 +323,7 @@ def test_50_percent_threshold(
 # Task: test the 90 % threshold
 # ------------------------------------------------------------------
 
+
 def test_90_percent_threshold(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -341,6 +356,7 @@ def test_90_percent_threshold(
 # ------------------------------------------------------------------
 # Task: test exact threshold observations
 # ------------------------------------------------------------------
+
 
 def test_exact_threshold_observation(
     timeseries_paths: dict[str, Path],
@@ -395,6 +411,7 @@ def test_exact_threshold_observation(
 # Task: test interpolated crossings
 # ------------------------------------------------------------------
 
+
 def test_interpolated_crossing_date(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -431,6 +448,7 @@ def test_interpolated_crossing_date(
 # Task: test missing crossings
 # ------------------------------------------------------------------
 
+
 def test_missing_crossing_returns_none(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -450,24 +468,28 @@ def test_missing_crossing_returns_none(
     # Case 1: never below the threshold.
     frame = _daily_frame([80.0] * 10)
 
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
 
     # Case 2: insufficient days after the crossing.
     frame = _daily_frame(
         [80.0, 80.0, 40.0, 40.0, 40.0],
     )
 
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
 
     # Case 3: gap in the daily observations.
     frame = pd.DataFrame(
@@ -480,17 +502,20 @@ def test_missing_crossing_returns_none(
         }
     )
 
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test non-persistent crossings
 # ------------------------------------------------------------------
+
 
 def test_non_persistent_crossing_is_rejected(
     timeseries_paths: dict[str, Path],
@@ -520,17 +545,18 @@ def test_non_persistent_crossing_is_rejected(
         [80.0, 80.0, 40.0, 40.0] + [60.0] * 9,
     )
 
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
 
     # Series 2: a later persistent crossing is still found.
     frame = _daily_frame(
-        [80.0, 80.0, 40.0, 40.0, 60.0, 60.0]
-        + [20.0] * 7,
+        [80.0, 80.0, 40.0, 40.0, 60.0, 60.0] + [20.0] * 7,
     )
 
     result = _find(
@@ -546,6 +572,7 @@ def test_non_persistent_crossing_is_rejected(
 # ------------------------------------------------------------------
 # Task: test the persistence window boundary
 # ------------------------------------------------------------------
+
 
 def test_persistence_window_boundary(
     timeseries_paths: dict[str, Path],
@@ -584,9 +611,11 @@ def test_persistence_window_boundary(
         [80.0, 80.0] + [40.0] * 6,
     )
 
-    _assert_no_crossing(_find(
-        analyzer,
-        frame,
-        threshold=50.0,
-        direction="down",
-    ))
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )

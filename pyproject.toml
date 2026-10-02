@@ -79,6 +79,15 @@ select = ["E", "W", "F", "I", "B", "UP", "C90"]
 # pipeline codebase.
 max-complexity = 10
 
-# Documented exceptions are inline `# noqa` directives with a
-# justification comment (policy section 6); no per-file rule
-# exceptions are configured.
+# Documented exceptions for the findings deferred to V0.2-07
+# are inline `# noqa` directives with a justification comment
+# (policy section 6); the only per-file rule exception is the
+# Vulture whitelist below.
+
+[tool.ruff.lint.per-file-ignores]
+
+# S-019: the Vulture whitelist intentionally consists of bare
+# symbol names (dead-code suppression, policy section 6); it
+# is not executed code, so "undefined name" and "useless
+# expression" findings are expected there.
+"tests/vulture_whitelist.py" = ["F821", "B018"]

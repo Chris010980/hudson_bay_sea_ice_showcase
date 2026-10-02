@@ -90,7 +90,6 @@ from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.data_download.downloader import DownloadSummary
 
-
 # Persisted rows expected for the controlled observations
 # (hand calculation, identical to the spatial chain integration
 # tests; see also the module header):
@@ -156,6 +155,7 @@ _FLOAT_COLUMNS = {
 # Controlled collaborators
 # ------------------------------------------------------------------
 
+
 class _FakeDownloader:
     """Controlled NSIDCDownloader replacement (records all calls).
 
@@ -214,7 +214,10 @@ def _process_observations(
         )
         analyzer._extract_date()
 
-        if args.start_date is not None and analyzer.date < args.start_date:
+        if (
+            args.start_date is not None
+            and analyzer.date < args.start_date
+        ):
             continue
 
         if manager.is_date_processed(analyzer.date):
@@ -234,6 +237,7 @@ def _process_observations(
 # ------------------------------------------------------------------
 # Controlled inputs
 # ------------------------------------------------------------------
+
 
 def _write_observation(
     directory: Path,
@@ -284,18 +288,17 @@ def _region_values(
     mixed_values: list[int],
 ) -> dict[int, int]:
     """Map per-region concentration values to flat pixel indices."""
-    return (
-        dict(
-            zip(
-                expected_reference_masks["Test Region Water"],
-                water_values,
-            )
+    return dict(
+        zip(
+            expected_reference_masks["Test Region Water"],
+            water_values,
+            strict=True,
         )
-        | dict(
-            zip(
-                expected_reference_masks["Test Region Mixed"],
-                mixed_values,
-            )
+    ) | dict(
+        zip(
+            expected_reference_masks["Test Region Mixed"],
+            mixed_values,
+            strict=True,
         )
     )
 
@@ -354,6 +357,7 @@ def _assert_row(
 # ------------------------------------------------------------------
 # Fixture: controlled existing-results state and collaborators
 # ------------------------------------------------------------------
+
 
 @pytest.fixture
 def update_environment(
@@ -538,6 +542,7 @@ def _write_update_observations(
 # Task: execute the update pipeline with new observations
 # ------------------------------------------------------------------
 
+
 def test_update_processes_only_new_observations(
     update_environment: dict,
     expected_reference_masks: dict[str, np.ndarray],
@@ -632,6 +637,7 @@ def test_update_processes_only_new_observations(
 # Task: verify the no-new-data early exit
 # ------------------------------------------------------------------
 
+
 def test_update_without_downloads_stops_after_sync(
     update_environment: dict,
 ) -> None:
@@ -669,6 +675,7 @@ def test_update_without_downloads_stops_after_sync(
 # ------------------------------------------------------------------
 # Task: verify the no-new-results early exit
 # ------------------------------------------------------------------
+
 
 def test_update_without_new_results_stops_after_processing(
     update_environment: dict,
@@ -711,6 +718,7 @@ def test_update_without_new_results_stops_after_processing(
 # ------------------------------------------------------------------
 # Task: verify temporary data cleanup follows the configuration
 # ------------------------------------------------------------------
+
 
 def test_update_keep_data_skips_cleanup(
     update_environment: dict,

@@ -11,14 +11,16 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
+from src.config.logging_config import (
+    DEFAULT_LOG_FILE,
+    configure_logging,
+)
+from src.config.paths import resolve_project_path
 from src.data_download.downloader import (
     DEFAULT_GEOTIFF_DIR,
     DEFAULT_NSIDC_GEOTIFF_URL,
     NSIDCDownloader,
 )
-from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.config.paths import resolve_project_path
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +28,13 @@ logger = logging.getLogger(__name__)
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the NSIDC download stage."""
 
-    parser = argparse.ArgumentParser(description="Download raw NSIDC GeoTIFF data.")
+    parser = argparse.ArgumentParser(
+        description="Download raw NSIDC GeoTIFF data."
+    )
     parser.add_argument("--base-url", default=DEFAULT_NSIDC_GEOTIFF_URL)
-    parser.add_argument("--output-dir", default=str(DEFAULT_GEOTIFF_DIR))
+    parser.add_argument(
+        "--output-dir", default=str(DEFAULT_GEOTIFF_DIR)
+    )
     parser.add_argument("--product", default="concentration")
     parser.add_argument("--year", action="append", dest="years")
     parser.add_argument("--month", action="append", dest="months")

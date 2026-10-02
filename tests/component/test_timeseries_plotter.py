@@ -75,7 +75,6 @@ import pytest
 import src.visualization.timeseries_plot as timeseries_module
 from src.visualization.timeseries_plot import TimeSeriesPlotter
 
-
 # Water areas of the synthetic regions (identical to the other
 # test modules of the suite).
 _WATER_AREA_KM2 = {
@@ -87,18 +86,126 @@ _WATER_AREA_KM2 = {
 #  relative climatology %, relative sigma,
 #  absolute climatology %, absolute sigma)
 _TIMESERIES_ROWS = [
-    ("Test Region Water", "2000-01-15", 90.0, 45.0, 80.0, 5.0, 40.0, 2.5),
-    ("Test Region Water", "2000-07-15", 20.0, 10.0, 25.0, 5.0, 12.5, 2.5),
-    ("Test Region Water", "2000-10-15", 60.0, 30.0, 55.0, 5.0, 27.5, 2.5),
-    ("Test Region Water", "2001-01-15", 80.0, 40.0, 80.0, 5.0, 40.0, 2.5),
-    ("Test Region Water", "2001-07-15", 30.0, 15.0, 25.0, 5.0, 12.5, 2.5),
-    ("Test Region Water", "2001-10-15", 50.0, 25.0, 55.0, 5.0, 27.5, 2.5),
-    ("Test Region Mixed", "2000-01-15", 70.0, 56.0, 65.0, 5.0, 52.0, 4.0),
-    ("Test Region Mixed", "2000-07-15", 10.0, 8.0, 15.0, 5.0, 12.0, 4.0),
-    ("Test Region Mixed", "2000-10-15", 40.0, 32.0, 35.0, 5.0, 28.0, 4.0),
-    ("Test Region Mixed", "2001-01-15", 60.0, 48.0, 65.0, 5.0, 52.0, 4.0),
-    ("Test Region Mixed", "2001-07-15", 20.0, 16.0, 15.0, 5.0, 12.0, 4.0),
-    ("Test Region Mixed", "2001-10-15", 30.0, 24.0, 35.0, 5.0, 28.0, 4.0),
+    (
+        "Test Region Water",
+        "2000-01-15",
+        90.0,
+        45.0,
+        80.0,
+        5.0,
+        40.0,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2000-07-15",
+        20.0,
+        10.0,
+        25.0,
+        5.0,
+        12.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2000-10-15",
+        60.0,
+        30.0,
+        55.0,
+        5.0,
+        27.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-01-15",
+        80.0,
+        40.0,
+        80.0,
+        5.0,
+        40.0,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-07-15",
+        30.0,
+        15.0,
+        25.0,
+        5.0,
+        12.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-10-15",
+        50.0,
+        25.0,
+        55.0,
+        5.0,
+        27.5,
+        2.5,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-01-15",
+        70.0,
+        56.0,
+        65.0,
+        5.0,
+        52.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-07-15",
+        10.0,
+        8.0,
+        15.0,
+        5.0,
+        12.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-10-15",
+        40.0,
+        32.0,
+        35.0,
+        5.0,
+        28.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-01-15",
+        60.0,
+        48.0,
+        65.0,
+        5.0,
+        52.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-07-15",
+        20.0,
+        16.0,
+        15.0,
+        5.0,
+        12.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-10-15",
+        30.0,
+        24.0,
+        35.0,
+        5.0,
+        28.0,
+        4.0,
+    ),
 ]
 
 # (region, event year, break-up date, freeze-up date); identical
@@ -148,6 +255,7 @@ _ALL_TIMESERIES_PRODUCTS = [
 # Controlled inputs
 # ------------------------------------------------------------------
 
+
 def _seed_timeseries_csv(analysis_dir: Path) -> Path:
     """Write the controlled time-series product.
 
@@ -186,8 +294,10 @@ def _seed_timeseries_csv(analysis_dir: Path) -> Path:
                 "relative_climatology_std_percent": relative_sigma,
                 "absolute_climatology_percent": absolute_climatology,
                 "absolute_climatology_std_percent": absolute_sigma,
-                "relative_anomaly_percent": relative - relative_climatology,
-                "absolute_anomaly_percent": absolute - absolute_climatology,
+                "relative_anomaly_percent": relative
+                - relative_climatology,
+                "absolute_anomaly_percent": absolute
+                - absolute_climatology,
                 "month_day": date_string[5:],
             }
         )
@@ -211,8 +321,12 @@ def _seed_yearly_csv(analysis_dir: Path) -> Path:
                 "year": year,
                 "relative_mean_coverage_percent": relative,
                 "absolute_mean_coverage_percent": absolute,
-                "relative_mean_ice_area_km2": relative * water_area / 100.0,
-                "absolute_mean_ice_area_km2": absolute * water_area / 100.0,
+                "relative_mean_ice_area_km2": relative
+                * water_area
+                / 100.0,
+                "absolute_mean_ice_area_km2": absolute
+                * water_area
+                / 100.0,
             }
         )
 
@@ -293,6 +407,7 @@ def _snapshot_tree(root: Path) -> dict[str, bytes]:
 # Fixture: controlled analysis products and isolated outputs
 # ------------------------------------------------------------------
 
+
 @pytest.fixture
 def timeseries_plot_environment(
     test_environment: dict[str, Path],
@@ -339,6 +454,7 @@ def timeseries_plot_environment(
 # Task: test time-series plot generation
 # ------------------------------------------------------------------
 
+
 def test_plot_timeseries_creates_region_plots(
     timeseries_plot_environment: dict,
 ) -> None:
@@ -372,6 +488,7 @@ def test_plot_timeseries_creates_region_plots(
 # ------------------------------------------------------------------
 # Task: test anomaly plots
 # ------------------------------------------------------------------
+
 
 def test_plot_anomalies_creates_anomaly_plots(
     timeseries_plot_environment: dict,
@@ -411,6 +528,7 @@ def test_plot_anomalies_creates_anomaly_plots(
 # ------------------------------------------------------------------
 # Task: test threshold-duration plots
 # ------------------------------------------------------------------
+
 
 def test_plot_threshold_durations_creates_duration_plots(
     timeseries_plot_environment: dict,
@@ -453,6 +571,7 @@ def test_plot_threshold_durations_creates_duration_plots(
 # Task: test annual plots
 # ------------------------------------------------------------------
 
+
 def test_plot_yearly_means_creates_annual_plots(
     timeseries_plot_environment: dict,
 ) -> None:
@@ -485,6 +604,7 @@ def test_plot_yearly_means_creates_annual_plots(
 # ------------------------------------------------------------------
 # Task: test polar plots
 # ------------------------------------------------------------------
+
 
 def test_plot_polar_creates_polar_plots(
     timeseries_plot_environment: dict,
@@ -523,6 +643,7 @@ def test_plot_polar_creates_polar_plots(
 # Task: validate expected output files
 # ------------------------------------------------------------------
 
+
 def test_plot_all_creates_the_complete_product_set(
     timeseries_plot_environment: dict,
 ) -> None:
@@ -548,6 +669,7 @@ def test_plot_all_creates_the_complete_product_set(
 # Acceptance criterion: plot generation does not modify
 # scientific analysis values
 # ------------------------------------------------------------------
+
 
 def test_plot_generation_does_not_modify_analysis_results(
     timeseries_plot_environment: dict,

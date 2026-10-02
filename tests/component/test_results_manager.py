@@ -41,7 +41,6 @@ import pytest
 
 from src.analysis.results_manager import ResultsManager
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -60,6 +59,7 @@ PIXEL_AREA_KM2 = 625.0
 # ------------------------------------------------------------------
 # Helpers and fixtures
 # ------------------------------------------------------------------
+
 
 def _observation(
     region: str,
@@ -125,6 +125,7 @@ def _read_csv(csv_path: Path) -> pd.DataFrame:
 # Task: test adding new results
 # ------------------------------------------------------------------
 
+
 def test_new_results_are_persisted(
     results_paths: dict[str, Path],
 ) -> None:
@@ -179,6 +180,7 @@ def test_new_results_are_persisted(
 # Task: test date/region identification
 # ------------------------------------------------------------------
 
+
 def test_is_date_processed_identifies_persisted_dates(
     results_paths: dict[str, Path],
 ) -> None:
@@ -216,6 +218,7 @@ def test_is_date_processed_identifies_persisted_dates(
 # ------------------------------------------------------------------
 # Task: test duplicate handling
 # ------------------------------------------------------------------
+
 
 def test_duplicate_date_region_observations_keep_last(
     results_paths: dict[str, Path],
@@ -268,6 +271,7 @@ def test_duplicate_date_region_observations_keep_last(
 # ------------------------------------------------------------------
 # Task: test sorting/persistence
 # ------------------------------------------------------------------
+
 
 def test_results_are_sorted_and_persisted(
     results_paths: dict[str, Path],
@@ -331,24 +335,32 @@ def test_results_are_sorted_and_persisted(
 
     df = _read_csv(results_paths["csv"])
 
-    assert list(zip(df["date"], df["region"])) == expected_order
+    assert (
+        list(zip(df["date"], df["region"], strict=True))
+        == expected_order
+    )
 
     reloaded = _make_manager(results_paths)
 
     assert not reloaded.df_existing.empty
     assert len(reloaded.df_existing) == 4
 
-    assert list(
-        zip(
-            reloaded.df_existing["date"],
-            reloaded.df_existing["region"],
+    assert (
+        list(
+            zip(
+                reloaded.df_existing["date"],
+                reloaded.df_existing["region"],
+                strict=True,
+            )
         )
-    ) == expected_order
+        == expected_order
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test latest processed date handling
 # ------------------------------------------------------------------
+
 
 def test_latest_processed_date(
     results_paths: dict[str, Path],
@@ -402,6 +414,7 @@ def test_latest_processed_date(
 # ------------------------------------------------------------------
 # Task: test latest.json
 # ------------------------------------------------------------------
+
 
 def test_latest_json_reflects_persisted_state(
     results_paths: dict[str, Path],
@@ -476,6 +489,7 @@ def test_latest_json_reflects_persisted_state(
 # Task: test empty-result handling
 # ------------------------------------------------------------------
 
+
 def test_empty_result_handling(
     results_paths: dict[str, Path],
 ) -> None:
@@ -523,6 +537,7 @@ def test_empty_result_handling(
 # ------------------------------------------------------------------
 # Preservation of existing observations (incremental addition)
 # ------------------------------------------------------------------
+
 
 def test_incremental_add_preserves_existing_observations(
     results_paths: dict[str, Path],
@@ -599,5 +614,7 @@ def test_incremental_add_preserves_existing_observations(
 
     regions = payload["regions"]
 
-    assert [entry["region"] for entry in regions] == ["Test Region Water"]
+    assert [entry["region"] for entry in regions] == [
+        "Test Region Water"
+    ]
     assert regions[0]["absolute_ice_area_km2"] == 800.0

@@ -3,7 +3,8 @@ Build the GitHub Pages website.
 
 The build step combines the static website located in ``docs/`` with the
 latest generated analysis results stored in ``output/`` and creates a
-self-contained ``build/`` directory suitable for GitHub Pages deployment.
+self-contained ``build/`` directory suitable for GitHub Pages
+deployment.
 """
 
 from __future__ import annotations
@@ -11,13 +12,16 @@ from __future__ import annotations
 import argparse
 import logging
 import shutil
-
 from collections.abc import Sequence
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-from src.config.paths import DOCS_DIR, OUTPUT_DIR, BUILD_DIR
+from src.config.paths import (  # noqa: E402
+    BUILD_DIR,
+    DOCS_DIR,
+    OUTPUT_DIR,
+)
 
 
 def parse_args(argv: Sequence[str] | None = None):
@@ -47,7 +51,6 @@ def parse_args(argv: Sequence[str] | None = None):
 def copy_directory(source: Path, destination: Path):
 
     if not source.exists():
-
         logger.warning("Directory does not exist: %s", source)
 
         return
@@ -69,7 +72,6 @@ def main(argv: Sequence[str] | None = None):
         )
 
     if BUILD_DIR.exists():
-
         logger.info("Removing previous build directory.")
 
         shutil.rmtree(BUILD_DIR)

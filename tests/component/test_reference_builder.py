@@ -23,14 +23,13 @@ import geopandas as gpd
 import numpy as np
 import pytest
 import rasterio
-from rasterio.errors import RasterioIOError
 from pyproj import Transformer
+from rasterio.errors import RasterioIOError
 from shapely.geometry import Polygon
 from shapely.ops import transform as shapely_transform
 
 import src.analysis.reference_builder as reference_builder_module
 from src.analysis.reference_builder import ReferenceBuilder
-
 
 EXPECTED_SUMMARY_KEYS = {
     "polygon_pixels",
@@ -48,8 +47,11 @@ EXPECTED_SUMMARY_KEYS = {
 # Controlled ocean replacement
 # ------------------------------------------------------------------
 
+
 class _StubGeopandas:
-    """geopandas stand-in serving a controlled synthetic ocean dataset."""
+    """geopandas stand-in serving a controlled synthetic
+    ocean dataset.
+    """
 
     def __init__(self, ocean: gpd.GeoDataFrame):
         self._ocean = ocean
@@ -62,15 +64,20 @@ class _StubGeopandas:
 
 
 @pytest.fixture
-def synthetic_ocean(monkeypatch: pytest.MonkeyPatch) -> gpd.GeoDataFrame:
-    """Replace the naturalearth ocean file with a controlled ocean polygon.
+def synthetic_ocean(
+    monkeypatch: pytest.MonkeyPatch,
+) -> gpd.GeoDataFrame:
+    """Replace the naturalearth ocean file with a controlled
+    ocean polygon.
 
     The polygon covers the complete polar extent of the synthetic
     regions, so the intersection equals each region polygon itself.
     """
 
     ocean = gpd.GeoDataFrame(
-        geometry=[Polygon([(-180, 80), (180, 80), (180, 90), (-180, 90)])],
+        geometry=[
+            Polygon([(-180, 80), (180, 80), (180, 90), (-180, 90)])
+        ],
         crs="EPSG:4326",
     )
 
@@ -86,6 +93,7 @@ def synthetic_ocean(monkeypatch: pytest.MonkeyPatch) -> gpd.GeoDataFrame:
 # ------------------------------------------------------------------
 # Reference raster loading
 # ------------------------------------------------------------------
+
 
 def test_reference_raster_loading(
     synthetic_reference_raster: Path,
@@ -123,12 +131,15 @@ def test_reference_raster_loading(
 # Missing-value validation
 # ------------------------------------------------------------------
 
+
 def test_reference_raster_rejects_missing_values(
     synthetic_reference_raster: Path,
     synthetic_region_file: Path,
 ) -> None:
     """Verify that missing-value code 2550 is detected."""
-    invalid_raster = synthetic_reference_raster.parent / "invalid_reference.tif"
+    invalid_raster = (
+        synthetic_reference_raster.parent / "invalid_reference.tif"
+    )
 
     with rasterio.open(synthetic_reference_raster) as src:
         data = src.read(1).astype(np.uint16)
@@ -173,6 +184,7 @@ def test_missing_reference_file_is_detected(
 # Region configuration loading
 # ------------------------------------------------------------------
 
+
 def test_region_configuration_loading(
     synthetic_reference_raster: Path,
     synthetic_region_file: Path,
@@ -202,13 +214,15 @@ def test_region_configuration_wraps_longitudes_above_180(
     synthetic_reference_raster: Path,
     test_environment: dict[str, Path],
 ) -> None:
-    """Verify that longitudes above 180 degrees are wrapped to [-180, 180]."""
+    """Verify that longitudes above 180 degrees are wrapped
+    to [-180, 180].
+    """
     region_file = test_environment["data"] / "regions_unwrapped.json"
 
     data = {
         "regions": {
             "Test Region Unwrapped": {
-                "description": "Region with longitudes above 180 degrees",
+                "description": "Region with longitudes > 180 degrees",
                 "polygon": [
                     [170.0, 50.0],
                     [190.0, 51.0],
@@ -253,6 +267,7 @@ def test_missing_region_file_is_detected(
 # Region mask creation
 # ------------------------------------------------------------------
 
+
 def test_region_masks_contain_expected_pixels(
     synthetic_reference_raster: Path,
     synthetic_region_file: Path,
@@ -287,6 +302,7 @@ def test_region_masks_contain_expected_pixels(
 # Reference water-pixel counts
 # ------------------------------------------------------------------
 
+
 def test_reference_water_pixel_counts(
     synthetic_reference_raster: Path,
     synthetic_region_file: Path,
@@ -320,6 +336,7 @@ def test_reference_water_pixel_counts(
 # ------------------------------------------------------------------
 # Reference-area calculation
 # ------------------------------------------------------------------
+
 
 def test_reference_area_calculation(
     synthetic_reference_raster: Path,
@@ -358,7 +375,8 @@ def test_reference_area_matches_independent_computation(
     synthetic_region_file: Path,
     synthetic_ocean: gpd.GeoDataFrame,
 ) -> None:
-    """Verify naturalearth reference areas against an independent computation.
+    """Verify naturalearth reference areas against an independent
+    computation.
 
     The expected areas are derived with shapely/pyproj instead of the
     geopandas overlay used by the implementation, so the test verifies
@@ -389,7 +407,9 @@ def test_reference_area_matches_independent_computation(
 
     builder._calculate_reference_areas()
 
-    transformer = Transformer.from_crs("EPSG:4326", "EPSG:6933", always_xy=True)
+    transformer = Transformer.from_crs(
+        "EPSG:4326", "EPSG:6933", always_xy=True
+    )
 
     for region, pixel_area in pixel_areas_km2.items():
         entry = builder.reference_summary[region]
@@ -422,6 +442,7 @@ def test_reference_area_matches_independent_computation(
 # ------------------------------------------------------------------
 # Reusable reference output generation
 # ------------------------------------------------------------------
+
 
 def test_reference_output_generation(
     synthetic_reference_raster: Path,

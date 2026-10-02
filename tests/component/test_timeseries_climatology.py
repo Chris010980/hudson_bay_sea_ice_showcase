@@ -38,7 +38,6 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -55,6 +54,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _row(
     region: str,
@@ -146,9 +146,7 @@ def _stat(
 ) -> float:
     """Return a climatology value of a single observation day."""
 
-    row = region_df[
-        region_df["date"] == pd.Timestamp(day)
-    ]
+    row = region_df[region_df["date"] == pd.Timestamp(day)]
 
     assert len(row) == 1
 
@@ -158,6 +156,7 @@ def _stat(
 # ------------------------------------------------------------------
 # Task: test reference-period filtering
 # ------------------------------------------------------------------
+
 
 def test_only_reference_period_contributes(
     timeseries_paths: dict[str, Path],
@@ -194,37 +193,58 @@ def test_only_reference_period_contributes(
     region_df = _region_frame(df, "Test Region")
 
     assert _stat(
-        region_df, date(1981, 7, 15), "relative_climatology_percent",
+        region_df,
+        date(1981, 7, 15),
+        "relative_climatology_percent",
     ) == pytest.approx(30.0)
 
-    assert _stat(
-        region_df, date(1981, 7, 15), "relative_climatology_min_percent",
-    ) == 20.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 7, 15),
+            "relative_climatology_min_percent",
+        )
+        == 20.0
+    )
+
+    assert (
+        _stat(
+            region_df,
+            date(1981, 7, 15),
+            "relative_climatology_max_percent",
+        )
+        == 40.0
+    )
 
     assert _stat(
-        region_df, date(1981, 7, 15), "relative_climatology_max_percent",
-    ) == 40.0
-
-    assert _stat(
-        region_df, date(1981, 7, 15), "relative_climatology_std_percent",
+        region_df,
+        date(1981, 7, 15),
+        "relative_climatology_std_percent",
     ) == pytest.approx(14.142136)
 
     # The merged climatology is attached to every row of the
     # month-day, also outside the reference period.
     for day in (date(1980, 7, 15), date(2011, 7, 15)):
         assert _stat(
-            region_df, day, "relative_climatology_percent",
+            region_df,
+            day,
+            "relative_climatology_percent",
         ) == pytest.approx(30.0)
 
     # A month-day without in-period observations has no climatology.
-    assert pd.isna(_stat(
-        region_df, date(2015, 5, 5), "relative_climatology_percent",
-    ))
+    assert pd.isna(
+        _stat(
+            region_df,
+            date(2015, 5, 5),
+            "relative_climatology_percent",
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test month-day grouping
 # ------------------------------------------------------------------
+
 
 def test_month_days_are_grouped_separately(
     timeseries_paths: dict[str, Path],
@@ -247,17 +267,22 @@ def test_month_days_are_grouped_separately(
     region_df = _region_frame(df, "Test Region")
 
     assert _stat(
-        region_df, date(1981, 1, 1), "relative_climatology_percent",
+        region_df,
+        date(1981, 1, 1),
+        "relative_climatology_percent",
     ) == pytest.approx(20.0)
 
     assert _stat(
-        region_df, date(1981, 1, 2), "relative_climatology_percent",
+        region_df,
+        date(1981, 1, 2),
+        "relative_climatology_percent",
     ) == pytest.approx(30.0)
 
 
 # ------------------------------------------------------------------
 # Task: test mean
 # ------------------------------------------------------------------
+
 
 def test_mean_matches_independent_calculation(
     timeseries_paths: dict[str, Path],
@@ -283,17 +308,22 @@ def test_mean_matches_independent_calculation(
     region_df = _region_frame(df, "Test Region")
 
     assert _stat(
-        region_df, date(1981, 6, 15), "relative_climatology_percent",
+        region_df,
+        date(1981, 6, 15),
+        "relative_climatology_percent",
     ) == pytest.approx(25.0)
 
     assert _stat(
-        region_df, date(1981, 6, 15), "absolute_climatology_percent",
+        region_df,
+        date(1981, 6, 15),
+        "absolute_climatology_percent",
     ) == pytest.approx(125.0)
 
 
 # ------------------------------------------------------------------
 # Task: test standard deviation
 # ------------------------------------------------------------------
+
 
 def test_std_matches_independent_calculation(
     timeseries_paths: dict[str, Path],
@@ -356,26 +386,43 @@ def test_single_observation_has_no_std(
 
     region_df = _region_frame(df, "Test Region")
 
-    assert pd.isna(_stat(
-        region_df, date(1985, 9, 20), "relative_climatology_std_percent",
-    ))
+    assert pd.isna(
+        _stat(
+            region_df,
+            date(1985, 9, 20),
+            "relative_climatology_std_percent",
+        )
+    )
 
     assert _stat(
-        region_df, date(1985, 9, 20), "relative_climatology_percent",
+        region_df,
+        date(1985, 9, 20),
+        "relative_climatology_percent",
     ) == pytest.approx(55.0)
 
-    assert _stat(
-        region_df, date(1985, 9, 20), "relative_climatology_min_percent",
-    ) == 55.0
+    assert (
+        _stat(
+            region_df,
+            date(1985, 9, 20),
+            "relative_climatology_min_percent",
+        )
+        == 55.0
+    )
 
-    assert _stat(
-        region_df, date(1985, 9, 20), "relative_climatology_max_percent",
-    ) == 55.0
+    assert (
+        _stat(
+            region_df,
+            date(1985, 9, 20),
+            "relative_climatology_max_percent",
+        )
+        == 55.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test minimum and maximum
 # ------------------------------------------------------------------
+
 
 def test_min_and_max_match_independent_calculation(
     timeseries_paths: dict[str, Path],
@@ -398,26 +445,47 @@ def test_min_and_max_match_independent_calculation(
 
     region_df = _region_frame(df, "Test Region")
 
-    assert _stat(
-        region_df, date(1981, 12, 1), "relative_climatology_min_percent",
-    ) == 15.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 12, 1),
+            "relative_climatology_min_percent",
+        )
+        == 15.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 12, 1), "relative_climatology_max_percent",
-    ) == 70.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 12, 1),
+            "relative_climatology_max_percent",
+        )
+        == 70.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 12, 1), "absolute_climatology_min_percent",
-    ) == 5.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 12, 1),
+            "absolute_climatology_min_percent",
+        )
+        == 5.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 12, 1), "absolute_climatology_max_percent",
-    ) == 90.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 12, 1),
+            "absolute_climatology_max_percent",
+        )
+        == 90.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test February 29 handling
 # ------------------------------------------------------------------
+
 
 def test_feb_29_forms_its_own_leap_year_group(
     timeseries_paths: dict[str, Path],
@@ -448,32 +516,53 @@ def test_feb_29_forms_its_own_leap_year_group(
 
     region_df = _region_frame(df, "Test Region")
 
-    for day in (date(1984, 2, 29), date(1988, 2, 29), date(1992, 2, 29)):
+    for day in (
+        date(1984, 2, 29),
+        date(1988, 2, 29),
+        date(1992, 2, 29),
+    ):
         assert _stat(
-            region_df, day, "relative_climatology_percent",
+            region_df,
+            day,
+            "relative_climatology_percent",
         ) == pytest.approx(50.0)
 
-        assert _stat(
-            region_df, day, "relative_climatology_min_percent",
-        ) == 30.0
+        assert (
+            _stat(
+                region_df,
+                day,
+                "relative_climatology_min_percent",
+            )
+            == 30.0
+        )
 
-        assert _stat(
-            region_df, day, "relative_climatology_max_percent",
-        ) == 70.0
+        assert (
+            _stat(
+                region_df,
+                day,
+                "relative_climatology_max_percent",
+            )
+            == 70.0
+        )
 
     # 03-01 of leap and non-leap years belongs to one group.
     assert _stat(
-        region_df, date(1984, 3, 1), "relative_climatology_percent",
+        region_df,
+        date(1984, 3, 1),
+        "relative_climatology_percent",
     ) == pytest.approx(16.5)
 
     assert _stat(
-        region_df, date(1985, 3, 1), "relative_climatology_percent",
+        region_df,
+        date(1985, 3, 1),
+        "relative_climatology_percent",
     ) == pytest.approx(16.5)
 
 
 # ------------------------------------------------------------------
 # Task: test absolute and relative coverage separately
 # ------------------------------------------------------------------
+
 
 def test_absolute_and_relative_remain_separate(
     timeseries_paths: dict[str, Path],
@@ -502,33 +591,61 @@ def test_absolute_and_relative_remain_separate(
     region_df = _region_frame(df, "Test Region")
 
     assert _stat(
-        region_df, date(1981, 8, 1), "relative_climatology_percent",
+        region_df,
+        date(1981, 8, 1),
+        "relative_climatology_percent",
     ) == pytest.approx(20.0)
 
     assert _stat(
-        region_df, date(1981, 8, 1), "absolute_climatology_percent",
+        region_df,
+        date(1981, 8, 1),
+        "absolute_climatology_percent",
     ) == pytest.approx(60.0)
 
     assert _stat(
-        region_df, date(1981, 8, 1), "relative_climatology_std_percent",
+        region_df,
+        date(1981, 8, 1),
+        "relative_climatology_std_percent",
     ) == pytest.approx(10.0)
 
     assert _stat(
-        region_df, date(1981, 8, 1), "absolute_climatology_std_percent",
+        region_df,
+        date(1981, 8, 1),
+        "absolute_climatology_std_percent",
     ) == pytest.approx(20.0)
 
-    assert _stat(
-        region_df, date(1981, 8, 1), "relative_climatology_min_percent",
-    ) == 10.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 8, 1),
+            "relative_climatology_min_percent",
+        )
+        == 10.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 8, 1), "absolute_climatology_min_percent",
-    ) == 40.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 8, 1),
+            "absolute_climatology_min_percent",
+        )
+        == 40.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 8, 1), "relative_climatology_max_percent",
-    ) == 30.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 8, 1),
+            "relative_climatology_max_percent",
+        )
+        == 30.0
+    )
 
-    assert _stat(
-        region_df, date(1981, 8, 1), "absolute_climatology_max_percent",
-    ) == 80.0
+    assert (
+        _stat(
+            region_df,
+            date(1981, 8, 1),
+            "absolute_climatology_max_percent",
+        )
+        == 80.0
+    )

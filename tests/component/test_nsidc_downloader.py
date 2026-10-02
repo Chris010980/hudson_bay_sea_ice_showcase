@@ -46,7 +46,6 @@ from src.data_download.downloader import (
     NSIDCDownloader,
 )
 
-
 BASE_URL = "https://example.test/nsidc/"
 
 # Controlled remote archive used by the discovery and
@@ -75,6 +74,7 @@ REMOTE_MONTH_FILES: dict[str, dict[str, list[str]]] = {
 # ------------------------------------------------------------------
 # Helpers: scripted remote service
 # ------------------------------------------------------------------
+
 
 class _FakeResponse:
     """Minimal stand-in for a ``requests`` response object."""
@@ -123,9 +123,7 @@ class _FakeSession:
 
 def _html(*hrefs: str) -> str:
     """Build a minimal HTML directory index containing the hrefs."""
-    links = "".join(
-        f'<a href="{href}">{href}</a>' for href in hrefs
-    )
+    links = "".join(f'<a href="{href}">{href}</a>' for href in hrefs)
     return f"<html><body>{links}</body></html>"
 
 
@@ -201,6 +199,7 @@ def _remote_archive() -> dict[str, _FakeResponse]:
 # Helpers: local archive and downloader construction
 # ------------------------------------------------------------------
 
+
 def _local_base(test_environment: dict[str, Path]) -> Path:
     """Isolated local GeoTIFF base directory for a test."""
     return test_environment["data"] / "geotiff"
@@ -238,6 +237,7 @@ def _make_downloader(
 # Task: test local-file discovery
 # ------------------------------------------------------------------
 
+
 def test_local_file_discovery(
     test_environment: dict[str, Path],
 ) -> None:
@@ -273,6 +273,7 @@ def test_local_file_discovery(
 # Task: test remote year/month/file discovery (controlled
 # responses)
 # ------------------------------------------------------------------
+
 
 def test_remote_year_and_month_discovery(
     test_environment: dict[str, Path],
@@ -344,6 +345,7 @@ def test_remote_file_discovery(
 # Basic download behavior
 # ------------------------------------------------------------------
 
+
 def test_download_file_saves_missing_and_skips_existing(
     test_environment: dict[str, Path],
 ) -> None:
@@ -378,6 +380,7 @@ def test_download_file_saves_missing_and_skips_existing(
 # ------------------------------------------------------------------
 # Task: test equivalent local-file detection
 # ------------------------------------------------------------------
+
 
 def test_equivalent_local_file_is_not_downloaded_again(
     test_environment: dict[str, Path],
@@ -432,6 +435,7 @@ def test_equivalent_local_file_is_not_downloaded_again(
 # ------------------------------------------------------------------
 # Task: test synchronization logic
 # ------------------------------------------------------------------
+
 
 def test_sync_downloads_missing_and_skips_present(
     test_environment: dict[str, Path],
@@ -677,6 +681,7 @@ def test_sync_dry_run_downloads_nothing(
 # Task: test download error handling
 # ------------------------------------------------------------------
 
+
 def test_download_error_is_reported_and_leaves_no_file(
     test_environment: dict[str, Path],
 ) -> None:
@@ -700,12 +705,8 @@ def test_download_error_is_reported_and_leaves_no_file(
     )
     downloader, _ = _make_downloader(local_base, responses)
 
-    assert (
-        downloader.download_file("2026", "01_Jan", failing) is False
-    )
-    assert not (
-        local_base / "2026" / "01_Jan" / failing
-    ).exists()
+    assert downloader.download_file("2026", "01_Jan", failing) is False
+    assert not (local_base / "2026" / "01_Jan" / failing).exists()
 
     summary = downloader.sync()
 
@@ -717,9 +718,7 @@ def test_download_error_is_reported_and_leaves_no_file(
     )
 
     # The failed file was not stored; synchronization continued.
-    assert not (
-        local_base / "2026" / "01_Jan" / failing
-    ).exists()
+    assert not (local_base / "2026" / "01_Jan" / failing).exists()
     assert (
         local_base
         / "2026"
@@ -743,6 +742,7 @@ def test_download_error_is_reported_and_leaves_no_file(
 # ------------------------------------------------------------------
 # Task: test temporary data deletion
 # ------------------------------------------------------------------
+
 
 def test_delete_local_data(
     test_environment: dict[str, Path],

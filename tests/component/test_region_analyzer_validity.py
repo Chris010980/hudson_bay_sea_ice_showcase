@@ -41,13 +41,13 @@ from rasterio.transform import from_origin
 
 from src.analysis.region_analyzer import RegionAnalyzer
 
-
 PIXEL_AREA_KM2 = 625.0
 
 
 # ------------------------------------------------------------------
 # Helpers and fixtures
 # ------------------------------------------------------------------
+
 
 def _write_concentration_raster(
     path: Path,
@@ -101,7 +101,11 @@ def analyzer_environment(
     for region, indices in expected_reference_masks.items():
         np.save(filter_dir / f"{region}_water.npy", indices)
 
-    reference_json = test_environment["output"] / "reference" / "reference_summary.json"
+    reference_json = (
+        test_environment["output"]
+        / "reference"
+        / "reference_summary.json"
+    )
 
     data = {
         region: {
@@ -140,18 +144,17 @@ def _region_values(
 ) -> dict[int, int]:
     """Map per-region concentration values to flat raster indices."""
 
-    return (
-        dict(
-            zip(
-                expected_reference_masks["Test Region Water"],
-                water_values,
-            )
+    return dict(
+        zip(
+            expected_reference_masks["Test Region Water"],
+            water_values,
+            strict=True,
         )
-        | dict(
-            zip(
-                expected_reference_masks["Test Region Mixed"],
-                mixed_values,
-            )
+    ) | dict(
+        zip(
+            expected_reference_masks["Test Region Mixed"],
+            mixed_values,
+            strict=True,
         )
     )
 
@@ -159,6 +162,7 @@ def _region_values(
 # ------------------------------------------------------------------
 # Task: test missing-value code handling
 # ------------------------------------------------------------------
+
 
 def test_missing_value_code_rejects_region(
     test_environment: dict[str, Path],
@@ -218,6 +222,7 @@ def test_all_missing_values_reject_region(
 # Task: test special values above the valid SIC range
 # ------------------------------------------------------------------
 
+
 @pytest.mark.parametrize(
     "special_value",
     [2510, 2530, 2540, 1001],
@@ -247,7 +252,8 @@ def test_special_values_above_valid_range_are_rejected(
     )
 
     raster = _write_concentration_raster(
-        test_environment["data"] / f"special_{special_value}_20260315.tif",
+        test_environment["data"]
+        / f"special_{special_value}_20260315.tif",
         values,
     )
 
@@ -260,6 +266,7 @@ def test_special_values_above_valid_range_are_rejected(
 # ------------------------------------------------------------------
 # Task: test missing water pixels
 # ------------------------------------------------------------------
+
 
 def test_missing_water_pixels_reject_region(
     test_environment: dict[str, Path],
@@ -293,6 +300,7 @@ def test_missing_water_pixels_reject_region(
 # ------------------------------------------------------------------
 # Task: test mismatched reference/current water-pixel counts
 # ------------------------------------------------------------------
+
 
 def test_water_count_mismatch_rejects_region(
     test_environment: dict[str, Path],
@@ -348,7 +356,9 @@ def test_reference_count_inconsistency_is_detected(
     )
 
     reference_json = (
-        test_environment["output"] / "reference" / "inconsistent_summary.json"
+        test_environment["output"]
+        / "reference"
+        / "inconsistent_summary.json"
     )
 
     data = {
@@ -381,6 +391,7 @@ def test_reference_count_inconsistency_is_detected(
 # Task: test invalid daily observations
 # ------------------------------------------------------------------
 
+
 def test_invalid_daily_observation_yields_empty_results(
     test_environment: dict[str, Path],
     analyzer_environment: dict[str, Path],
@@ -409,6 +420,7 @@ def test_invalid_daily_observation_yields_empty_results(
 # ------------------------------------------------------------------
 # Task: test region-specific results
 # ------------------------------------------------------------------
+
 
 def test_invalid_region_does_not_affect_valid_regions(
     test_environment: dict[str, Path],
