@@ -16,8 +16,8 @@ can be added without changing the processing pipeline.
 
 from __future__ import annotations
 
-from curses import window  # noqa: F401
 import logging
+from curses import window  # noqa: F401
 from pathlib import Path
 
 import numpy as np
@@ -28,35 +28,23 @@ logger = logging.getLogger(__name__)
 from src.config.paths import PROJECT_ROOT  # noqa: E402
 
 DEFAULT_RESULTS = (
-    PROJECT_ROOT
-    / "output"
-    / "analysis"
-    / "ice_coverage_summary.csv"
+    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
 )
 
-DEFAULT_TIMESERIES = ( 
-    PROJECT_ROOT 
-    / "output" 
-    / "analysis" 
-    / "ice_coverage_timeseries.csv" 
+DEFAULT_TIMESERIES = (
+    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
 )
 
-DEFAULT_YEARLY = ( 
-    PROJECT_ROOT 
-    / "output" 
-    / "analysis" 
-    / "ice_coverage_yearly.csv" 
+DEFAULT_YEARLY = (
+    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_yearly.csv"
 )
 
 DEFAULT_EVENTS = (
-    PROJECT_ROOT
-    / "output"
-    / "analysis"
-    / "ice_coverage_events.csv"
+    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_events.csv"
 )
 
-class TimeSeriesAnalyzer:
 
+class TimeSeriesAnalyzer:
     def __init__(
         self,
         csv_path: str | Path = DEFAULT_RESULTS,
@@ -136,19 +124,12 @@ class TimeSeriesAnalyzer:
 
     def interpolate_calendar(self):
 
-        logger.info(
-            "Interpolating missing calendar days."
-        )
+        logger.info("Interpolating missing calendar days.")
 
         groups = []
 
         for region, df_region in self.df.groupby("region"):
-
-            df_region = (
-                df_region
-                .set_index("date")
-                .sort_index()
-            )
+            df_region = df_region.set_index("date").sort_index()
 
             full_index = pd.date_range(
                 df_region.index.min(),
@@ -160,24 +141,17 @@ class TimeSeriesAnalyzer:
 
             df_region["region"] = region
 
-            numeric = df_region.select_dtypes(
-                include="number"
-            ).columns
+            numeric = df_region.select_dtypes(include="number").columns
 
-            df_region[numeric] = (
-                df_region[numeric]
-                .interpolate(
-                    method="time",
-                    limit=14,
-                    limit_direction="both",
-                )
+            df_region[numeric] = df_region[numeric].interpolate(
+                method="time",
+                limit=14,
+                limit_direction="both",
             )
 
             df_region.index.name = "date"
 
-            groups.append(
-                df_region.reset_index()
-            )
+            groups.append(df_region.reset_index())
 
         self.df = pd.concat(
             groups,
@@ -191,9 +165,7 @@ class TimeSeriesAnalyzer:
         The original self.df is not modified.
         """
 
-        logger.info(
-            "Filtering incomplete years."
-        )
+        logger.info("Filtering incomplete years.")
 
         if self.df.empty:
             logger.warning(
@@ -207,33 +179,24 @@ class TimeSeriesAnalyzer:
 
         complete_groups = []
 
-        for (region, year), group in df.groupby(
-            ["region", "year"]
-        ):
-
+        for (region, year), group in df.groupby(["region", "year"]):
             expected_days = (
                 366
-                if pd.Timestamp(year=year, month=12, day=31).dayofyear == 366
+                if pd.Timestamp(year=year, month=12, day=31).dayofyear
+                == 366
                 else 365
             )
 
             valid_days = (
-                group["relative_coverage_percent"]
-                .notna()
-                .sum()
+                group["relative_coverage_percent"].notna().sum()
             )
 
             if valid_days == expected_days:
-
-                complete_groups.append(
-                    (region, year)
-                )
+                complete_groups.append((region, year))
 
             else:
-
                 logger.debug(
-                    "Incomplete year: %s / %d "
-                    "(%d/%d valid days).",
+                    "Incomplete year: %s / %d (%d/%d valid days).",
                     region,
                     year,
                     valid_days,
@@ -241,14 +204,9 @@ class TimeSeriesAnalyzer:
                 )
 
         if not complete_groups:
+            logger.warning("No complete region-years found.")
 
-            logger.warning(
-                "No complete region-years found."
-            )
-
-            return df.iloc[0:0].drop(
-                columns="year"
-            )
+            return df.iloc[0:0].drop(columns="year")
 
         complete_years = pd.DataFrame(
             complete_groups,
@@ -258,26 +216,21 @@ class TimeSeriesAnalyzer:
             ],
         )
 
-        all_years = (
-            df[
-                [
-                    "region",
-                    "year",
-                ]
+        all_years = df[
+            [
+                "region",
+                "year",
             ]
-            .drop_duplicates()
-        )
+        ].drop_duplicates()
 
         logger.info(
-            "Found %d complete region-years "
-            "out of %d region-years.",
+            "Found %d complete region-years out of %d region-years.",
             len(complete_years),
             len(all_years),
         )
 
         return (
-            df
-            .merge(
+            df.merge(
                 complete_years,
                 on=[
                     "region",
@@ -316,27 +269,42 @@ class TimeSeriesAnalyzer:
             "absolute_ice_area_km2",
         ]
 
-        window_size = 2 * window + 1 
+        window_size = 2 * window + 1
 
-        for column in columns: 
-            new_column = f"{column}_ma" 
-            self.df[new_column] = np.nan 
+        for column in columns:
+            new_column = f"{column}_ma"
+            self.df[new_column] = np.nan
 
-            for region, indices in self.df.groupby( "region" ).groups.items(): 
-                region_df = self.df.loc[indices].sort_values( "date" ) 
-                values = region_df[column] 
-                valid = values.notna() 
+            for region, indices in self.df.groupby(
+                "region"
+            ).groups.items():
+                region_df = self.df.loc[indices].sort_values("date")
+                values = region_df[column]
+                valid = values.notna()
 
-                # Identify contiguous valid sections. 
-                group = ( valid .ne(valid.shift()) .cumsum() ) 
+                # Identify contiguous valid sections.
+                group = valid.ne(valid.shift()).cumsum()
 
-                for _, segment in region_df[ valid ].groupby(group[valid]): 
-                    if segment.empty: 
-                        continue 
+                for _, segment in region_df[valid].groupby(
+                    group[valid]
+                ):
+                    if segment.empty:
+                        continue
 
-                    ma = ( segment[column] .rolling( window=window_size, center=True, min_periods=1, ) .mean() ) 
+                    ma = (
+                        segment[column]
+                        .rolling(
+                            window=window_size,
+                            center=True,
+                            min_periods=1,
+                        )
+                        .mean()
+                    )
 
-                    self.df.loc[ segment.index, new_column, ] = ma.values
+                    self.df.loc[
+                        segment.index,
+                        new_column,
+                    ] = ma.values
 
     # ---------------------------------------------------------
     # climatology
@@ -354,39 +322,37 @@ class TimeSeriesAnalyzer:
             end_year,
         )
 
-        climatology = self.df[ 
-            self.df["date"]
-            .dt.year.between( start_year, end_year, ) 
-            ].copy()
-
-    # Month/day is used instead of dayofyear so that leap 
-    # years do not shift all dates after February. 
-     
-        climatology["month_day"] = ( 
-            climatology["date"].dt.strftime("%m-%d") 
-        ) 
-
-        climatology_stats = (
-            climatology
-            .groupby(
-                [
-                    "region",
-                    "month_day",
-                ]
-            )[
-                [
-                    "relative_coverage_percent",
-                    "absolute_coverage_percent",
-                ]
-            ]
-            .agg(
-                [
-                    "mean",
-                    "std",
-                    "min",
-                    "max",
-                ]
+        climatology = self.df[
+            self.df["date"].dt.year.between(
+                start_year,
+                end_year,
             )
+        ].copy()
+
+        # Month/day is used instead of dayofyear so that leap
+        # years do not shift all dates after February.
+
+        climatology["month_day"] = climatology["date"].dt.strftime(
+            "%m-%d"
+        )
+
+        climatology_stats = climatology.groupby(
+            [
+                "region",
+                "month_day",
+            ]
+        )[
+            [
+                "relative_coverage_percent",
+                "absolute_coverage_percent",
+            ]
+        ].agg(
+            [
+                "mean",
+                "std",
+                "min",
+                "max",
+            ]
         )
 
         climatology_stats.columns = [
@@ -400,17 +366,17 @@ class TimeSeriesAnalyzer:
             "absolute_climatology_max_percent",
         ]
 
-        climatology_stats = (
-            climatology_stats
-            .reset_index()
-        )
+        climatology_stats = climatology_stats.reset_index()
 
-        self.df["month_day"] = ( 
-            self.df["date"].dt.strftime("%m-%d") 
-        ) 
+        self.df["month_day"] = self.df["date"].dt.strftime("%m-%d")
 
-        self.df = self.df.merge( 
-            climatology_stats, how="left", on=[ "region", "month_day", ], 
+        self.df = self.df.merge(
+            climatology_stats,
+            how="left",
+            on=[
+                "region",
+                "month_day",
+            ],
         )
 
     # ---------------------------------------------------------
@@ -419,27 +385,25 @@ class TimeSeriesAnalyzer:
 
     def calculate_anomalies(self):
 
-        logger.info( "Calculating relative and absolute anomalies." ) 
+        logger.info("Calculating relative and absolute anomalies.")
 
-        self.df["relative_anomaly_percent"] = ( 
-            self.df["relative_coverage_percent"] 
-            - self.df["relative_climatology_percent"] 
-        ) 
-
-        self.df["absolute_anomaly_percent"] = ( 
-            self.df["absolute_coverage_percent"] 
-            - self.df["absolute_climatology_percent"] 
+        self.df["relative_anomaly_percent"] = (
+            self.df["relative_coverage_percent"]
+            - self.df["relative_climatology_percent"]
         )
 
-    # ========================================================= 
-    # yearly means 
-    # ========================================================= 
+        self.df["absolute_anomaly_percent"] = (
+            self.df["absolute_coverage_percent"]
+            - self.df["absolute_climatology_percent"]
+        )
+
+    # =========================================================
+    # yearly means
+    # =========================================================
     def calculate_yearly_means(self):
         """Calculate annual means using complete region-years only."""
 
-        logger.info(
-            "Calculating yearly mean sea-ice coverage."
-        )
+        logger.info("Calculating yearly mean sea-ice coverage.")
 
         if self.df.empty:
             logger.warning(
@@ -469,9 +433,7 @@ class TimeSeriesAnalyzer:
         ]
 
         missing = [
-            column
-            for column in columns
-            if column not in df.columns
+            column for column in columns if column not in df.columns
         ]
 
         if missing:
@@ -480,45 +442,30 @@ class TimeSeriesAnalyzer:
                 + ", ".join(missing)
             )
 
-        yearly = (
-            df
-            .groupby(
-                [
-                    "region",
-                    "year",
-                ],
-                as_index=False,
-            )[columns]
-            .mean()
-        )
+        yearly = df.groupby(
+            [
+                "region",
+                "year",
+            ],
+            as_index=False,
+        )[columns].mean()
 
         yearly.rename(
             columns={
-                "relative_coverage_percent":
-                    "relative_mean_coverage_percent",
-
-                "absolute_coverage_percent":
-                    "absolute_mean_coverage_percent",
-
-                "relative_ice_area_km2":
-                    "relative_mean_ice_area_km2",
-
-                "absolute_ice_area_km2":
-                    "absolute_mean_ice_area_km2",
+                "relative_coverage_percent": "relative_mean_coverage_percent",
+                "absolute_coverage_percent": "absolute_mean_coverage_percent",
+                "relative_ice_area_km2": "relative_mean_ice_area_km2",
+                "absolute_ice_area_km2": "absolute_mean_ice_area_km2",
             },
             inplace=True,
         )
 
-        self.yearly_df = (
-            yearly
-            .sort_values(
-                [
-                    "region",
-                    "year",
-                ]
-            )
-            .reset_index(drop=True)
-        )
+        self.yearly_df = yearly.sort_values(
+            [
+                "region",
+                "year",
+            ]
+        ).reset_index(drop=True)
 
         logger.info(
             "Calculated %d yearly mean records.",
@@ -569,9 +516,7 @@ class TimeSeriesAnalyzer:
             return None
 
         if persistence < 1:
-            raise ValueError(
-                "persistence must be at least 1."
-            )
+            raise ValueError("persistence must be at least 1.")
 
         if direction not in {"down", "up"}:
             raise ValueError(
@@ -582,15 +527,12 @@ class TimeSeriesAnalyzer:
         # Prepare data
         # ---------------------------------------------------------
 
-        data = (
-            df[
-                [
-                    "date",
-                    column,
-                ]
+        data = df[
+            [
+                "date",
+                column,
             ]
-            .copy()
-        )
+        ].copy()
 
         data["date"] = pd.to_datetime(
             data["date"],
@@ -631,7 +573,6 @@ class TimeSeriesAnalyzer:
             1,
             len(data),
         ):
-
             previous = data.iloc[start_idx - 1]
             current = data.iloc[start_idx]
 
@@ -639,9 +580,8 @@ class TimeSeriesAnalyzer:
             # Crossing must occur between consecutive calendar days.
             # -----------------------------------------------------
 
-            if (
-                current["date"] - previous["date"]
-                != pd.Timedelta(days=1)
+            if current["date"] - previous["date"] != pd.Timedelta(
+                days=1
             ):
                 continue
 
@@ -653,18 +593,10 @@ class TimeSeriesAnalyzer:
             # -----------------------------------------------------
 
             if direction == "down":
-
-                crossed = (
-                    y0 > threshold
-                    and y1 <= threshold
-                )
+                crossed = y0 > threshold and y1 <= threshold
 
             else:  # direction == "up"
-
-                crossed = (
-                    y0 < threshold
-                    and y1 >= threshold
-                )
+                crossed = y0 < threshold and y1 >= threshold
 
             if not crossed:
                 continue
@@ -681,9 +613,7 @@ class TimeSeriesAnalyzer:
             if end_idx > len(data):
                 continue
 
-            persistent_segment = data.iloc[
-                start_idx:end_idx
-            ]
+            persistent_segment = data.iloc[start_idx:end_idx]
 
             if len(persistent_segment) < persistence:
                 continue
@@ -693,15 +623,9 @@ class TimeSeriesAnalyzer:
             # calendar days.
             # -----------------------------------------------------
 
-            date_deltas = (
-                persistent_segment["date"]
-                .diff()
-                .dropna()
-            )
+            date_deltas = persistent_segment["date"].diff().dropna()
 
-            if not date_deltas.eq(
-                pd.Timedelta(days=1)
-            ).all():
+            if not date_deltas.eq(pd.Timedelta(days=1)).all():
                 continue
 
             # -----------------------------------------------------
@@ -709,17 +633,13 @@ class TimeSeriesAnalyzer:
             # -----------------------------------------------------
 
             if direction == "down":
-
                 persistent = (
-                    persistent_segment[column]
-                    <= threshold
+                    persistent_segment[column] <= threshold
                 ).all()
 
             else:
-
                 persistent = (
-                    persistent_segment[column]
-                    >= threshold
+                    persistent_segment[column] >= threshold
                 ).all()
 
             if not persistent:
@@ -741,24 +661,14 @@ class TimeSeriesAnalyzer:
             if y1 == y0:
                 return current["date"]
 
-            fraction = (
-                threshold - y0
-            ) / (
-                y1 - y0
-            )
+            fraction = (threshold - y0) / (y1 - y0)
 
             if not 0.0 <= fraction <= 1.0:
                 continue
 
-            delta = (
-                current["date"]
-                - previous["date"]
-            )
+            delta = current["date"] - previous["date"]
 
-            return (
-                previous["date"]
-                + fraction * delta
-            )
+            return previous["date"] + fraction * delta
 
         return None
 
@@ -794,7 +704,6 @@ class TimeSeriesAnalyzer:
         """
 
         if event_type == "break-up":
-
             default_start = pd.Timestamp(
                 year=event_year,
                 month=3,
@@ -808,7 +717,6 @@ class TimeSeriesAnalyzer:
             )
 
         elif event_type == "freeze-up":
-
             default_start = pd.Timestamp(
                 year=event_year,
                 month=9,
@@ -822,9 +730,7 @@ class TimeSeriesAnalyzer:
             )
 
         else:
-            raise ValueError(
-                f"Unknown event type: {event_type}"
-            )
+            raise ValueError(f"Unknown event type: {event_type}")
 
         if start_date is None:
             start = default_start
@@ -901,24 +807,13 @@ class TimeSeriesAnalyzer:
         # ---------------------------------------------------------
 
         for region, df_region in self.df.groupby("region"):
-
-            df_region = (
-                df_region
-                .sort_values("date")
-                .reset_index(drop=True)
+            df_region = df_region.sort_values("date").reset_index(
+                drop=True
             )
 
-            min_year = (
-                df_region["date"]
-                .dt.year
-                .min()
-            )
+            min_year = df_region["date"].dt.year.min()
 
-            max_year = (
-                df_region["date"]
-                .dt.year
-                .max()
-            )
+            max_year = df_region["date"].dt.year.max()
 
             # -----------------------------------------------------
             # Process each event year
@@ -928,7 +823,6 @@ class TimeSeriesAnalyzer:
                 min_year,
                 max_year + 1,
             ):
-
                 # =================================================
                 # BREAK-UP WINDOW
                 # =================================================
@@ -956,7 +850,6 @@ class TimeSeriesAnalyzer:
                 # -------------------------------------------------
 
                 for threshold in thresholds:
-
                     # =============================================
                     # BREAK-UP
                     # =============================================
@@ -990,7 +883,6 @@ class TimeSeriesAnalyzer:
                     # event for this threshold in the following season.
 
                     if breakup_date is None:
-
                         freezeup_date = None
 
                         logger.debug(
@@ -1002,7 +894,6 @@ class TimeSeriesAnalyzer:
                         )
 
                     else:
-
                         # -----------------------------------------
                         # Determine the state on September 16.
                         # -----------------------------------------
@@ -1014,8 +905,7 @@ class TimeSeriesAnalyzer:
                         )
 
                         sep16_data = df_region[
-                            df_region["date"]
-                            == september_16
+                            df_region["date"] == september_16
                         ]
 
                         # -----------------------------------------
@@ -1036,7 +926,6 @@ class TimeSeriesAnalyzer:
                         # -----------------------------------------
 
                         if not sep16_data.empty:
-
                             sep16_value = pd.to_numeric(
                                 sep16_data.iloc[0][column],
                                 errors="coerce",
@@ -1046,12 +935,9 @@ class TimeSeriesAnalyzer:
                                 pd.notna(sep16_value)
                                 and sep16_value >= threshold
                             ):
-
-                                freezeup_start = (
-                                    pd.Timestamp(breakup_date)
-                                    .normalize()
-                                    + pd.Timedelta(days=1)
-                                )
+                                freezeup_start = pd.Timestamp(
+                                    breakup_date
+                                ).normalize() + pd.Timedelta(days=1)
 
                                 logger.debug(
                                     "Extending freeze-up window for "
@@ -1080,14 +966,12 @@ class TimeSeriesAnalyzer:
                         # Search for actual upward crossing.
                         # -----------------------------------------
 
-                        freezeup_date = (
-                            self._find_threshold_crossing(
-                                df=freezeup_window,
-                                column=column,
-                                threshold=threshold,
-                                direction="up",
-                                persistence=persistence,
-                            )
+                        freezeup_date = self._find_threshold_crossing(
+                            df=freezeup_window,
+                            column=column,
+                            threshold=threshold,
+                            direction="up",
+                            persistence=persistence,
                         )
 
                     events.append(
@@ -1128,20 +1012,20 @@ class TimeSeriesAnalyzer:
     # saving
     # ---------------------------------------------------------
 
-    def save(self) -> Path: 
-        """ 
-        Save the derived time-series dataset. The original 
-        ice_coverage_summary.csv is never modified. 
-        """ 
+    def save(self) -> Path:
+        """
+        Save the derived time-series dataset. The original
+        ice_coverage_summary.csv is never modified.
+        """
 
-        self.output_path.parent.mkdir( 
-            parents=True, 
-            exist_ok=True, 
-        ) 
+        self.output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-        self.yearly_output_path.parent.mkdir( 
-            parents=True, 
-            exist_ok=True, 
+        self.yearly_output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
         self.events_output_path.parent.mkdir(
@@ -1149,14 +1033,14 @@ class TimeSeriesAnalyzer:
             exist_ok=True,
         )
 
-        self.df.to_csv( 
-            self.output_path, 
-            index=False, 
-        ) 
+        self.df.to_csv(
+            self.output_path,
+            index=False,
+        )
 
-        self.yearly_df.to_csv( 
-            self.yearly_output_path, 
-            index=False, 
+        self.yearly_df.to_csv(
+            self.yearly_output_path,
+            index=False,
         )
 
         self.events_df.to_csv(
@@ -1164,14 +1048,14 @@ class TimeSeriesAnalyzer:
             index=False,
         )
 
-        logger.info( 
-            "Saved derived time series to %s", 
-            self.output_path, 
-        ) 
+        logger.info(
+            "Saved derived time series to %s",
+            self.output_path,
+        )
 
-        logger.info( 
-            "Saved yearly means to %s", 
-            self.yearly_output_path, 
+        logger.info(
+            "Saved yearly means to %s",
+            self.yearly_output_path,
         )
 
         logger.info(
@@ -1179,4 +1063,7 @@ class TimeSeriesAnalyzer:
             self.events_output_path,
         )
 
-        return ( self.output_path, self.yearly_output_path, )
+        return (
+            self.output_path,
+            self.yearly_output_path,
+        )

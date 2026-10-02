@@ -33,7 +33,6 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -50,6 +49,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _row(
     region: str,
@@ -159,8 +159,7 @@ def _yearly_row(
     """Return the single yearly-means row of one region-year."""
 
     row = yearly_df[
-        (yearly_df["region"] == region)
-        & (yearly_df["year"] == year)
+        (yearly_df["region"] == region) & (yearly_df["year"] == year)
     ]
 
     assert len(row) == 1
@@ -171,6 +170,7 @@ def _yearly_row(
 # ------------------------------------------------------------------
 # Task: test complete 365-day years
 # ------------------------------------------------------------------
+
 
 def test_complete_365_day_year_is_included(
     timeseries_paths: dict[str, Path],
@@ -215,6 +215,7 @@ def test_complete_365_day_year_is_included(
 # Task: test complete 366-day years
 # ------------------------------------------------------------------
 
+
 def test_complete_366_day_year_is_included(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -253,6 +254,7 @@ def test_complete_366_day_year_is_included(
 # ------------------------------------------------------------------
 # Task: test incomplete years
 # ------------------------------------------------------------------
+
 
 def test_incomplete_years_are_excluded(
     timeseries_paths: dict[str, Path],
@@ -305,6 +307,7 @@ def test_incomplete_years_are_excluded(
 # Task: leap years require 366 daily observations
 # ------------------------------------------------------------------
 
+
 def test_leap_year_requires_all_366_days(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -335,6 +338,7 @@ def test_leap_year_requires_all_366_days(
 # Task: test annual mean calculation
 # ------------------------------------------------------------------
 
+
 def test_annual_means_match_independent_calculation(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -353,21 +357,18 @@ def test_annual_means_match_independent_calculation(
     abs. ice area = mean(25*absolute)  = 25 * 84  = 2100 km2
     """
 
-    rows = (
-        _days_rows(
-            "Test Region",
-            date(2023, 1, 1),
-            73,
-            10.0,
-            20.0,
-        )
-        + _days_rows(
-            "Test Region",
-            date(2023, 3, 15),
-            292,
-            50.0,
-            100.0,
-        )
+    rows = _days_rows(
+        "Test Region",
+        date(2023, 1, 1),
+        73,
+        10.0,
+        20.0,
+    ) + _days_rows(
+        "Test Region",
+        date(2023, 3, 15),
+        292,
+        50.0,
+        100.0,
     )
 
     assert len(rows) == 365
@@ -389,6 +390,7 @@ def test_annual_means_match_independent_calculation(
 # ------------------------------------------------------------------
 # Task: test multiple regions
 # ------------------------------------------------------------------
+
 
 def test_multiple_regions_are_evaluated_per_region_year(
     timeseries_paths: dict[str, Path],
@@ -423,7 +425,9 @@ def test_multiple_regions_are_evaluated_per_region_year(
     assert len(yearly_df) == 3
 
     assert list(yearly_df["region"]) == [
-        "Region A", "Region B", "Region B",
+        "Region A",
+        "Region B",
+        "Region B",
     ]
 
     assert list(yearly_df["year"]) == [2023, 2023, 2024]

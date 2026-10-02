@@ -83,7 +83,6 @@ import src.visualization.timeseries_plot as timeseries_module
 from src.visualization.geotiff_plot import SeaIcePlotter
 from src.visualization.timeseries_plot import TimeSeriesPlotter
 
-
 # Water areas of the synthetic regions (identical to the other
 # test modules of the suite).
 _WATER_AREA_KM2 = {
@@ -95,18 +94,126 @@ _WATER_AREA_KM2 = {
 #  relative climatology %, relative sigma,
 #  absolute climatology %, absolute sigma)
 _TIMESERIES_ROWS = [
-    ("Test Region Water", "2000-01-15", 90.0, 45.0, 80.0, 5.0, 40.0, 2.5),
-    ("Test Region Water", "2000-07-15", 20.0, 10.0, 25.0, 5.0, 12.5, 2.5),
-    ("Test Region Water", "2000-10-15", 60.0, 30.0, 55.0, 5.0, 27.5, 2.5),
-    ("Test Region Water", "2001-01-15", 80.0, 40.0, 80.0, 5.0, 40.0, 2.5),
-    ("Test Region Water", "2001-07-15", 30.0, 15.0, 25.0, 5.0, 12.5, 2.5),
-    ("Test Region Water", "2001-10-15", 50.0, 25.0, 55.0, 5.0, 27.5, 2.5),
-    ("Test Region Mixed", "2000-01-15", 70.0, 56.0, 65.0, 5.0, 52.0, 4.0),
-    ("Test Region Mixed", "2000-07-15", 10.0, 8.0, 15.0, 5.0, 12.0, 4.0),
-    ("Test Region Mixed", "2000-10-15", 40.0, 32.0, 35.0, 5.0, 28.0, 4.0),
-    ("Test Region Mixed", "2001-01-15", 60.0, 48.0, 65.0, 5.0, 52.0, 4.0),
-    ("Test Region Mixed", "2001-07-15", 20.0, 16.0, 15.0, 5.0, 12.0, 4.0),
-    ("Test Region Mixed", "2001-10-15", 30.0, 24.0, 35.0, 5.0, 28.0, 4.0),
+    (
+        "Test Region Water",
+        "2000-01-15",
+        90.0,
+        45.0,
+        80.0,
+        5.0,
+        40.0,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2000-07-15",
+        20.0,
+        10.0,
+        25.0,
+        5.0,
+        12.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2000-10-15",
+        60.0,
+        30.0,
+        55.0,
+        5.0,
+        27.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-01-15",
+        80.0,
+        40.0,
+        80.0,
+        5.0,
+        40.0,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-07-15",
+        30.0,
+        15.0,
+        25.0,
+        5.0,
+        12.5,
+        2.5,
+    ),
+    (
+        "Test Region Water",
+        "2001-10-15",
+        50.0,
+        25.0,
+        55.0,
+        5.0,
+        27.5,
+        2.5,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-01-15",
+        70.0,
+        56.0,
+        65.0,
+        5.0,
+        52.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-07-15",
+        10.0,
+        8.0,
+        15.0,
+        5.0,
+        12.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2000-10-15",
+        40.0,
+        32.0,
+        35.0,
+        5.0,
+        28.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-01-15",
+        60.0,
+        48.0,
+        65.0,
+        5.0,
+        52.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-07-15",
+        20.0,
+        16.0,
+        15.0,
+        5.0,
+        12.0,
+        4.0,
+    ),
+    (
+        "Test Region Mixed",
+        "2001-10-15",
+        30.0,
+        24.0,
+        35.0,
+        5.0,
+        28.0,
+        4.0,
+    ),
 ]
 
 # (region, event year, break-up date, freeze-up date)
@@ -163,6 +270,7 @@ _MAP_PRODUCTS = [
 # Controlled inputs
 # ------------------------------------------------------------------
 
+
 def _seed_timeseries_csv(analysis_dir: Path) -> Path:
     """Write the controlled time-series product.
 
@@ -198,8 +306,10 @@ def _seed_timeseries_csv(analysis_dir: Path) -> Path:
                 "relative_climatology_std_percent": relative_sigma,
                 "absolute_climatology_percent": absolute_climatology,
                 "absolute_climatology_std_percent": absolute_sigma,
-                "relative_anomaly_percent": relative - relative_climatology,
-                "absolute_anomaly_percent": absolute - absolute_climatology,
+                "relative_anomaly_percent": relative
+                - relative_climatology,
+                "absolute_anomaly_percent": absolute
+                - absolute_climatology,
                 "month_day": date_string[5:],
             }
         )
@@ -223,8 +333,12 @@ def _seed_yearly_csv(analysis_dir: Path) -> Path:
                 "year": year,
                 "relative_mean_coverage_percent": relative,
                 "absolute_mean_coverage_percent": absolute,
-                "relative_mean_ice_area_km2": relative * water_area / 100.0,
-                "absolute_mean_ice_area_km2": absolute * water_area / 100.0,
+                "relative_mean_ice_area_km2": relative
+                * water_area
+                / 100.0,
+                "absolute_mean_ice_area_km2": absolute
+                * water_area
+                / 100.0,
             }
         )
 
@@ -329,6 +443,7 @@ def _no_background(self) -> None:
 # Fixture: isolated CLI environment
 # ------------------------------------------------------------------
 
+
 @pytest.fixture
 def generate_plots_environment(
     test_environment: dict[str, Path],
@@ -406,6 +521,7 @@ def generate_plots_environment(
 # Task: test the "all" plot type creates every product
 # ------------------------------------------------------------------
 
+
 def test_generate_all_products_from_cli(
     generate_plots_environment: dict,
 ) -> None:
@@ -453,6 +569,7 @@ def test_generate_all_products_from_cli(
 # Task: test the documented no-GeoTIFF fallback
 # ------------------------------------------------------------------
 
+
 def test_generate_all_without_geotiff_falls_back_to_timeseries(
     generate_plots_environment: dict,
 ) -> None:
@@ -487,6 +604,7 @@ def test_generate_all_without_geotiff_falls_back_to_timeseries(
 # ------------------------------------------------------------------
 # Task: test the "timeseries" plot type scope
 # ------------------------------------------------------------------
+
 
 def test_generate_timeseries_type_creates_region_plots(
     generate_plots_environment: dict,

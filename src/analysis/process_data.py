@@ -6,26 +6,27 @@ import argparse
 import logging
 import sys
 from collections.abc import Sequence
-from pathlib import Path
 from datetime import date
+from pathlib import Path
 
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
-
-from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.analysis.reference_builder import ReferenceBuilder
 
 from src.analysis.reference_builder import ReferenceBuilder
 from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
-
+from src.config.logging_config import (
+    DEFAULT_LOG_FILE,
+    configure_logging,
+)
 from src.config.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 
 
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class ProcessSummary:
@@ -38,7 +39,9 @@ class ProcessSummary:
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the preprocessing stage."""
 
-    parser = argparse.ArgumentParser(description="Preprocess raw sea ice data.")
+    parser = argparse.ArgumentParser(
+        description="Preprocess raw sea ice data."
+    )
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
     parser.add_argument(
@@ -77,14 +80,10 @@ def main(argv=None):
 
     summary = ProcessSummary()
 
-    geotiffs = sorted(
-        DATA_DIR.rglob("*concentration*.tif")
-    )
+    geotiffs = sorted(DATA_DIR.rglob("*concentration*.tif"))
 
     for tif in geotiffs:
-
         try:
-
             analyzer = RegionAnalyzer(tif)
 
             analyzer._extract_date()
@@ -123,7 +122,6 @@ def main(argv=None):
             summary.new_results += 1
 
         except Exception as exc:
-
             summary.failed_files += 1
 
             logger.error(
@@ -134,9 +132,7 @@ def main(argv=None):
 
     results.save()
 
-    logger.info(
-        "Running time series analysis."
-    )
+    logger.info("Running time series analysis.")
 
     ts = TimeSeriesAnalyzer()
 
@@ -147,6 +143,7 @@ def main(argv=None):
     logger.info(summary)
 
     return summary
+
 
 if __name__ == "__main__":
     main()

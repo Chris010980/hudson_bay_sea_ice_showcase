@@ -7,19 +7,22 @@ import logging
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
+from src.config.logging_config import (
+    DEFAULT_LOG_FILE,
+    configure_logging,
+)
 from src.visualization.geotiff_plot import (
     DEFAULT_OUTPUT_PLOT_PATH,
     DEFAULT_REGION_BOUNDS,
-    SeaIcePlotter
+    SeaIcePlotter,
 )
 from src.visualization.timeseries_plot import TimeSeriesPlotter
-
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +30,7 @@ logger = logging.getLogger(__name__)
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the plot generation stage."""
 
-    parser = argparse.ArgumentParser(
-        description="Generate plots."
-    )
+    parser = argparse.ArgumentParser(description="Generate plots.")
 
     parser.add_argument(
         "plot_type",
@@ -43,7 +44,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--log-level", default="INFO")
     parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
-    parser.add_argument("--input-tiff", default=None, help="Path to a GeoTIFF file for the preview plot.")
+    parser.add_argument(
+        "--input-tiff",
+        default=None,
+        help="Path to a GeoTIFF file for the preview plot.",
+    )
     parser.add_argument(
         "--output",
         default=str(DEFAULT_OUTPUT_PLOT_PATH),
@@ -57,8 +62,16 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=list(DEFAULT_REGION_BOUNDS),
         help="Geographic bounds used for the preview map.",
     )
-    parser.add_argument("--title", default=None, help="Optional title for the generated plot.")
-    parser.add_argument("--show", action="store_true", help="Display the plot window after saving it.")
+    parser.add_argument(
+        "--title",
+        default=None,
+        help="Optional title for the generated plot.",
+    )
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="Display the plot window after saving it.",
+    )
     parser.add_argument(
         "--regions",
         action="store_true",
@@ -91,27 +104,21 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
     )
 
     if args.plot_type == "timeseries":
-
         plotter = TimeSeriesPlotter()
         plotter.plot_timeseries()
 
         logger.info("Time series plots generated.")
         return
 
-
     if args.plot_type == "polar":
-
         plotter = TimeSeriesPlotter()
         plotter.plot_polar()
 
         logger.info("Polar plots generated.")
         return
 
-
     if args.plot_type == "all":
-
         try:
-
             map_plotter = SeaIcePlotter(
                 input_path=args.input_tiff,
                 bounds=tuple(args.bounds),
@@ -139,10 +146,11 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
             # -------------------------------------------------
 
             for region in map_plotter.regions:
-
                 map_plotter.plot_single_region(region)
 
-                map_plotter.save(suffix=region.lower().replace(' ', '_'))
+                map_plotter.save(
+                    suffix=region.lower().replace(" ", "_")
+                )
 
             ts = TimeSeriesPlotter()
             ts.plot_all()
@@ -151,7 +159,6 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
             return
 
         except FileNotFoundError:
-
             logger.warning(
                 "No GeoTIFF available. Skipping overview plots."
             )
@@ -180,9 +187,7 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
         # ---------------------------------------------------------
 
         if args.all_regions:
-
             for region_name in plotter.regions:
-
                 plotter.plot_single_region(region_name)
 
                 output = Path(args.output)
@@ -203,7 +208,6 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
         # ---------------------------------------------------------
 
         if args.regions:
-
             plotter.plot_regions()
 
         # ---------------------------------------------------------
@@ -211,7 +215,6 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
         # ---------------------------------------------------------
 
         elif args.region:
-
             plotter.plot_overview()
 
             plotter.draw_regions(selected=args.region)
@@ -221,7 +224,6 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
         # ---------------------------------------------------------
 
         else:
-
             plotter.plot_overview()
 
         plotter.save(args.output)

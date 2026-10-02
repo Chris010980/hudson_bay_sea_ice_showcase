@@ -8,15 +8,15 @@ import json
 import logging
 from pathlib import Path
 
+import geopandas as gpd
 import numpy as np
 import rasterio
-from rasterio.crs import CRS  # noqa: F401
-from pyproj import Transformer
 from matplotlib.path import Path as MplPath
-from src.config.paths import PROJECT_ROOT
-
-import geopandas as gpd
+from pyproj import Transformer
+from rasterio.crs import CRS  # noqa: F401
 from shapely.geometry import Polygon
+
+from src.config.paths import PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,12 @@ REFERENCE_TIF = PROJECT_ROOT / "src" / "config" / "reference.tif"
 
 FILTER_DIR = PROJECT_ROOT / "output" / "reference" / "filters"
 
-REFERENCE_SUMMARY = PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
+REFERENCE_SUMMARY = (
+    PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
+)
+
 
 class ReferenceBuilder:
-
     def __init__(
         self,
         reference_tif: str | Path = REFERENCE_TIF,
@@ -84,7 +86,6 @@ class ReferenceBuilder:
         logger.info("Loading reference GeoTIFF")
 
         with rasterio.open(self.reference_tif) as src:
-
             self.band = src.read(1)
 
             self.transform = src.transform
@@ -94,7 +95,6 @@ class ReferenceBuilder:
         missing = np.count_nonzero(self.band == 2550)
 
         if missing:
-
             raise RuntimeError(
                 f"Reference contains {missing} missing pixels."
             )
@@ -113,7 +113,6 @@ class ReferenceBuilder:
         self.regions = {}
 
         for name, region in data["regions"].items():
-
             coords = np.asarray(region["polygon"], dtype=float)
 
             coords[:, 0] = np.where(
@@ -135,7 +134,6 @@ class ReferenceBuilder:
         """Create one boolean mask per analysis region."""
 
         with rasterio.open(self.reference_tif) as src:
-
             self.band = src.read(1)
 
             self.transform = src.transform
@@ -163,7 +161,6 @@ class ReferenceBuilder:
         points = np.column_stack((lon, lat))
 
         for name, region in self.regions.items():
-
             coords = self.regions[name]["coords"]
 
             path = MplPath(coords)
@@ -178,11 +175,7 @@ class ReferenceBuilder:
             # Keep only valid ocean pixels
             # -------------------------------------------------
 
-            water_mask = (
-                (self.band >= 0)
-                &
-                (self.band <= 1000)
-            )
+            water_mask = (self.band >= 0) & (self.band <= 1000)
 
             mask &= water_mask
 
@@ -224,7 +217,6 @@ class ReferenceBuilder:
         )
 
         for name, region in self.regions.items():
-
             polygon = self.regions[name]["polygon"]
 
             region_gdf = gpd.GeoDataFrame(
@@ -238,29 +230,27 @@ class ReferenceBuilder:
                 how="intersection",
             )
 
-            area = (
-                intersection
-                .to_crs(epsg=6933)
-                .area
-                .sum()
-                / 1e6
-            )
+            area = intersection.to_crs(epsg=6933).area.sum() / 1e6
 
             self.reference_summary[name][
                 "naturalearth_water_area_km2"
-            ] = round(float(area),1)
+            ] = round(float(area), 1)
 
-            pixel_area = self.reference_summary[name]["water_area_pixel_km2"]
+            pixel_area = self.reference_summary[name][
+                "water_area_pixel_km2"
+            ]
 
             difference = pixel_area - area
 
-            difference_percent = (
-                100 * difference / area
+            difference_percent = 100 * difference / area
+
+            self.reference_summary[name]["difference_km2"] = round(
+                float(difference), 1
             )
 
-            self.reference_summary[name]["difference_km2"] = round(float(difference),1)
-
-            self.reference_summary[name]["difference_percent"] = round(float(difference_percent),2)
+            self.reference_summary[name]["difference_percent"] = round(
+                float(difference_percent), 2
+            )
 
     # ---------------------------------------------------------
     # save json summary
@@ -273,7 +263,6 @@ class ReferenceBuilder:
             "w",
             encoding="utf-8",
         ) as f:
-
             json.dump(
                 self.reference_summary,
                 f,
@@ -301,14 +290,12 @@ class ReferenceBuilder:
         missing = []
 
         for region in self.regions:
-
             mask = self.mask_dir / f"{region}_water.npy"
 
             if not mask.exists():
                 missing.append(region)
 
         if missing:
-
             logger.warning(
                 "Missing reference masks for: %s",
                 ", ".join(missing),

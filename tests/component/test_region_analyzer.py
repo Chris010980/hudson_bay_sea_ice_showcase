@@ -36,7 +36,6 @@ from rasterio.transform import from_origin
 
 from src.analysis.region_analyzer import RegionAnalyzer
 
-
 PIXEL_AREA_KM2 = 625.0
 
 EXPECTED_RESULT_KEYS = {
@@ -55,6 +54,7 @@ EXPECTED_RESULT_KEYS = {
 # ------------------------------------------------------------------
 # Helpers and fixtures
 # ------------------------------------------------------------------
+
 
 def _write_concentration_raster(
     path: Path,
@@ -136,7 +136,9 @@ def analyzer_environment(
         np.save(filter_dir / f"{region}_water.npy", indices)
 
     reference_json = _write_reference_json(
-        test_environment["output"] / "reference" / "reference_summary.json",
+        test_environment["output"]
+        / "reference"
+        / "reference_summary.json",
         expected_reference_masks,
     )
 
@@ -168,18 +170,15 @@ def _region_values(
 ) -> dict[int, int]:
     """Map per-region concentration values to flat raster indices."""
 
-    return (
-        dict(
-            zip(
-                expected_reference_masks["Test Region Water"],
-                water_values,
-            )
+    return dict(
+        zip(
+            expected_reference_masks["Test Region Water"],
+            water_values,
         )
-        | dict(
-            zip(
-                expected_reference_masks["Test Region Mixed"],
-                mixed_values,
-            )
+    ) | dict(
+        zip(
+            expected_reference_masks["Test Region Mixed"],
+            mixed_values,
         )
     )
 
@@ -187,6 +186,7 @@ def _region_values(
 # ------------------------------------------------------------------
 # Task: test absolute ice coverage
 # ------------------------------------------------------------------
+
 
 def test_absolute_ice_coverage_is_threshold_based(
     test_environment: dict[str, Path],
@@ -227,6 +227,7 @@ def test_absolute_ice_coverage_is_threshold_based(
 # Task: test concentration-weighted relative ice coverage
 # ------------------------------------------------------------------
 
+
 def test_relative_ice_coverage_is_concentration_weighted(
     test_environment: dict[str, Path],
     analyzer_environment: dict[str, Path],
@@ -263,14 +264,16 @@ def test_relative_ice_coverage_is_concentration_weighted(
         "relative_ice_area_km2"
     ] == pytest.approx(312.5)
 
-    assert results["Test Region Water"][
-        "relative_ice_area_km2"
-    ] != results["Test Region Water"]["absolute_ice_area_km2"]
+    assert (
+        results["Test Region Water"]["relative_ice_area_km2"]
+        != results["Test Region Water"]["absolute_ice_area_km2"]
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test reference water area handling
 # ------------------------------------------------------------------
+
 
 def test_coverage_uses_reference_water_area(
     test_environment: dict[str, Path],
@@ -301,7 +304,9 @@ def test_coverage_uses_reference_water_area(
     )
 
     reference_json = _write_reference_json(
-        test_environment["output"] / "reference" / "custom_summary.json",
+        test_environment["output"]
+        / "reference"
+        / "custom_summary.json",
         expected_reference_masks,
         water_areas_km2={
             "Test Region Water": 5000.0,
@@ -333,6 +338,7 @@ def test_coverage_uses_reference_water_area(
 # ------------------------------------------------------------------
 # Task: test the 15 % pixel detection threshold
 # ------------------------------------------------------------------
+
 
 def test_pixel_detection_threshold(
     test_environment: dict[str, Path],
@@ -378,6 +384,7 @@ def test_pixel_detection_threshold(
 # Task: test the exact 15 % boundary
 # ------------------------------------------------------------------
 
+
 def test_exact_threshold_boundary(
     test_environment: dict[str, Path],
     analyzer_environment: dict[str, Path],
@@ -415,6 +422,7 @@ def test_exact_threshold_boundary(
 # ------------------------------------------------------------------
 # Task: test 0 % and 100 % concentration cases
 # ------------------------------------------------------------------
+
 
 def test_zero_concentration_case(
     test_environment: dict[str, Path],
@@ -489,6 +497,7 @@ def test_full_concentration_case(
 # Task: test mixed concentration rasters
 # ------------------------------------------------------------------
 
+
 def test_mixed_concentration_raster(
     synthetic_raster: Path,
     analyzer_environment: dict[str, Path],
@@ -510,7 +519,9 @@ def test_mixed_concentration_raster(
     Absolute and relative metrics remain distinguishable.
     """
 
-    results = _make_analyzer(analyzer_environment, synthetic_raster).analyze()
+    results = _make_analyzer(
+        analyzer_environment, synthetic_raster
+    ).analyze()
 
     water = results["Test Region Water"]
 
@@ -530,6 +541,7 @@ def test_mixed_concentration_raster(
 # ------------------------------------------------------------------
 # Task: test the configured 625 km² pixel area
 # ------------------------------------------------------------------
+
 
 def test_configured_pixel_area(
     test_environment: dict[str, Path],
@@ -579,6 +591,7 @@ def test_configured_pixel_area(
 # Result structure and observation date
 # ------------------------------------------------------------------
 
+
 def test_result_structure_and_observation_date(
     test_environment: dict[str, Path],
     analyzer_environment: dict[str, Path],
@@ -612,6 +625,7 @@ def test_result_structure_and_observation_date(
 # ------------------------------------------------------------------
 # Quality checks: invalid regional observations
 # ------------------------------------------------------------------
+
 
 def test_unreadable_input_returns_empty_results(
     test_environment: dict[str, Path],

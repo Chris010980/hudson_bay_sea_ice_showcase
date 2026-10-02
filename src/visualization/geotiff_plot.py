@@ -2,27 +2,29 @@
 
 from __future__ import annotations
 
-from src.config.paths import DATA_DIR, PROJECT_ROOT, resolve_project_path
-
-from pathlib import Path
-from datetime import datetime
-
 import json
 import logging
 import os
 import re
-import pyproj
-import rasterio
+from datetime import datetime
+from pathlib import Path
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-
-import numpy as np
-
 import matplotlib
 import matplotlib.colors as mcolors
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
+import numpy as np
+import pyproj
+import rasterio
+
+from src.config.paths import (
+    DATA_DIR,
+    PROJECT_ROOT,
+    resolve_project_path,
+)
+
 matplotlib.use("Agg")
 
 
@@ -30,7 +32,9 @@ os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
 os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
 
 DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
-DEFAULT_OUTPUT_PLOT_PATH = PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
+DEFAULT_OUTPUT_PLOT_PATH = (
+    PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
+)
 logger = logging.getLogger(__name__)
 
 import matplotlib as mpl  # noqa: E402
@@ -46,9 +50,9 @@ mpl.rcParams.update(
         "savefig.bbox": "tight",
     }
 )
-   
-class SeaIcePlotter:
 
+
+class SeaIcePlotter:
     # ---------------------------------------------------------
     # Construction
     # ---------------------------------------------------------
@@ -56,7 +60,9 @@ class SeaIcePlotter:
     def __init__(
         self,
         input_path: str | Path | None = None,
-        bounds: tuple[float, float, float, float] = DEFAULT_REGION_BOUNDS,
+        bounds: tuple[
+            float, float, float, float
+        ] = DEFAULT_REGION_BOUNDS,
     ):
         if input_path is None:
             input_path = self.find_concentration_geotiff()
@@ -135,10 +141,16 @@ class SeaIcePlotter:
         )
 
     @staticmethod
-    def find_concentration_geotiff(data_dir: str | Path | None = None) -> Path:
+    def find_concentration_geotiff(
+        data_dir: str | Path | None = None,
+    ) -> Path:
         """Return a representative concentration GeoTIFF from the local data tree."""
 
-        base_dir = Path(data_dir) if data_dir is not None else DATA_DIR / "geotiff"
+        base_dir = (
+            Path(data_dir)
+            if data_dir is not None
+            else DATA_DIR / "geotiff"
+        )
         if not base_dir.is_absolute():
             base_dir = PROJECT_ROOT / base_dir
 
@@ -148,9 +160,14 @@ class SeaIcePlotter:
             if "concentration" in path.name.lower()
         ]
         if not candidates:
-            raise FileNotFoundError(f"No concentration GeoTIFF found in {base_dir}.")
+            raise FileNotFoundError(
+                f"No concentration GeoTIFF found in {base_dir}."
+            )
 
-        return max(candidates, key=lambda path: (path.stat().st_mtime, path.as_posix()))
+        return max(
+            candidates,
+            key=lambda path: (path.stat().st_mtime, path.as_posix()),
+        )
 
     def load_regions(
         self,
@@ -198,7 +215,6 @@ class SeaIcePlotter:
     def _load_raster(self):
 
         with rasterio.open(self.input_path) as src:
-
             self.ice = src.read(1).astype(np.float32)
 
             self.transform = src.transform
@@ -244,9 +260,8 @@ class SeaIcePlotter:
 
         self._draw_coastline()
 
-    
     def _draw_boundary(self):
-        
+
         lon_min, lon_max, lat_min, lat_max = self.bounds
 
         n = 400
@@ -302,7 +317,7 @@ class SeaIcePlotter:
             transform=ccrs.PlateCarree(),
             color=self.border_color,
             linewidth=1.5,
-            zorder=20
+            zorder=20,
         )
 
     def _draw_ocean(self):
@@ -324,7 +339,9 @@ class SeaIcePlotter:
         )
 
     def _draw_coastline(self):
-        self.ax.coastlines(color=self.coast_color, linewidth=0.7, zorder=4)
+        self.ax.coastlines(
+            color=self.coast_color, linewidth=0.7, zorder=4
+        )
 
     def _draw_grid(self):
 
@@ -337,20 +354,15 @@ class SeaIcePlotter:
             linewidth=0.6,
         )
 
-        self.gl.xlocator = plt.FixedLocator(
-            [-100, -90, -80, -70, -60]
-        )
+        self.gl.xlocator = plt.FixedLocator([-100, -90, -80, -70, -60])
 
-        self.gl.ylocator = plt.FixedLocator(
-            [50, 55, 60, 65, 70, 75]
-        )
+        self.gl.ylocator = plt.FixedLocator([50, 55, 60, 65, 70, 75])
 
     def _draw_axis_labels(self):
-        
+
         lon_min, lon_max, lat_min, lat_max = self.bounds
 
         for lon in [-100, -90, -80, -70, -60]:
-
             self.ax.text(
                 lon,
                 lat_min - 0.6,
@@ -365,7 +377,6 @@ class SeaIcePlotter:
             )
 
         for lat in [50, 55, 60, 65, 70, 75]:
-
             self.ax.text(
                 lon_min - 0.8,
                 lat,
@@ -397,11 +408,9 @@ class SeaIcePlotter:
         self,
         selected=None,
     ):
-
         """Draw one or more analysis regions."""
 
         for name, region in self.regions.items():
-
             if selected is not None and name not in selected:
                 continue
 
@@ -446,7 +455,7 @@ class SeaIcePlotter:
             )
 
     def _draw_colorbar(self):
-        
+
         self.cbar = plt.colorbar(
             self.image,
             ax=self.ax,
@@ -476,7 +485,6 @@ class SeaIcePlotter:
         match = re.search(r"(\d{8})", self.input_path.stem)
 
         if match:
-
             self.date = datetime.strptime(
                 match.group(1),
                 "%Y%m%d",
@@ -542,7 +550,6 @@ class SeaIcePlotter:
         output_path = resolve_project_path(output_path)
 
         if suffix:
-
             output_path = output_path.with_name(
                 f"{output_path.stem}_{suffix}{output_path.suffix}"
             )

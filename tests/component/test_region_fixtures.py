@@ -1,7 +1,7 @@
 """Tests for deterministic region and reference-data fixtures."""
 
-from pathlib import Path
 import json
+from pathlib import Path
 
 import numpy as np
 import rasterio

@@ -40,7 +40,6 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -57,6 +56,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _row(
     region: str,
@@ -150,9 +150,7 @@ def _value(
 ) -> float:
     """Return a value of a single observation day."""
 
-    row = region_df[
-        region_df["date"] == pd.Timestamp(day)
-    ]
+    row = region_df[region_df["date"] == pd.Timestamp(day)]
 
     assert len(row) == 1
 
@@ -162,6 +160,7 @@ def _value(
 # ------------------------------------------------------------------
 # Task: test observation - climatological mean
 # ------------------------------------------------------------------
+
 
 def test_anomaly_is_observation_minus_climatology_mean(
     timeseries_paths: dict[str, Path],
@@ -221,16 +220,19 @@ def test_anomaly_is_observation_minus_climatology_mean(
     ) == pytest.approx(15.0)
 
     # No climatology -> no anomaly.
-    assert pd.isna(_value(
-        region_df,
-        date(2015, 5, 5),
-        "relative_anomaly_percent",
-    ))
+    assert pd.isna(
+        _value(
+            region_df,
+            date(2015, 5, 5),
+            "relative_anomaly_percent",
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test positive anomalies
 # ------------------------------------------------------------------
+
 
 def test_positive_anomaly(
     timeseries_paths: dict[str, Path],
@@ -269,6 +271,7 @@ def test_positive_anomaly(
 # Task: test negative anomalies
 # ------------------------------------------------------------------
 
+
 def test_negative_anomaly(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -305,6 +308,7 @@ def test_negative_anomaly(
 # ------------------------------------------------------------------
 # Task: test zero anomalies
 # ------------------------------------------------------------------
+
 
 def test_zero_anomaly(
     timeseries_paths: dict[str, Path],
@@ -344,16 +348,20 @@ def test_zero_anomaly(
         "relative_anomaly_percent",
     ) == pytest.approx(10.0)
 
-    assert _value(
-        region_df,
-        date(1995, 7, 7),
-        "relative_anomaly_percent",
-    ) == 0.0
+    assert (
+        _value(
+            region_df,
+            date(1995, 7, 7),
+            "relative_anomaly_percent",
+        )
+        == 0.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test absolute coverage anomalies
 # ------------------------------------------------------------------
+
 
 def test_absolute_coverage_anomaly(
     timeseries_paths: dict[str, Path],
@@ -389,16 +397,20 @@ def test_absolute_coverage_anomaly(
 
     # The constant relative coverage produces a zero relative
     # anomaly: the two quantities stay separate.
-    assert _value(
-        region_df,
-        date(2015, 7, 4),
-        "relative_anomaly_percent",
-    ) == 0.0
+    assert (
+        _value(
+            region_df,
+            date(2015, 7, 4),
+            "relative_anomaly_percent",
+        )
+        == 0.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test relative coverage anomalies (not mixed)
 # ------------------------------------------------------------------
+
 
 def test_relative_coverage_anomaly_is_not_mixed(
     timeseries_paths: dict[str, Path],

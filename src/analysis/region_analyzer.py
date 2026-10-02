@@ -21,13 +21,10 @@ REFERENCE_JSON = (
     PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
 )
 
-FILTER_DIR = (
-    PROJECT_ROOT / "output" / "reference" / "filters"
-)
+FILTER_DIR = PROJECT_ROOT / "output" / "reference" / "filters"
 
 
 class RegionAnalyzer:
-
     def __init__(
         self,
         input_tif: str | Path,
@@ -83,13 +80,10 @@ class RegionAnalyzer:
         logger.info("Loading %s", self.input_tif.name)
 
         try:
-
             with rasterio.open(self.input_tif) as src:
-
                 self.band = src.read(1)
 
         except Exception as exc:
-
             logger.error(
                 "Cannot read %s: %s",
                 self.input_tif.name,
@@ -115,7 +109,6 @@ class RegionAnalyzer:
     def _analyze_regions(self):
 
         for region_name, reference in self.reference.items():
-
             self._analyze_region(
                 region_name,
                 reference,
@@ -127,9 +120,7 @@ class RegionAnalyzer:
         reference,
     ):
 
-        indices = np.load(
-            self.filter_dir / f"{region_name}_water.npy"
-        )
+        indices = np.load(self.filter_dir / f"{region_name}_water.npy")
 
         values = self.band.flat[indices]
 
@@ -137,12 +128,9 @@ class RegionAnalyzer:
         # Step 1: Missing values
         # -------------------------------------------------
 
-        missing_pixels = np.count_nonzero(
-            values == 2550
-        )
+        missing_pixels = np.count_nonzero(values == 2550)
 
         if missing_pixels > 0:
-
             logger.warning(
                 "%s skipped (%d missing pixels)",
                 region_name,
@@ -155,16 +143,11 @@ class RegionAnalyzer:
         # Step 2: Keep only valid water pixels
         # -------------------------------------------------
 
-        water = values[
-            (values >= 0)
-            &
-            (values <= 1000)
-        ]
+        water = values[(values >= 0) & (values <= 1000)]
 
         expected = reference["water_pixels"]
 
         if len(water) != expected:
-
             logger.warning(
                 "%s: expected %d water pixels but found %d",
                 region_name,
@@ -180,39 +163,27 @@ class RegionAnalyzer:
 
         ice = water >= 150
 
-        absolute_ice_area = (
-            ice.sum()
-            * self.pixel_area_km2
-        )
+        absolute_ice_area = ice.sum() * self.pixel_area_km2
 
         relative_ice_area = (
-            water[ice].sum()
-            / 1000.0
-            * self.pixel_area_km2
+            water[ice].sum() / 1000.0 * self.pixel_area_km2
         )
 
         water_area = reference["water_area_pixel_km2"]
 
         self.results[region_name] = {
-
             "region": region_name,
-
             "date": self.date,
-
             "water_pixels": expected,
-
             "water_area_km2": water_area,
-
             "absolute_ice_area_km2": absolute_ice_area,
-
             "relative_ice_area_km2": relative_ice_area,
-
-            "absolute_coverage_percent":
-                100.0 * absolute_ice_area / water_area,
-
-            "relative_coverage_percent":
-                100.0 * relative_ice_area / water_area,
-
+            "absolute_coverage_percent": 100.0
+            * absolute_ice_area
+            / water_area,
+            "relative_coverage_percent": 100.0
+            * relative_ice_area
+            / water_area,
             "missing_pixels": 0,
         }
 

@@ -3,7 +3,9 @@
 from pathlib import Path
 
 
-def test_test_environment_is_isolated(test_environment: dict[str, Path]) -> None:
+def test_test_environment_is_isolated(
+    test_environment: dict[str, Path],
+) -> None:
     """Verify that the test environment provides isolated directories."""
     root = test_environment["root"]
     data_dir = test_environment["data"]

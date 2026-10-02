@@ -33,10 +33,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
-
 
 EXPECTED_COLUMNS = [
     "region",
@@ -48,6 +46,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _timeline(
     pieces: list[tuple[date, int, float]],
@@ -140,6 +139,7 @@ def _assert_no_event(
 # Task: test seven consecutive calendar days
 # ------------------------------------------------------------------
 
+
 def test_seven_consecutive_days_are_required(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -158,10 +158,10 @@ def test_seven_consecutive_days_are_required(
     # Case 1: exactly seven qualifying days.
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),   # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 6, 40.0),   # 03-22 .. 03-27
-            (date(2026, 3, 28), 1, 80.0),   # 03-28
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 6, 40.0),  # 03-22 .. 03-27
+            (date(2026, 3, 28), 1, 80.0),  # 03-28
         ]
     )
 
@@ -171,29 +171,40 @@ def test_seven_consecutive_days_are_required(
     assert len(events) == 6
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 3, 21)
 
     # Case 2: only six qualifying days.
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),   # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 5, 40.0),   # 03-22 .. 03-26
-            (date(2026, 3, 27), 4, 80.0),   # 03-27 .. 03-30
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 5, 40.0),  # 03-22 .. 03-26
+            (date(2026, 3, 27), 4, 80.0),  # 03-27 .. 03-30
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test persistence failure
 # ------------------------------------------------------------------
+
 
 def test_persistence_failure_yields_no_event(
     timeseries_paths: dict[str, Path],
@@ -214,41 +225,52 @@ def test_persistence_failure_yields_no_event(
     # Case 1: values return above the threshold too early.
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),   # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 2, 40.0),   # 03-22 .. 03-23
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 2, 40.0),  # 03-22 .. 03-23
             (date(2026, 3, 24), 70, 60.0),  # 03-24 .. 06-01
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
     # Case 2: the first crossing fails, a later one persists.
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),   # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 2, 40.0),   # 03-22 .. 03-23
-            (date(2026, 3, 24), 3, 60.0),   # 03-24 .. 03-26
-            (date(2026, 3, 27), 1, 50.0),   # 03-27 (exact)
-            (date(2026, 3, 28), 9, 40.0),   # 03-28 .. 04-05
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 2, 40.0),  # 03-22 .. 03-23
+            (date(2026, 3, 24), 3, 60.0),  # 03-24 .. 03-26
+            (date(2026, 3, 27), 1, 50.0),  # 03-27 (exact)
+            (date(2026, 3, 28), 9, 40.0),  # 03-28 .. 04-05
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 3, 27)
 
 
 # ------------------------------------------------------------------
 # Task: test the break-up search window
 # ------------------------------------------------------------------
+
 
 def test_breakup_is_restricted_to_its_window(
     timeseries_paths: dict[str, Path],
@@ -267,17 +289,23 @@ def test_breakup_is_restricted_to_its_window(
     # Case 1: drop before the window starts.
     rows = _timeline(
         [
-            (date(2026, 1, 1), 68, 80.0),    # 01-01 .. 03-09
-            (date(2026, 3, 10), 1, 50.0),   # 03-10 (exact)
-            (date(2026, 3, 11), 188, 40.0), # 03-11 .. 09-15
+            (date(2026, 1, 1), 68, 80.0),  # 01-01 .. 03-09
+            (date(2026, 3, 10), 1, 50.0),  # 03-10 (exact)
+            (date(2026, 3, 11), 188, 40.0),  # 03-11 .. 09-15
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
     # Case 2: drop after the window ends.
     rows = _timeline(
@@ -290,14 +318,21 @@ def test_breakup_is_restricted_to_its_window(
 
     events = _events_frame(timeseries_paths, rows)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test the freeze-up search window (inside)
 # ------------------------------------------------------------------
+
 
 def test_freezeup_is_detected_within_its_window(
     timeseries_paths: dict[str, Path],
@@ -315,9 +350,9 @@ def test_freezeup_is_detected_within_its_window(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),    # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 210, 40.0), # 03-22 .. 10-17
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 210, 40.0),  # 03-22 .. 10-17
             (date(2026, 10, 18), 1, 50.0),  # 10-18 (exact)
             (date(2026, 10, 19), 6, 60.0),  # 10-19 .. 10-24
         ]
@@ -326,17 +361,26 @@ def test_freezeup_is_detected_within_its_window(
     events = _events_frame(timeseries_paths, rows)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 3, 21)
 
     assert _event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "freeze-up",
+        50.0,
     ) == pd.Timestamp(2026, 10, 18)
 
 
 # ------------------------------------------------------------------
 # Task: test the freeze-up search window (outside)
 # ------------------------------------------------------------------
+
 
 def test_freezeup_after_window_end_is_ignored(
     timeseries_paths: dict[str, Path],
@@ -352,28 +396,39 @@ def test_freezeup_after_window_end_is_ignored(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),    # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 361, 40.0), # 03-22 .. 03-17/27
-            (date(2027, 3, 18), 1, 50.0),   # 03-18 (exact)
-            (date(2027, 3, 19), 6, 60.0),   # 03-19 .. 03-24/27
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 361, 40.0),  # 03-22 .. 03-17/27
+            (date(2027, 3, 18), 1, 50.0),  # 03-18 (exact)
+            (date(2027, 3, 19), 6, 60.0),  # 03-19 .. 03-24/27
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 3, 21)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "freeze-up",
+            50.0,
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test the freeze-up / break-up dependency
 # ------------------------------------------------------------------
+
 
 def test_freezeup_requires_preceding_breakup(
     timeseries_paths: dict[str, Path],
@@ -390,24 +445,37 @@ def test_freezeup_requires_preceding_breakup(
         [
             (date(2026, 1, 1), 288, 40.0),  # 01-01 .. 10-15
             (date(2026, 10, 16), 1, 50.0),  # 10-16 (exact)
-            (date(2026, 10, 17), 14, 60.0), # 10-17 .. 10-30
+            (date(2026, 10, 17), 14, 60.0),  # 10-17 .. 10-30
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "freeze-up",
+            50.0,
+        )
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test the freeze-up year transition
 # ------------------------------------------------------------------
+
 
 def test_freezeup_year_transition(
     timeseries_paths: dict[str, Path],
@@ -426,19 +494,23 @@ def test_freezeup_year_transition(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),    # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 285, 40.0), # 03-22 .. 12-31
-            (date(2027, 1, 1), 9, 40.0),   # 01-01 .. 01-09
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 285, 40.0),  # 03-22 .. 12-31
+            (date(2027, 1, 1), 9, 40.0),  # 01-01 .. 01-09
             (date(2027, 1, 10), 1, 50.0),  # 01-10 (exact)
-            (date(2027, 1, 11), 64, 60.0), # 01-11 .. 03-15
+            (date(2027, 1, 11), 64, 60.0),  # 01-11 .. 03-15
         ]
     )
 
     events = _events_frame(timeseries_paths, rows)
 
     freezeup = _event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "freeze-up",
+        50.0,
     )
 
     assert freezeup == pd.Timestamp(2027, 1, 10)
@@ -450,6 +522,7 @@ def test_freezeup_year_transition(
 # ------------------------------------------------------------------
 # Task: test the dynamic freeze-up search adjustment
 # ------------------------------------------------------------------
+
 
 def test_dynamic_freezeup_adjustment(
     timeseries_paths: dict[str, Path],
@@ -471,10 +544,10 @@ def test_dynamic_freezeup_adjustment(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 79, 80.0),    # 01-01 .. 03-20
-            (date(2026, 3, 21), 1, 50.0),   # 03-21 (exact)
-            (date(2026, 3, 22), 141, 40.0), # 03-22 .. 08-09
-            (date(2026, 8, 10), 1, 50.0),   # 08-10 (exact)
+            (date(2026, 1, 1), 79, 80.0),  # 01-01 .. 03-20
+            (date(2026, 3, 21), 1, 50.0),  # 03-21 (exact)
+            (date(2026, 3, 22), 141, 40.0),  # 03-22 .. 08-09
+            (date(2026, 8, 10), 1, 50.0),  # 08-10 (exact)
             (date(2026, 8, 11), 51, 60.0),  # 08-11 .. 09-30
         ]
     )
@@ -482,17 +555,26 @@ def test_dynamic_freezeup_adjustment(
     events = _events_frame(timeseries_paths, rows)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 3, 21)
 
     assert _event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "freeze-up",
+        50.0,
     ) == pd.Timestamp(2026, 8, 10)
 
 
 # ------------------------------------------------------------------
 # Task: test persistence independently for each threshold
 # ------------------------------------------------------------------
+
 
 def test_persistence_is_independent_per_threshold(
     timeseries_paths: dict[str, Path],
@@ -515,12 +597,12 @@ def test_persistence_is_independent_per_threshold(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 99, 95.0),   # 01-01 .. 04-09
-            (date(2026, 4, 10), 1, 90.0),   # 04-10 (exact)
+            (date(2026, 1, 1), 99, 95.0),  # 01-01 .. 04-09
+            (date(2026, 4, 10), 1, 90.0),  # 04-10 (exact)
             (date(2026, 4, 11), 29, 85.0),  # 04-11 .. 05-09
-            (date(2026, 5, 10), 1, 50.0),   # 05-10 (exact)
+            (date(2026, 5, 10), 1, 50.0),  # 05-10 (exact)
             (date(2026, 5, 11), 30, 40.0),  # 05-11 .. 06-09
-            (date(2026, 6, 10), 1, 10.0),   # 06-10 (exact)
+            (date(2026, 6, 10), 1, 10.0),  # 06-10 (exact)
             (date(2026, 6, 11), 97, 10.0),  # 06-11 .. 09-15
         ]
     )
@@ -528,21 +610,34 @@ def test_persistence_is_independent_per_threshold(
     events = _events_frame(timeseries_paths, rows)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 90.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        90.0,
     ) == pd.Timestamp(2026, 4, 10)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 50.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        50.0,
     ) == pd.Timestamp(2026, 5, 10)
 
     assert _event(
-        events, "Test Region", 2026, "break-up", 10.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        10.0,
     ) == pd.Timestamp(2026, 6, 10)
 
 
 # ------------------------------------------------------------------
 # Task: test threshold failure independently
 # ------------------------------------------------------------------
+
 
 def test_threshold_failure_is_independent(
     timeseries_paths: dict[str, Path],
@@ -566,11 +661,11 @@ def test_threshold_failure_is_independent(
 
     rows = _timeline(
         [
-            (date(2026, 1, 1), 99, 95.0),   # 01-01 .. 04-09
-            (date(2026, 4, 10), 1, 90.0),   # 04-10 (exact)
+            (date(2026, 1, 1), 99, 95.0),  # 01-01 .. 04-09
+            (date(2026, 4, 10), 1, 90.0),  # 04-10 (exact)
             (date(2026, 4, 11), 10, 60.0),  # 04-11 .. 04-20
-            (date(2026, 4, 21), 1, 90.0),   # 04-21 (exact)
-            (date(2026, 4, 22), 148, 95.0), # 04-22 .. 09-16
+            (date(2026, 4, 21), 1, 90.0),  # 04-21 (exact)
+            (date(2026, 4, 22), 148, 95.0),  # 04-22 .. 09-16
         ]
     )
 
@@ -578,27 +673,59 @@ def test_threshold_failure_is_independent(
 
     # Only the 90 % threshold has a break-up.
     assert _event(
-        events, "Test Region", 2026, "break-up", 90.0,
+        events,
+        "Test Region",
+        2026,
+        "break-up",
+        90.0,
     ) == pd.Timestamp(2026, 4, 10)
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            50.0,
+        )
+    )
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "break-up", 10.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "break-up",
+            10.0,
+        )
+    )
 
     # The freeze-up of 90 % is found via the dynamic adjustment.
     assert _event(
-        events, "Test Region", 2026, "freeze-up", 90.0,
+        events,
+        "Test Region",
+        2026,
+        "freeze-up",
+        90.0,
     ) == pd.Timestamp(2026, 4, 21)
 
     # Without a break-up there is no freeze-up for 50 % / 10 %.
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "freeze-up", 50.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "freeze-up",
+            50.0,
+        )
+    )
 
-    _assert_no_event(_event(
-        events, "Test Region", 2026, "freeze-up", 10.0,
-    ))
+    _assert_no_event(
+        _event(
+            events,
+            "Test Region",
+            2026,
+            "freeze-up",
+            10.0,
+        )
+    )

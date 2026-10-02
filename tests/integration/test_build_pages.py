@@ -82,7 +82,6 @@ import pytest
 
 import src.update.build_pages as build_pages_module
 
-
 # ------------------------------------------------------------------
 # Controlled docs/ input (modeled on the production website)
 # ------------------------------------------------------------------
@@ -232,6 +231,7 @@ _PLOT_PRODUCTS = [
 # Helpers
 # ------------------------------------------------------------------
 
+
 def _png_bytes() -> bytes:
     """Construct a deterministic valid 1 x 1 RGB PNG.
 
@@ -240,6 +240,7 @@ def _png_bytes() -> bytes:
     depending on matplotlib: the build stage only copies files,
     and real plot rendering is covered by the issue #32 tests.
     """
+
     def chunk(tag: bytes, data: bytes) -> bytes:
         body = tag + data
 
@@ -252,7 +253,9 @@ def _png_bytes() -> bytes:
     signature = b"\x89PNG\r\n\x1a\n"
 
     # IHDR: width 1, height 1, 8 bit depth, color type 2 (RGB).
-    header = chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+    header = chunk(
+        b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+    )
 
     # One scanline: filter byte 0 followed by a single RGB pixel.
     pixel = chunk(b"IDAT", zlib.compress(b"\x00\x40\x80\xc0"))
@@ -339,10 +342,9 @@ def _referenced_paths(page: Path) -> list[str]:
     """
     text = page.read_text(encoding="utf-8")
 
-    candidates = (
-        _REFERENCE_PATTERN.findall(text)
-        + _FETCH_PATTERN.findall(text)
-    )
+    candidates = _REFERENCE_PATTERN.findall(
+        text
+    ) + _FETCH_PATTERN.findall(text)
 
     return [
         reference
@@ -354,6 +356,7 @@ def _referenced_paths(page: Path) -> list[str]:
 # ------------------------------------------------------------------
 # Fixture: isolated build environment
 # ------------------------------------------------------------------
+
 
 @pytest.fixture
 def build_pages_environment(
@@ -391,6 +394,7 @@ def build_pages_environment(
 # Task: execute the build and validate the directory structure
 # ------------------------------------------------------------------
 
+
 def test_build_creates_expected_directory_structure(
     build_pages_environment: dict[str, Path],
 ) -> None:
@@ -418,6 +422,7 @@ def test_build_creates_expected_directory_structure(
 # ------------------------------------------------------------------
 # Task: validate the expected website files
 # ------------------------------------------------------------------
+
 
 def test_website_files_are_deployed_and_references_resolve(
     build_pages_environment: dict[str, Path],
@@ -463,6 +468,7 @@ def test_website_files_are_deployed_and_references_resolve(
 # Task: validate the expected scientific output paths
 # ------------------------------------------------------------------
 
+
 def test_scientific_output_is_available_at_deployment_paths(
     build_pages_environment: dict[str, Path],
 ) -> None:
@@ -506,6 +512,7 @@ def test_scientific_output_is_available_at_deployment_paths(
 # Task: validate reproducible build results
 # ------------------------------------------------------------------
 
+
 def test_rebuild_is_reproducible_and_removes_stale_files(
     build_pages_environment: dict[str, Path],
 ) -> None:
@@ -543,6 +550,7 @@ def test_rebuild_is_reproducible_and_removes_stale_files(
 # ------------------------------------------------------------------
 # Failure propagation
 # ------------------------------------------------------------------
+
 
 def test_missing_docs_directory_fails_the_build(
     build_pages_environment: dict[str, Path],

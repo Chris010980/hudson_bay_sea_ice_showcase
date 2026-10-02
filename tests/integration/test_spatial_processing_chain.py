@@ -71,7 +71,6 @@ from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.config.paths import PROJECT_ROOT
 
-
 EXPECTED_RESULT_KEYS = {
     "region",
     "date",
@@ -181,6 +180,7 @@ _FLOAT_COLUMNS = {
 # Controlled naturalearth replacement
 # ------------------------------------------------------------------
 
+
 class _StubGeopandas:
     """geopandas stand-in serving a controlled ocean dataset."""
 
@@ -197,6 +197,7 @@ class _StubGeopandas:
 # ------------------------------------------------------------------
 # Chain fixture
 # ------------------------------------------------------------------
+
 
 @pytest.fixture
 def chain_environment(
@@ -254,6 +255,7 @@ def chain_environment(
 # Helpers
 # ------------------------------------------------------------------
 
+
 def _write_observation(
     data_dir: Path,
     filename: str,
@@ -302,18 +304,15 @@ def _region_values(
     mixed_values: list[int],
 ) -> dict[int, int]:
     """Map per-region concentration values to flat pixel indices."""
-    return (
-        dict(
-            zip(
-                expected_reference_masks["Test Region Water"],
-                water_values,
-            )
+    return dict(
+        zip(
+            expected_reference_masks["Test Region Water"],
+            water_values,
         )
-        | dict(
-            zip(
-                expected_reference_masks["Test Region Mixed"],
-                mixed_values,
-            )
+    ) | dict(
+        zip(
+            expected_reference_masks["Test Region Mixed"],
+            mixed_values,
         )
     )
 
@@ -385,6 +384,7 @@ def _directory_snapshot(directory: Path) -> list[str]:
 # ReferenceBuilder
 # ------------------------------------------------------------------
 
+
 def test_reference_products_are_controlled_and_reproducible(
     chain_environment: dict[str, Path],
     synthetic_reference_raster: Path,
@@ -414,7 +414,10 @@ def test_reference_products_are_controlled_and_reproducible(
             synthetic_region_file,
         )
 
-        for region, expected_indices in expected_reference_masks.items():
+        for (
+            region,
+            expected_indices,
+        ) in expected_reference_masks.items():
             mask_file = (
                 chain_environment["mask_dir"] / f"{region}_water.npy"
             )
@@ -446,6 +449,7 @@ def test_reference_products_are_controlled_and_reproducible(
 # Task: create controlled observation GeoTIFFs and run the
 # RegionAnalyzer
 # ------------------------------------------------------------------
+
 
 def test_analyzer_results_match_independent_calculations(
     chain_environment: dict[str, Path],
@@ -517,6 +521,7 @@ def test_analyzer_results_match_independent_calculations(
 # Task: persist results with the ResultsManager and validate the
 # final persisted results
 # ------------------------------------------------------------------
+
 
 def test_persisted_results_match_independent_calculations(
     chain_environment: dict[str, Path],
@@ -694,6 +699,7 @@ def test_incremental_processing_preserves_observations(
 # modified
 # ------------------------------------------------------------------
 
+
 def test_production_directories_are_not_modified(
     chain_environment: dict[str, Path],
     test_environment: dict[str, Path],
@@ -716,7 +722,10 @@ def test_production_directories_are_not_modified(
         PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
     )
     production_csv = (
-        PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
+        PROJECT_ROOT
+        / "output"
+        / "analysis"
+        / "ice_coverage_summary.csv"
     )
     production_latest = (
         PROJECT_ROOT / "output" / "analysis" / "latest.json"

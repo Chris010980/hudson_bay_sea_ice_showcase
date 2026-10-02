@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 """Absolute path to the project root directory, one level above the ``src`` package."""
 
@@ -23,7 +22,10 @@ DOCS_DIR = PROJECT_ROOT / "docs"
 BUILD_DIR = PROJECT_ROOT / "build"
 """Default directory for the built GitHub Pages website."""
 
-def resolve_project_path(path: str | Path, base_dir: Path = PROJECT_ROOT) -> Path:
+
+def resolve_project_path(
+    path: str | Path, base_dir: Path = PROJECT_ROOT
+) -> Path:
     """Return an absolute path, resolving relative inputs below ``base_dir``."""
 
     path = Path(path)

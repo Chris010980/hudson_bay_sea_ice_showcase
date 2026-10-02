@@ -34,7 +34,6 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -51,6 +50,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _row(region: str, day: date, coverage: float) -> dict:
     """Create a controlled daily observation row.
@@ -150,9 +150,7 @@ def _coverage(
 ) -> float:
     """Return the value of a single calendar day."""
 
-    row = region_df[
-        region_df["date"] == pd.Timestamp(day)
-    ]
+    row = region_df[region_df["date"] == pd.Timestamp(day)]
 
     assert len(row) == 1
 
@@ -175,6 +173,7 @@ def _ma(
 # ------------------------------------------------------------------
 # Task: test the centered window
 # ------------------------------------------------------------------
+
 
 def test_centered_window_averages_seven_days(
     timeseries_paths: dict[str, Path],
@@ -207,6 +206,7 @@ def test_centered_window_averages_seven_days(
 # ------------------------------------------------------------------
 # Task: test the +/- 3 day window
 # ------------------------------------------------------------------
+
 
 def test_window_extends_exactly_three_days_each_side(
     timeseries_paths: dict[str, Path],
@@ -248,6 +248,7 @@ def test_window_extends_exactly_three_days_each_side(
 # Task: test boundary behavior
 # ------------------------------------------------------------------
 
+
 def test_boundary_days_use_truncated_window(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -278,12 +279,15 @@ def test_boundary_days_use_truncated_window(
     expected = [25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0]
 
     for day, value in enumerate(expected, start=1):
-        assert _ma(region_df, date(2026, 1, day)) == pytest.approx(value)
+        assert _ma(region_df, date(2026, 1, day)) == pytest.approx(
+            value
+        )
 
 
 # ------------------------------------------------------------------
 # Task: test contiguous valid segments
 # ------------------------------------------------------------------
+
 
 def test_contiguous_segments_are_smoothed_independently(
     timeseries_paths: dict[str, Path],
@@ -350,6 +354,7 @@ def test_contiguous_segments_are_smoothed_independently(
 # Task: test all relevant smoothed quantities
 # ------------------------------------------------------------------
 
+
 def test_all_relevant_quantities_are_smoothed(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -396,6 +401,7 @@ def test_all_relevant_quantities_are_smoothed(
 # Task: smoothing does not modify the unsmoothed observations
 # ------------------------------------------------------------------
 
+
 def test_smoothing_preserves_unsmoothed_observations(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -429,19 +435,35 @@ def test_smoothing_preserves_unsmoothed_observations(
     assert (region_df["region"] == "Test Region").all()
 
     assert list(region_df["relative_coverage_percent"]) == [
-        10.0, 20.0, 40.0, 80.0, 160.0,
+        10.0,
+        20.0,
+        40.0,
+        80.0,
+        160.0,
     ]
 
     assert list(region_df["absolute_coverage_percent"]) == [
-        10.0, 20.0, 40.0, 80.0, 160.0,
+        10.0,
+        20.0,
+        40.0,
+        80.0,
+        160.0,
     ]
 
     assert list(region_df["absolute_ice_area_km2"]) == [
-        250.0, 500.0, 1000.0, 2000.0, 4000.0,
+        250.0,
+        500.0,
+        1000.0,
+        2000.0,
+        4000.0,
     ]
 
     assert list(region_df["relative_ice_area_km2"]) == [
-        125.0, 250.0, 500.0, 1000.0, 2000.0,
+        125.0,
+        250.0,
+        500.0,
+        1000.0,
+        2000.0,
     ]
 
     # The smoothed value differs from the observation it derives

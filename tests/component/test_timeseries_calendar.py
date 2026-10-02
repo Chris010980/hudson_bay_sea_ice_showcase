@@ -43,7 +43,6 @@ import pytest
 
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 
-
 EXPECTED_COLUMNS = [
     "region",
     "date",
@@ -60,6 +59,7 @@ EXPECTED_COLUMNS = [
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
+
 
 def _row(region: str, day: date, coverage: float) -> dict:
     """Create a controlled daily observation row.
@@ -129,9 +129,7 @@ def _coverage(
 ) -> float:
     """Return the coverage value of a single calendar day."""
 
-    row = region_df[
-        region_df["date"] == pd.Timestamp(day)
-    ]
+    row = region_df[region_df["date"] == pd.Timestamp(day)]
 
     assert len(row) == 1
 
@@ -141,6 +139,7 @@ def _coverage(
 # ------------------------------------------------------------------
 # Task: test missing calendar days
 # ------------------------------------------------------------------
+
 
 def test_missing_calendar_days_are_created(
     timeseries_paths: dict[str, Path],
@@ -202,6 +201,7 @@ def test_missing_calendar_days_are_created(
 # Task: test interpolation for gaps within the configured maximum
 # ------------------------------------------------------------------
 
+
 def test_gap_within_maximum_is_interpolated(
     timeseries_paths: dict[str, Path],
 ) -> None:
@@ -228,18 +228,19 @@ def test_gap_within_maximum_is_interpolated(
 
     assert len(region_df) == 15
 
-    assert (
-        region_df["relative_coverage_percent"].notna().all()
-    )
+    assert region_df["relative_coverage_percent"].notna().all()
 
     assert _coverage(region_df, date(2026, 1, 2)) == pytest.approx(11.0)
     assert _coverage(region_df, date(2026, 1, 8)) == pytest.approx(17.0)
-    assert _coverage(region_df, date(2026, 1, 14)) == pytest.approx(23.0)
+    assert _coverage(region_df, date(2026, 1, 14)) == pytest.approx(
+        23.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test interpolation boundaries
 # ------------------------------------------------------------------
+
 
 def test_gap_of_exactly_limit_is_interpolated(
     timeseries_paths: dict[str, Path],
@@ -267,18 +268,19 @@ def test_gap_of_exactly_limit_is_interpolated(
 
     assert len(region_df) == 16
 
-    assert (
-        region_df["relative_coverage_percent"].notna().all()
-    )
+    assert region_df["relative_coverage_percent"].notna().all()
 
     assert _coverage(region_df, date(2026, 1, 2)) == pytest.approx(12.0)
     assert _coverage(region_df, date(2026, 1, 9)) == pytest.approx(26.0)
-    assert _coverage(region_df, date(2026, 1, 15)) == pytest.approx(38.0)
+    assert _coverage(region_df, date(2026, 1, 15)) == pytest.approx(
+        38.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test gaps exceeding the maximum
 # ------------------------------------------------------------------
+
 
 def test_gap_exceeding_maximum_remains_unbridged(
     timeseries_paths: dict[str, Path],
@@ -320,6 +322,7 @@ def test_gap_exceeding_maximum_remains_unbridged(
 # ------------------------------------------------------------------
 # Task: test leap years
 # ------------------------------------------------------------------
+
 
 def test_leap_year_calendar(
     timeseries_paths: dict[str, Path],
@@ -374,12 +377,15 @@ def test_leap_year_calendar(
         pd.date_range(date(2027, 2, 27), date(2027, 3, 1), freq="D")
     )
 
-    assert _coverage(nonleap_df, date(2027, 2, 28)) == pytest.approx(13.0)
+    assert _coverage(nonleap_df, date(2027, 2, 28)) == pytest.approx(
+        13.0
+    )
 
 
 # ------------------------------------------------------------------
 # Task: test multiple regions
 # ------------------------------------------------------------------
+
 
 def test_multiple_regions_receive_independent_calendars(
     timeseries_paths: dict[str, Path],

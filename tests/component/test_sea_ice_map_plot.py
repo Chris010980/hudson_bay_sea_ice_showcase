@@ -49,10 +49,10 @@ from rasterio.transform import from_origin
 import src.visualization.geotiff_plot as geotiff_plot_module
 from src.visualization.geotiff_plot import SeaIcePlotter
 
-
 # ------------------------------------------------------------------
 # Controlled inputs
 # ------------------------------------------------------------------
+
 
 def _write_observation(directory: Path, filename: str) -> Path:
     """Write a controlled observation GeoTIFF.
@@ -119,6 +119,7 @@ def _no_background(self) -> None:
 # Fixture: isolated project root and offline map rendering
 # ------------------------------------------------------------------
 
+
 @pytest.fixture
 def map_plot_environment(
     test_environment: dict[str, Path],
@@ -166,6 +167,7 @@ def map_plot_environment(
 # Task: test GeoTIFF/map plots (plain overview)
 # ------------------------------------------------------------------
 
+
 def test_overview_plot_is_created_from_geotiff(
     map_plot_environment: dict,
 ) -> None:
@@ -207,6 +209,7 @@ def test_overview_plot_is_created_from_geotiff(
 # Task: test GeoTIFF/map plots (regions overlay)
 # ------------------------------------------------------------------
 
+
 def test_regions_overlay_plot_is_created(
     map_plot_environment: dict,
 ) -> None:
@@ -232,6 +235,7 @@ def test_regions_overlay_plot_is_created(
 # ------------------------------------------------------------------
 # Task: test GeoTIFF/map plots (single region)
 # ------------------------------------------------------------------
+
 
 def test_single_region_plot_is_created(
     map_plot_environment: dict,

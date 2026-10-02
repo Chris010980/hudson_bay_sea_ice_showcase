@@ -6,12 +6,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 import rasterio
+from pyproj import Transformer
 from rasterio.transform import from_origin
 
-from pathlib import Path
-import pytest
-
-from pyproj import Transformer
 
 @pytest.fixture
 def test_environment(tmp_path: Path) -> dict[str, Path]:
@@ -70,8 +67,11 @@ def synthetic_raster(test_environment: dict[str, Path]) -> Path:
 
     return raster_path
 
+
 @pytest.fixture
-def synthetic_reference_raster(test_environment: dict[str, Path]) -> Path:
+def synthetic_reference_raster(
+    test_environment: dict[str, Path],
+) -> Path:
     """Create a small deterministic reference water raster.
 
     Water pixels carry a valid concentration-like value (1), non-water
@@ -113,6 +113,7 @@ def synthetic_reference_raster(test_environment: dict[str, Path]) -> Path:
 
     return raster_path
 
+
 def _pixel_rectangle(
     transform,
     row_start: int,
@@ -140,23 +141,11 @@ def _pixel_rectangle(
     center_col_start = col_start
     center_col_end = col_end - 1
 
-    x_min = (
-        transform.c
-        + (center_col_start + 0.5) * transform.a
-    )
-    x_max = (
-        transform.c
-        + (center_col_end + 0.5) * transform.a
-    )
+    x_min = transform.c + (center_col_start + 0.5) * transform.a
+    x_max = transform.c + (center_col_end + 0.5) * transform.a
 
-    y_max = (
-        transform.f
-        + (center_row_start + 0.5) * transform.e
-    )
-    y_min = (
-        transform.f
-        + (center_row_end + 0.5) * transform.e
-    )
+    y_max = transform.f + (center_row_start + 0.5) * transform.e
+    y_min = transform.f + (center_row_end + 0.5) * transform.e
 
     # Half a pixel in raster coordinates.
     margin_x = abs(transform.a) * 0.49
@@ -187,9 +176,9 @@ def _pixel_rectangle(
     )
 
     return [
-        [float(lon_i), float(lat_i)]
-        for lon_i, lat_i in zip(lon, lat)
+        [float(lon_i), float(lat_i)] for lon_i, lat_i in zip(lon, lat)
     ]
+
 
 @pytest.fixture
 def synthetic_region_file(
@@ -236,6 +225,7 @@ def synthetic_region_file(
 
     return region_file
 
+
 @pytest.fixture
 def expected_reference_masks() -> dict[str, np.ndarray]:
     """Return expected water-pixel indices for synthetic regions."""
@@ -251,10 +241,12 @@ def expected_reference_masks() -> dict[str, np.ndarray]:
         ),
     }
 
+
 @pytest.fixture
 def fixture_dir() -> Path:
     """Return the directory containing static test fixtures."""
     return Path(__file__).parent / "fixtures"
+
 
 @pytest.fixture
 def daily_observations_csv(fixture_dir: Path) -> Path:
@@ -267,6 +259,7 @@ def test_regions_json(fixture_dir: Path) -> Path:
     """Return the deterministic region configuration fixture."""
     return fixture_dir / "config" / "test_regions.json"
 
+
 # Shared fixture for all TimeSeriesAnalyzer component tests
 # (issues #21-#27): isolated input and output paths.
 #
@@ -276,8 +269,11 @@ def test_regions_json(fixture_dir: Path) -> Path:
 # summary CSV is written by the tests before the analyzer is
 # constructed, so the directory must already exist at that point.
 
+
 @pytest.fixture
-def timeseries_paths(test_environment: dict[str, Path]) -> dict[str, Path]:
+def timeseries_paths(
+    test_environment: dict[str, Path],
+) -> dict[str, Path]:
     """Provide isolated input and output paths for TimeSeriesAnalyzer."""
 
     analysis_dir = test_environment["output"] / "analysis"

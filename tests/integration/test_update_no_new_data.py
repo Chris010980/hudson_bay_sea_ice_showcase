@@ -101,7 +101,6 @@ from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.data_download.downloader import DownloadSummary
 
-
 # Persisted rows expected for the two already processed
 # observations (hand calculation, identical to the spatial
 # chain integration tests; see also the module header):
@@ -166,6 +165,7 @@ _FLOAT_COLUMNS = {
 # ------------------------------------------------------------------
 # Controlled collaborators
 # ------------------------------------------------------------------
+
 
 class _ArchiveDownloader:
     """Controlled NSIDCDownloader replacement.
@@ -250,7 +250,10 @@ def _process_observations(
         )
         analyzer._extract_date()
 
-        if args.start_date is not None and analyzer.date < args.start_date:
+        if (
+            args.start_date is not None
+            and analyzer.date < args.start_date
+        ):
             continue
 
         if manager.is_date_processed(analyzer.date):
@@ -270,6 +273,7 @@ def _process_observations(
 # ------------------------------------------------------------------
 # Controlled inputs
 # ------------------------------------------------------------------
+
 
 def _write_observation(
     directory: Path,
@@ -320,18 +324,15 @@ def _region_values(
     mixed_values: list[int],
 ) -> dict[int, int]:
     """Map per-region concentration values to flat pixel indices."""
-    return (
-        dict(
-            zip(
-                expected_reference_masks["Test Region Water"],
-                water_values,
-            )
+    return dict(
+        zip(
+            expected_reference_masks["Test Region Water"],
+            water_values,
         )
-        | dict(
-            zip(
-                expected_reference_masks["Test Region Mixed"],
-                mixed_values,
-            )
+    ) | dict(
+        zip(
+            expected_reference_masks["Test Region Mixed"],
+            mixed_values,
         )
     )
 
@@ -346,10 +347,7 @@ def _results_for(
     name -> result record) with the observation date as a
     datetime.date (the ResultsManager normalizes it on save).
     """
-    return {
-        row["region"]: {**row, "date": obs_date}
-        for row in rows
-    }
+    return {row["region"]: {**row, "date": obs_date} for row in rows}
 
 
 def _assert_row(
@@ -388,6 +386,7 @@ def _snapshot_tree(root: Path) -> dict[str, bytes]:
 # Fixture: a state where all available observations are already
 # processed
 # ------------------------------------------------------------------
+
 
 @pytest.fixture
 def no_new_data_environment(
@@ -583,6 +582,7 @@ def no_new_data_environment(
 # downstream processing occurs
 # ------------------------------------------------------------------
 
+
 def test_no_new_data_stops_after_sync(
     no_new_data_environment: dict,
 ) -> None:
@@ -630,6 +630,7 @@ def test_no_new_data_stops_after_sync(
 # ------------------------------------------------------------------
 # Task: verify no new analysis results are created
 # ------------------------------------------------------------------
+
 
 def test_no_new_data_leaves_analysis_results_unchanged(
     no_new_data_environment: dict,
@@ -679,6 +680,7 @@ def test_no_new_data_leaves_analysis_results_unchanged(
 # remain unchanged
 # ------------------------------------------------------------------
 
+
 def test_no_new_data_leaves_plots_and_build_unchanged(
     no_new_data_environment: dict,
 ) -> None:
@@ -712,6 +714,7 @@ def test_no_new_data_leaves_plots_and_build_unchanged(
 # Task: verify existing outputs remain unchanged (leftover local
 # data from a --keep-data run)
 # ------------------------------------------------------------------
+
 
 def test_no_new_data_keeps_leftover_local_data(
     no_new_data_environment: dict,

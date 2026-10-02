@@ -6,18 +6,18 @@ from __future__ import annotations
 
 import argparse
 import logging
-
 from collections.abc import Sequence
-from datetime import timedelta, date  # noqa: F401
+from datetime import date, timedelta  # noqa: F401
 
+from src.analysis.process_data import main as process_data
 from src.analysis.results_manager import ResultsManager
 from src.data_download import downloader  # noqa: F401
 from src.data_download.downloader import NSIDCDownloader
-from src.analysis.process_data import main as process_data
-from src.visualization.generate_plots import main as generate_plots
 from src.update.build_pages import main as build_pages
+from src.visualization.generate_plots import main as generate_plots
 
 logger = logging.getLogger(__name__)
+
 
 def parse_args(argv: Sequence[str] | None = None):
 
@@ -34,6 +34,7 @@ def parse_args(argv: Sequence[str] | None = None):
     parser.add_argument("--log-file")
 
     return parser.parse_args(argv)
+
 
 def main(argv=None):
 
@@ -67,13 +68,10 @@ def main(argv=None):
     )
 
     if process_summary.new_results == 0:
-
-        logger.info(
-            "Dataset already up to date."
-        )
+        logger.info("Dataset already up to date.")
 
         return
-    
+
     logger.info("Generating plots.")
 
     generate_plots(
@@ -86,9 +84,7 @@ def main(argv=None):
         ]
     )
 
-    logger.info(
-        "Building GitHub Pages website."
-    )
+    logger.info("Building GitHub Pages website.")
 
     build_pages(
         [
@@ -97,7 +93,6 @@ def main(argv=None):
     )
 
     if not args.keep_data and summary.downloaded_files > 0:
-
         logger.info("Removing downloaded GeoTIFF files.")
 
         downloader.delete_local_data()
