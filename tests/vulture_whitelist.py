@@ -32,3 +32,20 @@ prophylactically.
 # issue #32 tests). Kept until the visualization redesign in
 # V0.2-07; see also S-004 in the static-analysis findings log.
 polar_output_dir
+
+# S-020 (static-analysis-findings.md): pytest fixture
+# parameters. Requesting the synthetic_ocean fixture
+# activates the geopandas read_file monkeypatch
+# (_StubGeopandas); the returned GeoDataFrame is
+# intentionally not read in the two test bodies, and
+# pytest resolves fixtures by parameter name, so the
+# names cannot be changed.
+synthetic_ocean
+
+# S-021 (static-analysis-findings.md): interface parameter.
+# _FakeResponse.iter_content mimics
+# requests.Response.iter_content, and the production code
+# calls it with the keyword (downloader.py:
+# response.iter_content(chunk_size=8192)); renaming would
+# break that call, the value is intentionally unused.
+chunk_size
