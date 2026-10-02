@@ -192,9 +192,10 @@ def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901
 
                 output = Path(args.output)
 
+                region_slug = region_name.lower().replace(" ", "_")
                 output_file = (
                     output.parent
-                    / f"{output.stem}_{region_name.lower().replace(' ', '_')}{output.suffix}"
+                    / f"{output.stem}_{region_slug}{output.suffix}"
                 )
 
                 plotter.save(output_file)

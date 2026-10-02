@@ -3,7 +3,8 @@ Build the GitHub Pages website.
 
 The build step combines the static website located in ``docs/`` with the
 latest generated analysis results stored in ``output/`` and creates a
-self-contained ``build/`` directory suitable for GitHub Pages deployment.
+self-contained ``build/`` directory suitable for GitHub Pages
+deployment.
 """
 
 from __future__ import annotations

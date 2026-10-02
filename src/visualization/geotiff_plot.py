@@ -144,7 +144,9 @@ class SeaIcePlotter:
     def find_concentration_geotiff(
         data_dir: str | Path | None = None,
     ) -> Path:
-        """Return a representative concentration GeoTIFF from the local data tree."""
+        """Return a representative concentration GeoTIFF from the local
+        data tree.
+        """
 
         base_dir = (
             Path(data_dir)
@@ -537,7 +539,8 @@ class SeaIcePlotter:
             Destination file. If None, DEFAULT_OUTPUT_PLOT_PATH is used.
 
         suffix
-            Optional suffix appended to the filename before the extension.
+            Optional suffix appended to the filename before the
+            extension.
 
             Example:
                 sea_ice_geotiff_preview.png

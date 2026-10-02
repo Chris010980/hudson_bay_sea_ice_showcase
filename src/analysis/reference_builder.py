@@ -199,7 +199,8 @@ class ReferenceBuilder:
             )
 
             logger.info(
-                "Region %-20s : %5d polygon pixels -> %5d water pixels (%.1f%%) / water area %.1f km²",
+                "Region %-20s : %5d polygon pixels "
+                "-> %5d water pixels (%.1f%%) / water area %.1f km²",
                 name,
                 polygon_count,
                 water_count,

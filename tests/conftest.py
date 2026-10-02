@@ -209,7 +209,8 @@ def synthetic_region_file(
                 ),
             },
             "Test Region Mixed": {
-                "description": "Synthetic mixed water/non-water test region",
+                "description": "Synthetic mixed water/non-water "
+                "test region",
                 "polygon": _pixel_rectangle(
                     transform,
                     0,
@@ -275,7 +276,9 @@ def test_regions_json(fixture_dir: Path) -> Path:
 def timeseries_paths(
     test_environment: dict[str, Path],
 ) -> dict[str, Path]:
-    """Provide isolated input and output paths for TimeSeriesAnalyzer."""
+    """Provide isolated input and output paths for
+    TimeSeriesAnalyzer.
+    """
 
     analysis_dir = test_environment["output"] / "analysis"
 

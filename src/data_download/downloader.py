@@ -1,7 +1,7 @@
 """Download raw NSIDC sea ice GeoTIFF files.
 
-This module owns raw data acquisition only. It does not preprocess rasters,
-calculate statistics, or create plots.
+This module owns raw data acquisition only. It does not
+preprocess rasters, calculate statistics, or create plots.
 """
 
 from __future__ import annotations
@@ -39,7 +39,9 @@ class DownloadSummary:
     failed_files: int = 0
 
     def merge(self, other: DownloadSummary) -> DownloadSummary:
-        """Return a new summary containing this summary plus another one."""
+        """Return a new summary containing this summary plus
+        another one.
+        """
 
         return DownloadSummary(
             checked_files=self.checked_files + other.checked_files,
@@ -51,7 +53,9 @@ class DownloadSummary:
 
 
 class NSIDCDownloader:
-    """Synchronize NOAA/NSIDC daily northern hemisphere GeoTIFF files."""
+    """Synchronize NOAA/NSIDC daily northern hemisphere
+    GeoTIFF files.
+    """
 
     def __init__(
         self,
@@ -65,10 +69,13 @@ class NSIDCDownloader:
 
         Args:
             base_url: Base URL of the NSIDC directory index.
-            local_base: Local directory where year/month folders are stored.
-            product: Product name fragment to match in remote filenames.
+            local_base: Local directory where year/month
+                folders are stored.
+            product: Product name fragment to match in remote
+                filenames.
             timeout: Request timeout in seconds.
-            session: Optional requests session for connection reuse or tests.
+            session: Optional requests session for connection
+                reuse or tests.
         """
 
         self.base_url = base_url.rstrip("/") + "/"
@@ -77,7 +84,8 @@ class NSIDCDownloader:
         self.timeout = timeout
         self.session = session or requests.Session()
         logger.debug(
-            "Initialized NSIDCDownloader with base_url=%s, local_base=%s, product=%s",
+            "Initialized NSIDCDownloader with base_url=%s, "
+            "local_base=%s, product=%s",
             self.base_url,
             self.local_base,
             self.product,
@@ -128,7 +136,9 @@ class NSIDCDownloader:
         return sorted(files)
 
     def get_local_files(self, year: str, month: str) -> list[str]:
-        """Return matching local GeoTIFF files for a year/month directory."""
+        """Return matching local GeoTIFF files for a year/month
+        directory.
+        """
 
         local_dir = self.local_base / year / month
         logger.info("Checking local directory: %s", local_dir)
@@ -163,9 +173,10 @@ class NSIDCDownloader:
         """Download one file unless it already exists locally.
 
         Returns:
-            ``True`` if the file is present after the call, including files
-            that were skipped because they already existed. ``False`` signals
-            that the remote request failed and no complete local file was saved.
+            ``True`` if the file is present after the call,
+            including files that were skipped because they
+            already existed. ``False`` signals that the remote
+            request failed and no complete local file was saved.
         """
 
         remote_url = f"{self.base_url}{year}/{month}/{filename}"
@@ -180,7 +191,8 @@ class NSIDCDownloader:
         )
         if local_match is not None:
             logger.info(
-                "Skipping %s because equivalent local file already exists: %s",
+                "Skipping %s because equivalent local "
+                "file already exists: %s",
                 filename,
                 local_match,
             )
@@ -218,10 +230,12 @@ class NSIDCDownloader:
         Parameters
         ----------
         start_date
-            First day to consider. If None, the complete archive is checked.
+            First day to consider. If None, the complete archive
+            is checked.
 
         end_date
-            Last day to consider. If None, all available files are checked.
+            Last day to consider. If None, all available files
+            are checked.
 
         dry_run
             Only compare remote and local files without downloading.
@@ -328,7 +342,8 @@ class NSIDCDownloader:
                     and self._file_key(name) not in local_file_keys
                 ]
                 logger.info(
-                    "%s/%s comparison: remote=%s, local=%s, exact_matches=%s, "
+                    "%s/%s comparison: remote=%s, "
+                    "local=%s, exact_matches=%s, "
                     "missing=%s, skipped=%s.",
                     year,
                     month,
@@ -343,7 +358,8 @@ class NSIDCDownloader:
                     > exact_matches
                 ):
                     logger.info(
-                        "%s/%s skipped %s file(s) by matching date and product "
+                        "%s/%s skipped %s file(s) by matching "
+                        "date and product "
                         "despite different versioned filenames.",
                         year,
                         month,
@@ -450,7 +466,9 @@ class NSIDCDownloader:
         local_dir: Path,
         filename: str,
     ) -> Path | None:
-        """Return an existing local file with the same date and product."""
+        """Return an existing local file with the same date
+        and product.
+        """
 
         file_key = self._file_key(filename)
         if file_key is None or not local_dir.exists():
@@ -468,7 +486,9 @@ class NSIDCDownloader:
 
     @staticmethod
     def _iter_hrefs(soup: BeautifulSoup) -> list[str]:
-        """Return all href values from links in a parsed HTML document."""
+        """Return all href values from links in a parsed HTML
+        document.
+        """
 
         links = soup.find_all("a")
 

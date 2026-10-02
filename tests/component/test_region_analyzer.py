@@ -633,7 +633,9 @@ def test_unreadable_input_returns_empty_results(
     test_environment: dict[str, Path],
     analyzer_environment: dict[str, Path],
 ) -> None:
-    """An unreadable GeoTIFF yields empty results instead of an error."""
+    """An unreadable GeoTIFF yields empty results instead of an
+    error.
+    """
 
     analyzer = _make_analyzer(
         analyzer_environment,

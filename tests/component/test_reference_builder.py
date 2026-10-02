@@ -49,7 +49,9 @@ EXPECTED_SUMMARY_KEYS = {
 
 
 class _StubGeopandas:
-    """geopandas stand-in serving a controlled synthetic ocean dataset."""
+    """geopandas stand-in serving a controlled synthetic
+    ocean dataset.
+    """
 
     def __init__(self, ocean: gpd.GeoDataFrame):
         self._ocean = ocean
@@ -65,7 +67,8 @@ class _StubGeopandas:
 def synthetic_ocean(
     monkeypatch: pytest.MonkeyPatch,
 ) -> gpd.GeoDataFrame:
-    """Replace the naturalearth ocean file with a controlled ocean polygon.
+    """Replace the naturalearth ocean file with a controlled
+    ocean polygon.
 
     The polygon covers the complete polar extent of the synthetic
     regions, so the intersection equals each region polygon itself.
@@ -211,13 +214,15 @@ def test_region_configuration_wraps_longitudes_above_180(
     synthetic_reference_raster: Path,
     test_environment: dict[str, Path],
 ) -> None:
-    """Verify that longitudes above 180 degrees are wrapped to [-180, 180]."""
+    """Verify that longitudes above 180 degrees are wrapped
+    to [-180, 180].
+    """
     region_file = test_environment["data"] / "regions_unwrapped.json"
 
     data = {
         "regions": {
             "Test Region Unwrapped": {
-                "description": "Region with longitudes above 180 degrees",
+                "description": "Region with longitudes > 180 degrees",
                 "polygon": [
                     [170.0, 50.0],
                     [190.0, 51.0],
@@ -370,7 +375,8 @@ def test_reference_area_matches_independent_computation(
     synthetic_region_file: Path,
     synthetic_ocean: gpd.GeoDataFrame,
 ) -> None:
-    """Verify naturalearth reference areas against an independent computation.
+    """Verify naturalearth reference areas against an independent
+    computation.
 
     The expected areas are derived with shapely/pyproj instead of the
     geopandas overlay used by the implementation, so the test verifies

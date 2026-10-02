@@ -1243,7 +1243,9 @@ class TimeSeriesPlotter:
         )
 
     def plot_yearly_means(self):
-        """Plot annual mean relative sea-ice coverage with linear trend."""
+        """Plot annual mean relative sea-ice coverage with
+        linear trend.
+        """
 
         if self.yearly_df is None:
             self.load()

@@ -407,7 +407,8 @@ class TimeSeriesAnalyzer:
 
         if self.df.empty:
             logger.warning(
-                "Cannot calculate yearly means: input dataframe is empty."
+                "Cannot calculate yearly means: input dataframe "
+                "is empty."
             )
             self.yearly_df = pd.DataFrame()
             return
@@ -450,13 +451,17 @@ class TimeSeriesAnalyzer:
             as_index=False,
         )[columns].mean()
 
+        rename_map = {}
+        for column in (
+            "relative_coverage_percent",
+            "absolute_coverage_percent",
+            "relative_ice_area_km2",
+            "absolute_ice_area_km2",
+        ):
+            prefix, _, suffix = column.partition("_")
+            rename_map[column] = f"{prefix}_mean_{suffix}"
         yearly.rename(
-            columns={
-                "relative_coverage_percent": "relative_mean_coverage_percent",
-                "absolute_coverage_percent": "absolute_mean_coverage_percent",
-                "relative_ice_area_km2": "relative_mean_ice_area_km2",
-                "absolute_ice_area_km2": "absolute_mean_ice_area_km2",
-            },
+            columns=rename_map,
             inplace=True,
         )
 
