@@ -146,20 +146,36 @@ test suite (test-levels.md, section 8), not by linting.
 
 ---
 
-## 8. Checks Destined for CI
+## 8. Checks Bound to CI (implemented in issue #37)
 
-Once CI wiring is implemented (subsequent issue):
+The CI wiring lives in  
+`.github/workflows/quality-gate.yml`. It runs on every push  
+(branch `stable` excluded — it only receives automatic  
+output commits from the daily update workflow) and on pull  
+requests to `main`.
 
-| Check                                                              | Mode in CI                                            |
-| ------------------------------------------------------------------ | ----------------------------------------------------- |
-| `ruff check .`                                                     | **Mandatory** (blocking)                              |
-| `ruff format --check .`                                            | **Mandatory** (blocking, after the transition commit) |
-| `pytest`                                                           | **Mandatory** (blocking, already established)         |
-| `vulture src tests tests/vulture_whitelist.py --min-confidence 90` | Advisory report (non-blocking)                        |
-| `radon cc src -s`                                                  | Local only (no CI)                                    |
+| Check                                                                        | CI job         | Mode in CI                                                                              |
+| ---------------------------------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------- |
+| `ruff check .`                                                               | `static-gates` | **Mandatory** (blocking)                                                                |
+| `ruff format --check .`                                                      | `static-gates` | **Mandatory** (blocking)                                                                |
+| `pytest --cov=src`                                                           | `test-gates`   | **Mandatory** (blocking)                                                                |
+| Coverage report (`term-missing` console output plus `coverage.xml` artifact) | `test-gates`   | Reporting only — no threshold in v0.2; a threshold is a candidate for a later milestone |
+| `vulture src tests tests/vulture_whitelist.py --min-confidence 90`           | `static-gates` | **Advisory** — `continue-on-error: true` (reports findings, never blocks)               |
+| `radon cc` / `radon mi`                                                      | —              | Local only, no CI (section 5)                                                           |
 
-Until the CI wiring exists, the mandatory checks apply at  
-merge time on the developer machine.
+CI behavior contract:
+
+- A failing **mandatory** step turns the workflow red; a red  
+quality gate blocks the merge. Mandatory failures therefore  
+prevent successful quality validation.
+- An **advisory** step runs with `continue-on-error: true`:  
+findings surface as a failing step with a warning  
+annotation in the run log, while the job and the workflow  
+stay green. Advisory findings cannot block development;  
+the triage obligation (sections 4 and 5) is unchanged.
+- The CI wiring was validated in #37 on all three paths:  
+green run (success), deliberate mandatory violation  
+(blocking), deliberate advisory finding (non-blocking).
 
 ---
 
