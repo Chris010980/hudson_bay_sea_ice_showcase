@@ -1,0 +1,89 @@
+name: Quality Gate
+
+on:
+  push:
+    branches-ignore:
+      # 'stable' only receives automatic output commits from
+      # the daily update workflow; it carries no code changes.
+      - stable
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  static-gates:
+    name: Static analysis (ruff mandatory, vulture advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ruff and vulture are AST-based and never import the
+      # project, so the heavy geo stack is not needed here.
+      # Version floors match requirements.txt.
+      - name: Install static-analysis tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install "ruff>=0.16" "vulture>=2.16"
+
+      - name: Ruff lint (mandatory, blocking)
+        run: ruff check .
+
+      - name: Ruff format check (mandatory, blocking)
+        run: ruff format --check .
+
+      - name: Vulture dead-code report (advisory, non-blocking)
+        run: >
+          vulture src tests tests/vulture_whitelist.py
+          --min-confidence 90
+        continue-on-error: true
+
+  test-gates:
+    name: Test suite with coverage (mandatory, blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests with coverage (mandatory, blocking)
+        run: >
+          pytest --cov=src
+          --cov-report=term-missing
+          --cov-report=xml:coverage.xml
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 14
