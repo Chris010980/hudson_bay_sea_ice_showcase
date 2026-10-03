@@ -445,9 +445,10 @@ Tests should follow the conventions documented in this file and the detailed tes
 
 ## Current Status
 
-The pytest infrastructure and reusable test fixtures have been established.
-
-Current contents include:
+The pytest infrastructure, the deterministic fixture foundation,
+the scientific component suites, and the integration suites are
+established (issues #18–#33). The suite currently comprises 148
+tests in 24 files:
 
 ```text
 tests/
@@ -464,14 +465,30 @@ tests/
 ├── component/
 │   ├── test_data_fixtures.py
 │   ├── test_filesystem_fixtures.py
+│   ├── test_nsidc_downloader.py
 │   ├── test_raster_fixtures.py
-│   └── test_region_fixtures.py
+│   ├── test_reference_builder.py
+│   ├── test_region_analyzer.py
+│   ├── test_region_analyzer_validity.py
+│   ├── test_region_fixtures.py
+│   ├── test_results_manager.py
+│   ├── test_sea_ice_map_plot.py
+│   ├── test_timeseries_anomalies.py
+│   ├── test_timeseries_calendar.py
+│   ├── test_timeseries_climatology.py
+│   ├── test_timeseries_event_window.py
+│   ├── test_timeseries_moving_average.py
+│   ├── test_timeseries_plotter.py
+│   ├── test_timeseries_threshold_crossing.py
+│   └── test_timeseries_yearly.py
 │
 ├── integration/
-├── e2e/
-└── regression/
-```
-
-The current tests verify the pytest infrastructure and the reusable fixture foundation.
-
-Scientific component and integration tests are introduced in subsequent v0.2 issues.
+│   ├── test_build_pages.py
+│   ├── test_gernerate_plots.py
+│   ├── test_spatial_processing_chain.py
+│   ├── test_update_no_new_data.py
+│   └── test_update_pipeline.py
+│
+├── conftest.py          # shared fixtures
+├── Findings.md          # per-test findings and audit (#75)
+└── vulture_whitelist.py # documented vulture exceptions
