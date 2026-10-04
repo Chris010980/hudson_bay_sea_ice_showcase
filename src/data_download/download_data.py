@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 if __package__ in (None, ""):
@@ -24,6 +24,9 @@ from src.data_download.downloader import (
 )
 
 logger = logging.getLogger(__name__)
+
+DownloaderFactory = Callable[..., NSIDCDownloader]
+"""Constructor contract of the download stage (issue #73)."""
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -45,7 +48,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: Sequence[str] | None = None) -> None:
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    downloader_factory: DownloaderFactory = NSIDCDownloader,
+) -> None:
     """Run the raw-data download stage from command line arguments."""
 
     args = parse_args(argv)
@@ -54,7 +61,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     logger.info("Download output directory resolved to: %s", output_dir)
 
-    downloader = NSIDCDownloader(
+    downloader = downloader_factory(
         base_url=args.base_url,
         local_base=output_dir,
         product=args.product,

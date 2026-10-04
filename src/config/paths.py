@@ -84,8 +84,6 @@ REFERENCE_SUMMARY_JSON = REFERENCE_DIR / "reference_summary.json"
 
 # --------------------------------------------------- build/log/config
 
-# --------------------------------------------------- build/log/config
-
 LOG_FILE = LOG_DIR / "hudson_bay_sea_ice.log"
 """Default application log file."""
 

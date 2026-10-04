@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 if __package__ in (None, ""):
@@ -23,7 +23,10 @@ from src.visualization.generate_plots import main as generate_plots
 
 logger = logging.getLogger(__name__)
 
-STAGES = {
+Stage = Callable[[Sequence[str] | None], None]
+"""Signature of a pipeline stage entry point."""
+
+STAGES: Mapping[str, Stage] = {
     "download": download_data,
     "process": process_data,
     "plots": generate_plots,
@@ -172,55 +175,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: Sequence[str] | None = None) -> None:
-    """Run the selected pipeline stage."""
-
-    args = parse_args(argv)
-
-    configure_logging(
-        level=args.log_level,
-        log_file=args.log_file,
-    )
-
-    if args.stage == "all":
-        logger.info("Running complete pipeline.")
-
-        download_data(
-            [
-                "--log-level",
-                args.log_level,
-                "--log-file",
-                args.log_file,
-            ]
-        )
-
-        process_data(
-            [
-                "--log-level",
-                args.log_level,
-                "--log-file",
-                args.log_file,
-            ]
-        )
-
-        generate_plots(
-            [
-                "--log-level",
-                args.log_level,
-                "--log-file",
-                args.log_file,
-            ]
-        )
-        build_pages(
-            [
-                "--log-level",
-                args.log_level,
-                "--log-file",
-                args.log_file,
-            ]
-        )
-
-        return
+def build_stage_args(args: argparse.Namespace) -> list[str]:
+    """Build the argument list forwarded to the selected stage."""
 
     stage_args = [
         "--log-level",
@@ -249,9 +205,43 @@ def main(argv: Sequence[str] | None = None) -> None:
         if args.keep_data:
             stage_args.append("--keep-data")
 
+    return stage_args
+
+
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    stages: Mapping[str, Stage] = STAGES,
+) -> None:
+    """Run the selected pipeline stage."""
+
+    args = parse_args(argv)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
+    )
+
+    if args.stage == "all":
+        logger.info("Running complete pipeline.")
+
+        stage_args = [
+            "--log-level",
+            args.log_level,
+            "--log-file",
+            args.log_file,
+        ]
+
+        for stage in ("download", "process", "plots", "build"):
+            stages[stage](stage_args)
+
+        return
+
+    stage_args = build_stage_args(args)
+
     logger.info("Running pipeline stage: %s", args.stage)
 
-    STAGES[args.stage](stage_args)
+    stages[args.stage](stage_args)
 
 
 if __name__ == "__main__":
