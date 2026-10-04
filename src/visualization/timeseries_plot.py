@@ -132,8 +132,6 @@ class TimeSeriesPlotter:
 
         self.output_dir = OUTPUT_DIR / "timeseries"
 
-        self.polar_output_dir = OUTPUT_DIR / "polar"
-
         self.relative_series = (
             "relative_coverage_percent_of_water",
             "Relative ice coverage (%)",
