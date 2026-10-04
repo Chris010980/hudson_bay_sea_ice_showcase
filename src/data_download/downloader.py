@@ -216,7 +216,7 @@ class NSIDCDownloader:
         logger.info("Saved %s", local_path)
         return True
 
-    def sync(  # noqa: C901
+    def sync(
         self,
         start_date: date | None = None,
         end_date: date | None = None,
@@ -251,28 +251,15 @@ class NSIDCDownloader:
         for year in years:
             year_int = int(year)
 
-            if start_date is not None and year_int < start_date.year:
+            if not self._year_in_range(year_int, start_date, end_date):
                 continue
 
-            if end_date is not None and year_int > end_date.year:
-                continue
-
-            remote_months = self.get_remote_months(year)
-
-            for month in remote_months:
-                month_int = int(month.split("_")[0])
-
-                if (
-                    start_date is not None
-                    and year_int == start_date.year
-                    and month_int < start_date.month
-                ):
-                    continue
-
-                if (
-                    end_date is not None
-                    and year_int == end_date.year
-                    and month_int > end_date.month
+            for month in self.get_remote_months(year):
+                if not self._month_in_range(
+                    year_int,
+                    int(month.split("_")[0]),
+                    start_date,
+                    end_date,
                 ):
                     continue
 
@@ -282,115 +269,31 @@ class NSIDCDownloader:
                     month,
                 )
 
-                remote_files = self.get_remote_files(
+                remote_files = self._remote_files_in_range(
                     year,
                     month,
+                    start_date,
+                    end_date,
                 )
-
-                # -----------------------------------------
-                # Filter files by date
-                # -----------------------------------------
-
-                filtered_remote_files = []
-
-                for filename in remote_files:
-                    key = self._file_key(filename)
-
-                    if key is None:
-                        continue
-
-                    file_date = date.fromisoformat(
-                        f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
-                    )
-
-                    if (
-                        start_date is not None
-                        and file_date < start_date
-                    ):
-                        continue
-
-                    if end_date is not None and file_date > end_date:
-                        continue
-
-                    filtered_remote_files.append(filename)
-
-                remote_files = filtered_remote_files
 
                 if not remote_files:
                     continue
 
-                local_files = self.get_local_files(
-                    year,
-                    month,
-                )
-                local_file_set = set(local_files)
-                local_file_keys = {
-                    file_key
-                    for filename in local_files
-                    if (file_key := self._file_key(filename))
-                    is not None
-                }
-                exact_matches = sum(
-                    1 for name in remote_files if name in local_file_set
-                )
-                missing_files = [
-                    name
-                    for name in remote_files
-                    if name not in local_file_set
-                    and self._file_key(name) not in local_file_keys
-                ]
-                logger.info(
-                    "%s/%s comparison: remote=%s, "
-                    "local=%s, exact_matches=%s, "
-                    "missing=%s, skipped=%s.",
-                    year,
-                    month,
-                    len(remote_files),
-                    len(local_files),
-                    exact_matches,
-                    len(missing_files),
-                    len(remote_files) - len(missing_files),
-                )
-                if (
-                    len(remote_files) - len(missing_files)
-                    > exact_matches
-                ):
-                    logger.info(
-                        "%s/%s skipped %s file(s) by matching "
-                        "date and product "
-                        "despite different versioned filenames.",
-                        year,
-                        month,
-                        len(remote_files)
-                        - len(missing_files)
-                        - exact_matches,
-                    )
-                if remote_files:
-                    logger.debug(
-                        "First remote file for %s/%s: %s",
-                        year,
-                        month,
-                        remote_files[0],
-                    )
-                if missing_files:
-                    logger.debug(
-                        "First missing file for %s/%s: %s",
-                        year,
-                        month,
-                        missing_files[0],
-                    )
+                local_files = self.get_local_files(year, month)
 
-                if missing_files:
-                    logger.info(
-                        "%s/%s has %s missing file(s).",
-                        year,
-                        month,
-                        len(missing_files),
-                    )
-                else:
-                    logger.info(
-                        "%s/%s is already up to date.", year, month
-                    )
+                missing_files, exact_matches = self._missing_files(
+                    remote_files,
+                    local_files,
+                )
+
+                self._log_month_comparison(
+                    year,
+                    month,
+                    remote_files,
+                    local_files,
+                    missing_files,
+                    exact_matches,
+                )
 
                 month_summary = DownloadSummary(
                     checked_files=len(remote_files),
@@ -408,21 +311,11 @@ class NSIDCDownloader:
                     summary = summary.merge(month_summary)
                     continue
 
-                downloaded = 0
-                failed = 0
-                for filename in missing_files:
-                    if self.download_file(year, month, filename):
-                        downloaded += 1
-                    else:
-                        failed += 1
-
-                if failed:
-                    logger.warning(
-                        "%s/%s finished with %s failed download(s).",
-                        year,
-                        month,
-                        failed,
-                    )
+                downloaded, failed = self._download_missing(
+                    year,
+                    month,
+                    missing_files,
+                )
 
                 summary = summary.merge(
                     DownloadSummary(
@@ -435,6 +328,205 @@ class NSIDCDownloader:
 
         logger.info("Download sync finished: %s", summary)
         return summary
+
+    def _year_in_range(
+        self,
+        year_int: int,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> bool:
+        """Return whether a year intersects the date range."""
+
+        if start_date is not None and year_int < start_date.year:
+            return False
+
+        if end_date is not None and year_int > end_date.year:
+            return False
+
+        return True
+
+    def _month_in_range(
+        self,
+        year_int: int,
+        month_int: int,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> bool:
+        """Return whether a month intersects the date range."""
+
+        if (
+            start_date is not None
+            and year_int == start_date.year
+            and month_int < start_date.month
+        ):
+            return False
+
+        if (
+            end_date is not None
+            and year_int == end_date.year
+            and month_int > end_date.month
+        ):
+            return False
+
+        return True
+
+    def _remote_files_in_range(
+        self,
+        year: str,
+        month: str,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> list[str]:
+        """Return the remote files of one month within the
+        date range.
+        """
+
+        remote_files = self.get_remote_files(
+            year,
+            month,
+        )
+
+        filtered = []
+
+        for filename in remote_files:
+            key = self._file_key(filename)
+
+            if key is None:
+                continue
+
+            file_date = date.fromisoformat(
+                f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
+            )
+
+            if start_date is not None and file_date < start_date:
+                continue
+
+            if end_date is not None and file_date > end_date:
+                continue
+
+            filtered.append(filename)
+
+        return filtered
+
+    def _missing_files(
+        self,
+        remote_files: list[str],
+        local_files: list[str],
+    ) -> tuple[list[str], int]:
+        """Return the missing remote files and the number of
+        exact local filename matches.
+        """
+
+        local_file_set = set(local_files)
+
+        local_file_keys = {
+            file_key
+            for filename in local_files
+            if (file_key := self._file_key(filename)) is not None
+        }
+
+        exact_matches = sum(
+            1 for name in remote_files if name in local_file_set
+        )
+
+        missing = [
+            name
+            for name in remote_files
+            if name not in local_file_set
+            and self._file_key(name) not in local_file_keys
+        ]
+
+        return missing, exact_matches
+
+    def _log_month_comparison(
+        self,
+        year: str,
+        month: str,
+        remote_files: list[str],
+        local_files: list[str],
+        missing_files: list[str],
+        exact_matches: int,
+    ) -> None:
+        """Log the remote/local comparison of one month."""
+
+        logger.info(
+            "%s/%s comparison: remote=%s, "
+            "local=%s, exact_matches=%s, "
+            "missing=%s, skipped=%s.",
+            year,
+            month,
+            len(remote_files),
+            len(local_files),
+            exact_matches,
+            len(missing_files),
+            len(remote_files) - len(missing_files),
+        )
+
+        if len(remote_files) - len(missing_files) > exact_matches:
+            logger.info(
+                "%s/%s skipped %s file(s) by matching "
+                "date and product "
+                "despite different versioned filenames.",
+                year,
+                month,
+                len(remote_files) - len(missing_files) - exact_matches,
+            )
+
+        if remote_files:
+            logger.debug(
+                "First remote file for %s/%s: %s",
+                year,
+                month,
+                remote_files[0],
+            )
+
+        if missing_files:
+            logger.debug(
+                "First missing file for %s/%s: %s",
+                year,
+                month,
+                missing_files[0],
+            )
+
+        if missing_files:
+            logger.info(
+                "%s/%s has %s missing file(s).",
+                year,
+                month,
+                len(missing_files),
+            )
+
+        else:
+            logger.info("%s/%s is already up to date.", year, month)
+
+    def _download_missing(
+        self,
+        year: str,
+        month: str,
+        missing_files: list[str],
+    ) -> tuple[int, int]:
+        """Download the missing files of one month; return
+        the (downloaded, failed) counts.
+        """
+
+        downloaded = 0
+        failed = 0
+
+        for filename in missing_files:
+            if self.download_file(year, month, filename):
+                downloaded += 1
+            else:
+                failed += 1
+
+        if failed:
+            logger.warning(
+                "%s/%s finished with %s failed download(s).",
+                year,
+                month,
+                failed,
+            )
+
+        return downloaded, failed
 
     def _get_index(self, url: str) -> BeautifulSoup:
         """Fetch and parse one remote HTML directory index."""

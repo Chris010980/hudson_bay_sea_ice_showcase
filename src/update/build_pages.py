@@ -15,13 +15,13 @@ import shutil
 from collections.abc import Sequence
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
-from src.config.paths import (  # noqa: E402
+from src.config.paths import (
     BUILD_DIR,
     DOCS_DIR,
     OUTPUT_DIR,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def parse_args(argv: Sequence[str] | None = None):
