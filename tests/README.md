@@ -480,7 +480,9 @@ plot-generation integration file was renamed
 (`test_generate_plots.py`), and the unit-vs-component
 review confirmed that all remaining `tests/component/`
 files are genuine component tests. The suite currently
-comprises 148 tests in 24 files:
+comprises 166 tests in 27 files (issue #73 added the component
+smoke tests for the CLI dispatcher, the download stage, and
+the process stage through explicit dependency injection):
 
 ```text
 tests/
@@ -501,7 +503,10 @@ tests/
 │   └── test_region_fixtures.py
 │
 ├── component/
+│   ├── test_download_data.py
+│   ├── test_main.py
 │   ├── test_nsidc_downloader.py
+│   ├── test_process_data.py
 │   ├── test_reference_builder.py
 │   ├── test_region_analyzer.py
 │   ├── test_region_analyzer_validity.py

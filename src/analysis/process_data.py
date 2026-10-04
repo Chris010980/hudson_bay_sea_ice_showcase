@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -25,6 +25,9 @@ from src.config.paths import DATA_DIR
 from src.config.settings import DEFAULT_PRODUCT
 
 logger = logging.getLogger(__name__)
+
+AnalyzerFactory = Callable[[Path], RegionAnalyzer]
+"""Constructor contract of the process stage (issue #73)."""
 
 
 @dataclass(slots=True)
@@ -62,41 +65,32 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv=None):
+def process_geotiffs(
+    geotiffs: Sequence[Path],
+    results: ResultsManager,
+    summary: ProcessSummary,
+    *,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    analyzer_factory: AnalyzerFactory = RegionAnalyzer,
+) -> None:
+    """Process GeoTIFF observations into results rows.
 
-    args = parse_args(argv)
-
-    configure_logging(
-        level=args.log_level,
-        log_file=args.log_file,
-    )
-
-    builder = ReferenceBuilder()
-
-    builder.ensure_reference()
-
-    results = ResultsManager()
-
-    summary = ProcessSummary()
-
-    geotiffs = sorted(DATA_DIR.rglob(f"*{DEFAULT_PRODUCT}*.tif"))
+    Extracted from ``main()`` in issue #73 so the loop is
+    testable with injected collaborators; the behavior is
+    unchanged.
+    """
 
     for tif in geotiffs:
         try:
-            analyzer = RegionAnalyzer(tif)
+            analyzer = analyzer_factory(tif)
 
-            analyzer._extract_date()
+            analyzer.extract_date()
 
-            if (
-                args.start_date is not None
-                and analyzer.date < args.start_date
-            ):
+            if start_date is not None and analyzer.date < start_date:
                 continue
 
-            if (
-                args.end_date is not None
-                and analyzer.date > args.end_date
-            ):
+            if end_date is not None and analyzer.date > end_date:
                 continue
 
             if results.is_date_processed(
@@ -129,11 +123,59 @@ def main(argv=None):
                 exc,
             )
 
-    results.save()
+
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    data_dir: Path = DATA_DIR,
+    product: str = DEFAULT_PRODUCT,
+    reference_builder: ReferenceBuilder | None = None,
+    results: ResultsManager | None = None,
+    analyzer_factory: AnalyzerFactory = RegionAnalyzer,
+    timeseries: TimeSeriesAnalyzer | None = None,
+) -> ProcessSummary:
+    """Run the preprocessing stage from command line arguments.
+
+    Since issue #73 the collaborators and paths are injectable
+    keyword arguments with the previous production defaults;
+    the pipeline behavior is unchanged.
+    """
+
+    args = parse_args(argv)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
+    )
+
+    builder = (
+        reference_builder
+        if reference_builder is not None
+        else ReferenceBuilder()
+    )
+
+    builder.ensure_reference()
+
+    manager = results if results is not None else ResultsManager()
+
+    summary = ProcessSummary()
+
+    geotiffs = sorted(data_dir.rglob(f"*{product}*.tif"))
+
+    process_geotiffs(
+        geotiffs,
+        manager,
+        summary,
+        start_date=args.start_date,
+        end_date=args.end_date,
+        analyzer_factory=analyzer_factory,
+    )
+
+    manager.save()
 
     logger.info("Running time series analysis.")
 
-    ts = TimeSeriesAnalyzer()
+    ts = timeseries if timeseries is not None else TimeSeriesAnalyzer()
 
     ts.analyze()
 

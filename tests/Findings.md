@@ -364,6 +364,14 @@ output, build directories) through the pipeline stages for
 milestone V0.2-07, so integration tests can run the real  
 orchestration against isolated directories.
 
+**Status update (#73, 2026-10-04):** partially resolved for
+`src/analysis/process_data.py`: the stage now accepts injected
+collaborators and paths (reference builder, results manager,
+analyzer factory, time-series analyzer, data directory). For
+`src/update/update_pipeline.py` the namespace-replacement test
+design (issue #30) remains; a full configuration injection is
+`#74` scope.
+
 ## F-016 — Locally present files can mask unprocessed observations as "no new data"
 
 **Component:** `src/update/update_pipeline.py` (`main()`),  
@@ -576,7 +584,7 @@ Audit notes:
 
 ### Test inventory vs. documentation
 
-All 24 test files are accounted for. Files without an F-entry
+All 27 test files are accounted for. Files without an F-entry
 document no findings; they remain documented through their
 introducing issues (see file docstrings).
 
@@ -587,7 +595,10 @@ introducing issues (see file docstrings).
 | `fixture_tests/test_filesystem_fixtures.py` | `test_environment` isolation | — |
 | `fixture_tests/test_raster_fixtures.py` | synthetic raster fixture | — |
 | `fixture_tests/test_region_fixtures.py` | region/reference fixtures | — |
+| `component/test_download_data.py` | download CLI seam (#73) | F-023 |
+| `component/test_main.py` | pipeline dispatcher (#73) | F-022 |
 | `component/test_nsidc_downloader.py` | NSIDC downloader (#28) | F-009, F-010, F-011, F-012 |
+| `component/test_process_data.py` | process CLI seam (#73) | F-024 |
 | `component/test_reference_builder.py` | ReferenceBuilder (#29) | F-013 |
 | `component/test_region_analyzer.py` | RegionAnalyzer (#18) | — |
 | `component/test_region_analyzer_validity.py` | RegionAnalyzer validity checks | — |
@@ -613,7 +624,8 @@ Audit remarks (for the follow-up issues):
   ("gernerate") resolved by the #76 rename.
 - `src/analysis/process_data.py` (`main()`) calls the private
   `RegionAnalyzer._extract_date()` — design/testability candidate
-  for the #73 hard-wiring inventory.
+  for the #73 hard-wiring inventory. Resolved in #73: the public
+  `RegionAnalyzer.extract_date()` wrapper is called instead.
 - #76 review outcome: the `tests/component/` files for
   calendar, moving average, climatology, and anomalies
   construct `TimeSeriesAnalyzer` and write controlled CSV
@@ -629,9 +641,9 @@ Overview additions — merge these rows into the Overview table:
 
 | ID | Issue | Component | Category | Status |
 | --- | --- | --- | --- | --- |
-| F-022 | #75 | main.py (dispatcher) | gap | proposed |
-| F-023 | #75 | download_data.py (CLI) | gap | proposed |
-| F-024 | #75 | process_data.py (CLI) | gap | proposed |
+| F-022 | #75 | main.py (dispatcher) | gap | resolved (#73) |
+| F-023 | #75 | download_data.py (CLI) | gap | partial (#73) |
+| F-024 | #75 | process_data.py (CLI) | gap | resolved (#73) |
 | F-025 | #75 | generate_plots.py (overview mode) | gap | proposed |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
 | F-027 | #75 | update_pipeline.py (first run) | gap | proposed |
@@ -656,6 +668,13 @@ proper seams per #73 preferred.
 
 **Dependencies:** #73, #74.
 
+**Status update (#73, 2026-10-04):** resolved. The dispatcher
+received the injectable `stages` mapping and the extracted
+`build_stage_args()`; `tests/component/test_main.py` covers
+argument parsing, flag forwarding, and the "all" sequence with
+injected stage doubles. The argument-parity review between
+dispatcher and stage modules remains with #74.
+
 ## F-023 — Download CLI untested and currently broken
 
 **Component:** `src/data_download/download_data.py` (0 % coverage)
@@ -671,6 +690,14 @@ by the F-009 fix (functional correction, milestone V0.2-07).
 
 **Dependencies:** F-009 fix, #74.
 
+**Status update (#73, 2026-10-04):** partially resolved.
+`parse_args` and the constructor wiring are covered by
+`tests/component/test_download_data.py` via the new
+`downloader_factory` seam. The `sync()` call itself remains
+unasserted because the wiring is broken (F-009 design decision
+pending); the functional contract test comes with the F-009
+fix.
+
 ## F-024 — Process CLI date-filter paths untested
 
 **Component:** `src/analysis/process_data.py` (47 % coverage,
@@ -685,6 +712,13 @@ arg-parsing lines 68–145)
 per #73; `parse_args` unit tests possible immediately.
 
 **Dependencies:** #73.
+
+**Status update (#73, 2026-10-04):** resolved. The loop is
+extracted as `process_geotiffs()` with an injectable analyzer
+factory; `tests/component/test_process_data.py` covers the
+inclusive date-filter boundaries, the `is_date_processed()`
+skip path, the exception counting, and a complete `main()`
+run with injected collaborators.
 
 ## F-025 — Overview plot mode and `--output` untested
 
