@@ -20,18 +20,33 @@ import numpy as np
 import pandas as pd
 from matplotlib.dates import DateFormatter, MonthLocator
 
-from src.config.paths import PROJECT_ROOT
+from src.config.paths import (
+    ICE_COVERAGE_EVENTS_CSV as EVENTS_CSV,
+)
+from src.config.paths import (
+    ICE_COVERAGE_TIMESERIES_CSV as RESULTS_CSV,
+)
+from src.config.paths import (
+    ICE_COVERAGE_YEARLY_CSV as YEARLY_CSV,
+)
+from src.config.paths import (
+    PLOTS_DIR,
+)
+from src.config.settings import (
+    CLIMATOLOGY_END_YEAR,
+    CLIMATOLOGY_START_YEAR,
+    FIGURE_SAVE_DPI,
+)
 
-RESULTS_CSV = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
-)
-OUTPUT_DIR = PROJECT_ROOT / "output" / "plots"
-YEARLY_CSV = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_yearly.csv"
-)
-EVENTS_CSV = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_events.csv"
-)
+# Module-level alias of the central plots directory: tests
+# redirect it via namespace replacement (F-018 pattern).
+OUTPUT_DIR = PLOTS_DIR
+
+# Arbitrary non-leap placeholder year for day-of-year axes.
+DAY_OF_YEAR_AXIS_YEAR = 2000
+
+# Seconds per day, used to convert event durations to days.
+SECONDS_PER_DAY = 86400.0
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +206,7 @@ class TimeSeriesPlotter:
 
         df["plot_date"] = df.date.apply(
             lambda d: datetime(
-                2000,
+                DAY_OF_YEAR_AXIS_YEAR,
                 d.month,
                 d.day,
             )
@@ -440,8 +455,8 @@ class TimeSeriesPlotter:
         )
 
         ax.set_xlim(
-            datetime(2000, 1, 1),
-            datetime(2000, 12, 31),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 1, 1),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 12, 31),
         )
 
         ax.set_ylim(
@@ -497,7 +512,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -567,7 +582,7 @@ class TimeSeriesPlotter:
 
         events_pivot["duration_days"] = (
             events_pivot["freeze-up"] - events_pivot["break-up"]
-        ).dt.total_seconds() / 86400.0
+        ).dt.total_seconds() / SECONDS_PER_DAY
 
         for region in events_pivot["region"].dropna().unique():
             df_region = events_pivot[
@@ -594,6 +609,7 @@ class TimeSeriesPlotter:
             spine.set_color("0.4")
             spine.set_linewidth(0.8)
 
+        # Keys mirror settings.EVENT_THRESHOLDS_PERCENT.
         threshold_style = {
             10.0: {
                 "color": "tab:blue",
@@ -767,7 +783,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -854,7 +870,11 @@ class TimeSeriesPlotter:
         # ---------------------------------------------------------
 
         climatology = (
-            df_region[df_region["year"].between(1981, 2010)][
+            df_region[
+                df_region["year"].between(
+                    CLIMATOLOGY_START_YEAR, CLIMATOLOGY_END_YEAR
+                )
+            ][
                 [
                     "plot_date",
                     climatology_column,
@@ -932,8 +952,8 @@ class TimeSeriesPlotter:
         )
 
         ax.set_xlim(
-            datetime(2000, 1, 1),
-            datetime(2000, 12, 31),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 1, 1),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 12, 31),
         )
 
         ax.xaxis.set_major_locator(self.month_locator)
@@ -983,7 +1003,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -1230,7 +1250,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -1380,7 +1400,7 @@ class TimeSeriesPlotter:
             # Trend equation
             # ---------------------------------------------------------
 
-            reference_year = 2000
+            reference_year = DAY_OF_YEAR_AXIS_YEAR
 
             slope, intercept = np.polyfit(
                 x,
@@ -1500,7 +1520,7 @@ class TimeSeriesPlotter:
 
             fig.savefig(
                 filepath,
-                dpi=300,
+                dpi=FIGURE_SAVE_DPI,
             )
 
             plt.close(fig)

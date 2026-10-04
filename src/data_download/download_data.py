@@ -16,6 +16,7 @@ from src.config.logging_config import (
     configure_logging,
 )
 from src.config.paths import resolve_project_path
+from src.config.settings import DEFAULT_PRODUCT
 from src.data_download.downloader import (
     DEFAULT_GEOTIFF_DIR,
     DEFAULT_NSIDC_GEOTIFF_URL,
@@ -35,7 +36,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--output-dir", default=str(DEFAULT_GEOTIFF_DIR)
     )
-    parser.add_argument("--product", default="concentration")
+    parser.add_argument("--product", default=DEFAULT_PRODUCT)
     parser.add_argument("--year", action="append", dest="years")
     parser.add_argument("--month", action="append", dest="months")
     parser.add_argument("--dry-run", action="store_true")

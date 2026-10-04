@@ -11,15 +11,14 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.config.paths import PROJECT_ROOT
-
-logger = logging.getLogger(__name__)
-
-DEFAULT_RESULTS = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
+from src.config.paths import (
+    ICE_COVERAGE_SUMMARY_CSV as DEFAULT_RESULTS,
+)
+from src.config.paths import (
+    LATEST_JSON as DEFAULT_LATEST,
 )
 
-DEFAULT_LATEST = PROJECT_ROOT / "output" / "analysis" / "latest.json"
+logger = logging.getLogger(__name__)
 
 
 class ResultsManager:

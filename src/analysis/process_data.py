@@ -22,6 +22,7 @@ from src.config.logging_config import (
     configure_logging,
 )
 from src.config.paths import DATA_DIR
+from src.config.settings import DEFAULT_PRODUCT
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ def main(argv=None):
 
     summary = ProcessSummary()
 
-    geotiffs = sorted(DATA_DIR.rglob("*concentration*.tif"))
+    geotiffs = sorted(DATA_DIR.rglob(f"*{DEFAULT_PRODUCT}*.tif"))
 
     for tif in geotiffs:
         try:

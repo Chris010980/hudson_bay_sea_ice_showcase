@@ -15,18 +15,27 @@ from matplotlib.path import Path as MplPath
 from pyproj import Transformer
 from shapely.geometry import Polygon
 
-from src.config.paths import PROJECT_ROOT
+from src.config.paths import (
+    OCEAN_SHAPEFILE,
+    REFERENCE_TIF,
+    REGIONS_FILE,
+)
+from src.config.paths import (
+    REFERENCE_FILTERS_DIR as FILTER_DIR,
+)
+from src.config.paths import (
+    REFERENCE_SUMMARY_JSON as REFERENCE_SUMMARY,
+)
+from src.config.settings import (
+    AREA_EPSG,
+    CONCENTRATION_SCALE,
+    DATA_CRS,
+    MISSING_PIXEL_VALUE,
+    PIXEL_AREA_KM2,
+    WGS84_CRS,
+)
 
 logger = logging.getLogger(__name__)
-
-
-REFERENCE_TIF = PROJECT_ROOT / "src" / "config" / "reference.tif"
-
-FILTER_DIR = PROJECT_ROOT / "output" / "reference" / "filters"
-
-REFERENCE_SUMMARY = (
-    PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
-)
 
 
 class ReferenceBuilder:
@@ -39,7 +48,7 @@ class ReferenceBuilder:
         self.reference_tif = Path(reference_tif)
 
         if region_file is None:
-            region_file = PROJECT_ROOT / "src/config/regions.json"
+            region_file = REGIONS_FILE
 
         self.region_file = Path(region_file)
 
@@ -48,11 +57,11 @@ class ReferenceBuilder:
 
         self.regions = {}
 
-        self.crs = "EPSG:3411"
+        self.crs = DATA_CRS
 
         self.mask_dir = FILTER_DIR
 
-        self.pixel_area_km2 = 625.0
+        self.pixel_area_km2 = PIXEL_AREA_KM2
 
         self.reference_summary = {}
 
@@ -91,7 +100,7 @@ class ReferenceBuilder:
 
     def _check_missing_values(self):
 
-        missing = np.count_nonzero(self.band == 2550)
+        missing = np.count_nonzero(self.band == MISSING_PIXEL_VALUE)
 
         if missing:
             raise RuntimeError(
@@ -151,7 +160,7 @@ class ReferenceBuilder:
 
             transformer = Transformer.from_crs(
                 self.crs,
-                "EPSG:4326",
+                WGS84_CRS,
                 always_xy=True,
             )
 
@@ -174,7 +183,9 @@ class ReferenceBuilder:
             # Keep only valid ocean pixels
             # -------------------------------------------------
 
-            water_mask = (self.band >= 0) & (self.band <= 1000)
+            water_mask = (self.band >= 0) & (
+                self.band <= CONCENTRATION_SCALE
+            )
 
             mask &= water_mask
 
@@ -212,16 +223,14 @@ class ReferenceBuilder:
     # ---------------------------------------------------------
 
     def _calculate_reference_areas(self):
-        ocean = gpd.read_file(
-            PROJECT_ROOT / "data" / "naturalearth" / "ocean.shp"
-        )
+        ocean = gpd.read_file(OCEAN_SHAPEFILE)
 
         for name, _region in self.regions.items():
             polygon = self.regions[name]["polygon"]
 
             region_gdf = gpd.GeoDataFrame(
                 geometry=[polygon],
-                crs="EPSG:4326",
+                crs=WGS84_CRS,
             )
 
             intersection = gpd.overlay(
@@ -230,7 +239,7 @@ class ReferenceBuilder:
                 how="intersection",
             )
 
-            area = intersection.to_crs(epsg=6933).area.sum() / 1e6
+            area = intersection.to_crs(epsg=AREA_EPSG).area.sum() / 1e6
 
             self.reference_summary[name][
                 "naturalearth_water_area_km2"

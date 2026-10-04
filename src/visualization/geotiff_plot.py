@@ -24,17 +24,30 @@ from src.config.paths import (
     PROJECT_ROOT,
     resolve_project_path,
 )
+from src.config.paths import (
+    GEOTIFF_OVERVIEW_PLOT as DEFAULT_OUTPUT_PLOT_PATH,
+)
+from src.config.settings import (
+    CONCENTRATION_SCALE,
+    DATA_EPSG,
+    FIGURE_SAVE_DPI,
+    HUDSON_BAY_BOUNDS,
+)
 
 mpl.use("Agg")
 
 os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
 os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
 
-DEFAULT_REGION_BOUNDS = (260.0, 300.0, 50.0, 75.0)
-DEFAULT_OUTPUT_PLOT_PATH = (
-    PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
-)
+DEFAULT_REGION_BOUNDS = HUDSON_BAY_BOUNDS
 logger = logging.getLogger(__name__)
+
+# Parameters of the NSIDC sea-ice polar stereographic projection.
+PROJECTION_SEMIMAJOR_AXIS_M = 6378273
+PROJECTION_SEMIMINOR_AXIS_M = 6356889.449
+PROJECTION_CENTRAL_LATITUDE = 90
+PROJECTION_CENTRAL_LONGITUDE = -80
+PROJECTION_TRUE_SCALE_LATITUDE = 70
 
 mpl.rcParams.update(
     {
@@ -220,11 +233,11 @@ class SeaIcePlotter:
 
     def _prepare_data(self):
 
-        mask = self.ice <= 1000
+        mask = self.ice <= CONCENTRATION_SCALE
 
         self.ice[~mask] = np.nan
 
-        self.ice /= 1000
+        self.ice /= CONCENTRATION_SCALE
 
         self.extent = (
             self.transform.c,
@@ -235,17 +248,17 @@ class SeaIcePlotter:
 
     def _build_projection(self):
 
-        self.source_crs = ccrs.epsg(3411)
+        self.source_crs = ccrs.epsg(DATA_EPSG)
 
         self.globe = ccrs.Globe(
-            semimajor_axis=6378273,
-            semiminor_axis=6356889.449,
+            semimajor_axis=PROJECTION_SEMIMAJOR_AXIS_M,
+            semiminor_axis=PROJECTION_SEMIMINOR_AXIS_M,
         )
 
         self.projection = ccrs.Stereographic(
-            central_latitude=90,
-            central_longitude=-80,
-            true_scale_latitude=70,
+            central_latitude=PROJECTION_CENTRAL_LATITUDE,
+            central_longitude=PROJECTION_CENTRAL_LONGITUDE,
+            true_scale_latitude=PROJECTION_TRUE_SCALE_LATITUDE,
             globe=self.globe,
         )
 
@@ -556,7 +569,7 @@ class SeaIcePlotter:
 
         self.fig.savefig(
             output_path,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
             bbox_inches="tight",
             facecolor="white",
         )

@@ -22,26 +22,48 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.config.paths import PROJECT_ROOT
+from src.config.paths import (
+    ICE_COVERAGE_EVENTS_CSV as DEFAULT_EVENTS,
+)
+from src.config.paths import (
+    ICE_COVERAGE_SUMMARY_CSV as DEFAULT_RESULTS,
+)
+from src.config.paths import (
+    ICE_COVERAGE_TIMESERIES_CSV as DEFAULT_TIMESERIES,
+)
+from src.config.paths import (
+    ICE_COVERAGE_YEARLY_CSV as DEFAULT_YEARLY,
+)
+from src.config.settings import (
+    CLIMATOLOGY_END_YEAR,
+    CLIMATOLOGY_START_YEAR,
+    EVENT_THRESHOLDS_PERCENT,
+)
 
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_RESULTS = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
-)
+# Module-specific analysis parameters.
 
-DEFAULT_TIMESERIES = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
-)
+# A gap in the daily calendar is interpolated over at most this
+# many consecutive days.
+INTERPOLATION_LIMIT_DAYS = 14
 
-DEFAULT_YEARLY = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_yearly.csv"
-)
+# Half-width of the centered moving-average window in days.
+DEFAULT_MOVING_AVERAGE_WINDOW = 3
 
-DEFAULT_EVENTS = (
-    PROJECT_ROOT / "output" / "analysis" / "ice_coverage_events.csv"
-)
+# A threshold crossing counts as an event after the threshold
+# has been met for this many consecutive days.
+DEFAULT_PERSISTENCE_DAYS = 7
+
+# Event window calendar boundaries (month, day). Break-up events
+# are searched between March 16 and September 15; freeze-up
+# events between September 16 and March 15 of the following
+# year.
+BREAKUP_WINDOW_START = (3, 16)
+BREAKUP_WINDOW_END = (9, 15)
+FREEZEUP_WINDOW_START = (9, 16)
+FREEZEUP_WINDOW_END = (3, 15)
 
 
 class TimeSeriesAnalyzer:
@@ -62,7 +84,7 @@ class TimeSeriesAnalyzer:
         self.yearly_df = pd.DataFrame()
         self.events_df = pd.DataFrame()
 
-        self.threshold_persistence = 7
+        self.threshold_persistence = DEFAULT_PERSISTENCE_DAYS
 
     # ---------------------------------------------------------
     # public API
@@ -75,12 +97,12 @@ class TimeSeriesAnalyzer:
         self.interpolate_calendar()
 
         self.calculate_moving_average(
-            window=3,
+            window=DEFAULT_MOVING_AVERAGE_WINDOW,
         )
 
         self.calculate_climatology(
-            start_year=1981,
-            end_year=2010,
+            start_year=CLIMATOLOGY_START_YEAR,
+            end_year=CLIMATOLOGY_END_YEAR,
         )
 
         self.calculate_anomalies()
@@ -145,7 +167,7 @@ class TimeSeriesAnalyzer:
 
             df_region[numeric] = df_region[numeric].interpolate(
                 method="time",
-                limit=14,
+                limit=INTERPOLATION_LIMIT_DAYS,
                 limit_direction="both",
             )
 
@@ -254,7 +276,7 @@ class TimeSeriesAnalyzer:
 
     def calculate_moving_average(
         self,
-        window: int = 3,
+        window: int = DEFAULT_MOVING_AVERAGE_WINDOW,
     ):
 
         logger.info(
@@ -745,27 +767,27 @@ class TimeSeriesAnalyzer:
         if event_type == "break-up":
             default_start = pd.Timestamp(
                 year=event_year,
-                month=3,
-                day=16,
+                month=BREAKUP_WINDOW_START[0],
+                day=BREAKUP_WINDOW_START[1],
             )
 
             end = pd.Timestamp(
                 year=event_year,
-                month=9,
-                day=15,
+                month=BREAKUP_WINDOW_END[0],
+                day=BREAKUP_WINDOW_END[1],
             )
 
         elif event_type == "freeze-up":
             default_start = pd.Timestamp(
                 year=event_year,
-                month=9,
-                day=16,
+                month=FREEZEUP_WINDOW_START[0],
+                day=FREEZEUP_WINDOW_START[1],
             )
 
             end = pd.Timestamp(
                 year=event_year + 1,
-                month=3,
-                day=15,
+                month=FREEZEUP_WINDOW_END[0],
+                day=FREEZEUP_WINDOW_END[1],
             )
 
         else:
@@ -788,12 +810,8 @@ class TimeSeriesAnalyzer:
 
     def calculate_threshold_events(
         self,
-        thresholds: tuple[float, ...] = (
-            10.0,
-            50.0,
-            90.0,
-        ),
-        persistence: int = 7,
+        thresholds: tuple[float, ...] = EVENT_THRESHOLDS_PERCENT,
+        persistence: int = DEFAULT_PERSISTENCE_DAYS,
         column: str = "relative_coverage_percent",
     ) -> pd.DataFrame:
         """
@@ -927,8 +945,8 @@ class TimeSeriesAnalyzer:
 
                         september_16 = pd.Timestamp(
                             year=event_year,
-                            month=9,
-                            day=16,
+                            month=FREEZEUP_WINDOW_START[0],
+                            day=FREEZEUP_WINDOW_START[1],
                         )
 
                         sep16_data = df_region[
