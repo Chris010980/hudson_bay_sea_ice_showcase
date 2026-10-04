@@ -26,6 +26,7 @@ tests/
 │   ├── analysis/
 │   ├── config/
 │   └── README.md
+├── fixture_tests/
 ├── unit/
 ├── component/
 ├── integration/
@@ -64,6 +65,26 @@ tests/unit/test_smoke.py
 ```
 
 The smoke test verifies that pytest can collect and execute a test successfully. It does not test scientific functionality.
+
+### `fixture_tests/`
+
+Fixture verification tests check the test infrastructure
+itself: the shared pytest fixtures defined in
+`tests/conftest.py` and the static fixture data below
+`tests/fixtures/`.
+
+They verify that:
+
+- the shared fixtures provide the documented deterministic
+  data,
+- the isolated `test_environment` directories behave as
+  specified.
+
+`fixture_tests/` is an organizational directory, not a test
+level of the test model. The tests exercise real files and
+directories, but their subject is the test infrastructure
+rather than a production component, so they are kept separate
+from `component/`.
 
 ### `component/`
 
@@ -237,6 +258,11 @@ Shared pytest fixtures are defined in:
 ```text
 tests/conftest.py
 ```
+
+The tests that verify the fixtures themselves are located in:
+
+```text
+tests/fixture_tests/
 
 Fixture names should describe **what the test receives**, rather than how the fixture is implemented.
 
@@ -445,10 +471,16 @@ Tests should follow the conventions documented in this file and the detailed tes
 
 ## Current Status
 
-The pytest infrastructure, the deterministic fixture foundation,
-the scientific component suites, and the integration suites are
-established (issues #18–#33). The suite currently comprises 148
-tests in 24 files:
+The pytest infrastructure, the deterministic fixture
+foundation, the scientific component suites, and the
+integration suites are established (issues #18–#33). The
+suite layout was reorganized in issue #76: fixture
+verification tests moved to `tests/fixture_tests/`, the
+plot-generation integration file was renamed
+(`test_generate_plots.py`), and the unit-vs-component
+review confirmed that all remaining `tests/component/`
+files are genuine component tests. The suite currently
+comprises 148 tests in 24 files:
 
 ```text
 tests/
@@ -462,15 +494,17 @@ tests/
 ├── unit/
 │   └── test_smoke.py
 │
-├── component/
+├── fixture_tests/
 │   ├── test_data_fixtures.py
 │   ├── test_filesystem_fixtures.py
-│   ├── test_nsidc_downloader.py
 │   ├── test_raster_fixtures.py
+│   └── test_region_fixtures.py
+│
+├── component/
+│   ├── test_nsidc_downloader.py
 │   ├── test_reference_builder.py
 │   ├── test_region_analyzer.py
 │   ├── test_region_analyzer_validity.py
-│   ├── test_region_fixtures.py
 │   ├── test_results_manager.py
 │   ├── test_sea_ice_map_plot.py
 │   ├── test_timeseries_anomalies.py
@@ -484,7 +518,7 @@ tests/
 │
 ├── integration/
 │   ├── test_build_pages.py
-│   ├── test_gernerate_plots.py
+│   ├── test_generate_plots.py
 │   ├── test_spatial_processing_chain.py
 │   ├── test_update_no_new_data.py
 │   └── test_update_pipeline.py
