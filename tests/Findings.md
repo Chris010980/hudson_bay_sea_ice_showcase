@@ -19,29 +19,29 @@ documentation pending) · `documented` (accepted as-is)
 
 ## Overview
 
-| ID    | Issue | Component                           | Category  | Status     |
-| ----- | ----- | ----------------------------------- | --------- | ---------- |
-| F-001 | #20   | ResultsManager                      | bug       | fixed      |
-| F-002 | #20   | ResultsManager                      | bug       | fixed      |
-| F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open       |
-| F-004 | #21   | TimeSeriesAnalyzer                  | design    | fixed      |
-| F-005 | #21   | TimeSeriesAnalyzer                  | design    | open       |
-| F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented |
-| F-007 | #25   | TimeSeriesPlotter                   | design    | open       |
-| F-008 | #26   | TimeSeriesAnalyzer                  | design    | open       |
-| F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | open       |
-| F-010 | #28   | NSIDCDownloader                     | design    | open       |
-| F-011 | #28   | NSIDCDownloader                     | design    | open       |
-| F-012 | #28   | NSIDCDownloader                     | design    | fixed      |
-| F-013 | #29   | ReferenceBuilder                    | design    | open       |
-| F-014 | #30   | update\_pipeline                    | bug       | open       |
-| F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
-| F-016 | #31   | update\_pipeline / downloader       | design    | open       |
-| F-017 | #32   | timeseries\_plot                    | design    | fixed      |
-| F-018 | #32   | visualization stage                 | design    | open       |
-| F-019 | #32   | generate\_plots                     | design    | open       |
-| F-020 | #33   | build\_pages                        | design    | open       |
-| F-021 | #33   | build\_pages                        | design    | open       |
+| ID    | Issue | Component                           | Category  | Status        |
+| ----- | ----- | ----------------------------------- | --------- | ------------- |
+| F-001 | #20   | ResultsManager                      | bug       | fixed         |
+| F-002 | #20   | ResultsManager                      | bug       | fixed         |
+| F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open          |
+| F-004 | #21   | TimeSeriesAnalyzer                  | design    | fixed         |
+| F-005 | #21   | TimeSeriesAnalyzer                  | design    | open          |
+| F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented    |
+| F-007 | #25   | TimeSeriesPlotter                   | design    | open          |
+| F-008 | #26   | TimeSeriesAnalyzer                  | design    | open          |
+| F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | open          |
+| F-010 | #28   | NSIDCDownloader                     | design    | open          |
+| F-011 | #28   | NSIDCDownloader                     | design    | open          |
+| F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
+| F-013 | #29   | ReferenceBuilder                    | design    | open          |
+| F-014 | #30   | update\_pipeline                    | bug       | open          |
+| F-015 | #30   | update\_pipeline / process\_data    | design    | partial (#73) |
+| F-016 | #31   | update\_pipeline / downloader       | design    | open          |
+| F-017 | #32   | timeseries\_plot                    | design    | fixed         |
+| F-018 | #32   | visualization stage                 | design    | partial (#74) |
+| F-019 | #32   | generate\_plots                     | design    | partial (#74) |
+| F-020 | #33   | build\_pages                        | design    | open          |
+| F-021 | #33   | build\_pages                        | design    | open          |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -460,6 +460,15 @@ pattern used by the issue #32 tests).
 **Recommendation:** pass an injectable configuration through  
 the visualization stage (milestone V0.2-07).
 
+**Status update (#74, 2026-10-04):** partially resolved.
+The first bullet is addressed: `generate_plots.main()`
+accepts the plotter through the injectable `ts_factory`
+seam since issue #74, and the integration tests pass the
+controlled `TimeSeriesPlotter` explicitly instead of
+replacing the generate_plots namespace. The `SeaIcePlotter`
+paths (regions.json default, `DEFAULT_OUTPUT_PLOT_PATH` in
+"all" mode) remain namespace-patched and stay open.
+
 ## F-019 — Inconsistent `generate_plots.main()` CLI contract
 
 **Component:** `src/visualization/generate_plots.py` (`main()`)
@@ -478,6 +487,15 @@ everywhere or a small result object) and honor `--output` in
 function: the `--regions` help text contains an accidental  
 line break ("Overlay a  
 nalysis regions").
+
+**Status update (#74, 2026-10-04):** partially resolved.
+The `return True` inconsistency is removed — every `main()`
+path returns `None` again — and the dead `args.output` read
+in "all" mode is gone. `main()` is split into pure parsing,
+the table-driven `RUNNERS` dispatch, and one runner per plot
+mode with injectable plotter factories (#73 pattern). The
+`--output` behavior in "all" mode and the unused `--title`
+option remain open for the CLI parity issue.
 
 ## F-020 — The CLI options of `build_pages` are dead
 
@@ -584,7 +602,7 @@ Audit notes:
 
 ### Test inventory vs. documentation
 
-All 27 test files are accounted for. Files without an F-entry
+All 28 test files are accounted for. Files without an F-entry
 document no findings; they remain documented through their
 introducing issues (see file docstrings).
 
@@ -596,6 +614,7 @@ introducing issues (see file docstrings).
 | `fixture_tests/test_raster_fixtures.py` | synthetic raster fixture | — |
 | `fixture_tests/test_region_fixtures.py` | region/reference fixtures | — |
 | `component/test_download_data.py` | download CLI seam (#73) | F-023 |
+| `component/test_generate_plots_cli.py` | plot CLI parsing/dispatch (#74) | F-019, F-025 |
 | `component/test_main.py` | pipeline dispatcher (#73) | F-022 |
 | `component/test_nsidc_downloader.py` | NSIDC downloader (#28) | F-009, F-010, F-011, F-012 |
 | `component/test_process_data.py` | process CLI seam (#73) | F-024 |
@@ -644,7 +663,7 @@ Overview additions — merge these rows into the Overview table:
 | F-022 | #75 | main.py (dispatcher) | gap | resolved (#73) |
 | F-023 | #75 | download_data.py (CLI) | gap | partial (#73) |
 | F-024 | #75 | process_data.py (CLI) | gap | resolved (#73) |
-| F-025 | #75 | generate_plots.py (overview mode) | gap | proposed |
+| F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
 | F-027 | #75 | update_pipeline.py (first run) | gap | proposed |
 | F-028 | #75 | update_pipeline.py (masking) | gap | proposed |
@@ -719,6 +738,16 @@ factory; `tests/component/test_process_data.py` covers the
 inclusive date-filter boundaries, the `is_date_processed()`
 skip path, the exception counting, and a complete `main()`
 run with injected collaborators.
+
+**Status update (#74, 2026-10-04):** partially resolved.
+`tests/component/test_generate_plots_cli.py` covers the
+dispatch of every plot mode with controlled plotters: the
+overview branches (plain, `--regions`, `--region`,
+`--all-regions`, `--show`), the "all" product sequence, and
+the missing-GeoTIFF fallback. The `--output` decision for
+"all" mode and the real-rendering overview integration
+remain with the CLI parity issue and
+`tests/component/test_sea_ice_map_plot.py`.
 
 ## F-025 — Overview plot mode and `--output` untested
 

@@ -39,10 +39,11 @@ Test design:
   cannot be redirected through arguments (see
   tests/Findings.md, F-018):
 
-  - generate_plots constructs TimeSeriesPlotter() with
-    definition-time production defaults -- the class is
-    replaced in the generate_plots namespace with the same
-    class wired to the controlled inputs,
+  - since issue #74 the CLI accepts the time-series plotter
+    through the injectable ts_factory seam: every test
+    passes the class wired to the controlled inputs
+    explicitly (the definition-time default can no longer
+    be redirected through the generate_plots namespace),
   - the plot output directory is redirected by patching the
     timeseries_plot module constant OUTPUT_DIR (read at call
     time),
@@ -495,25 +496,24 @@ def generate_plots_environment(
 
     monkeypatch.setattr(timeseries_module, "OUTPUT_DIR", plots_dir)
 
-    # generate_plots constructs TimeSeriesPlotter() with the
-    # definition-time production defaults; the class is replaced
-    # in the generate_plots namespace with the same class wired
-    # to the controlled inputs.
-    monkeypatch.setattr(
-        generate_plots_module,
-        "TimeSeriesPlotter",
-        functools.partial(
-            TimeSeriesPlotter,
-            csv_file=timeseries_csv,
-            yearly_csv_file=yearly_csv,
-            events_csv_file=events_csv,
-        ),
+    # Since issue #74 the CLI constructs the time-series
+    # plotter through the injectable ts_factory seam: the
+    # same class wired to the controlled inputs is passed
+    # explicitly by every test (the definition-time default
+    # can no longer be redirected through the generate_plots
+    # namespace).
+    ts_factory = functools.partial(
+        TimeSeriesPlotter,
+        csv_file=timeseries_csv,
+        yearly_csv_file=yearly_csv,
+        events_csv_file=events_csv,
     )
 
     return {
         "data_dir": data_dir,
         "plots_dir": plots_dir,
         "log_file": root / "generate_plots.log",
+        "ts_factory": ts_factory,
     }
 
 
@@ -547,6 +547,7 @@ def test_generate_all_products_from_cli(
             "--log-file",
             str(env["log_file"]),
         ],
+        ts_factory=env["ts_factory"],
     )
 
     actual = sorted(
@@ -588,6 +589,7 @@ def test_generate_all_without_geotiff_falls_back_to_timeseries(
             "--log-file",
             str(env["log_file"]),
         ],
+        ts_factory=env["ts_factory"],
     )
 
     actual = sorted(
@@ -624,6 +626,7 @@ def test_generate_timeseries_type_creates_region_plots(
             "--log-file",
             str(env["log_file"]),
         ],
+        ts_factory=env["ts_factory"],
     )
 
     timeseries_dir = env["plots_dir"] / "timeseries"

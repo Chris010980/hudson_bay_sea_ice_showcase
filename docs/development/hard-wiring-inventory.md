@@ -62,6 +62,5 @@ The component smoke tests live in `tests/component/`:
   and `src/analysis/process_data.py` move from 0 %/0 %/48 % to
   near-full coverage, clearly above the #74 targets
   (main.py >= 70 %, download_data.py >= 80 %).
-* `grep -rn "noqa" src/` still shows only
-  `generate_plots.py:96` (C901, removed with #74).
-  
+* `grep -rn "noqa" src/` shows no exceptions since #74
+  removed the last directive (`generate_plots.main` C901).
