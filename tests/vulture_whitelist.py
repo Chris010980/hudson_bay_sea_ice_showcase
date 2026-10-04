@@ -6,7 +6,7 @@ although the usage is intentional or outside static reach
 entry carries a justification comment that links one of:
 
 * an S-entry in docs/development/static-analysis-findings.md,
-* a finding in tests/Findings.md (F-001 ... F-021).
+* a finding in tests/Findings.md (F-001 ... F-030).
 
 The whitelist is primarily relevant for periodic deep passes at
 ``--min-confidence 60``; the standard advisory run uses
@@ -24,14 +24,12 @@ Deep pass (triage required for every reported candidate):
 
 New entries are added during finding triage only -- never
 prophylactically.
-"""
 
-# F-017 (tests/Findings.md): TimeSeriesPlotter._configure_style
-# assigns polar_output_dir but never reads it; the polar plots
-# are saved into the timeseries directory (pinned by the
-# issue #32 tests). Kept until the visualization redesign in
-# V0.2-07; see also S-004 in the static-analysis findings log.
-polar_output_dir
+Re-triage (issue #38, 2026-10-04): the genuinely unused
+attribute ``polar_output_dir`` (F-017 / S-004) was removed
+from the source and from this whitelist. The remaining
+entries are confirmed false positives and are retained.
+"""
 
 # S-020 (static-analysis-findings.md): pytest fixture
 # parameters. Requesting the synthetic_ocean fixture

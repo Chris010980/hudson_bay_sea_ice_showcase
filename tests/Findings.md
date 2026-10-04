@@ -37,7 +37,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-014 | #30   | update\_pipeline                    | bug       | open       |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
 | F-016 | #31   | update\_pipeline / downloader       | design    | open       |
-| F-017 | #32   | timeseries\_plot                    | design    | open       |
+| F-017 | #32   | timeseries\_plot                    | design    | fixed      |
 | F-018 | #32   | visualization stage                 | design    | open       |
 | F-019 | #32   | generate\_plots                     | design    | open       |
 | F-020 | #33   | build\_pages                        | design    | open       |
@@ -404,6 +404,12 @@ of the configured `output/plots/polar/` directory.
 `self.polar_output_dir` or remove the unused attribute. The  
 issue #32 tests pin the implemented behavior (polar files in  
 the timeseries directory).
+
+**Resolution (#38, 2026-10-04):** the unused attribute was  
+removed from `_configure_style()`. The polar products remain  
+in `output/plots/timeseries/` next to the Cartesian plots, as  
+pinned by the issue #32 tests; the whitelist entry (S-004)  
+was removed together with the attribute.
 
 ## F-018 — Non-injectable production paths in the visualization stage
 

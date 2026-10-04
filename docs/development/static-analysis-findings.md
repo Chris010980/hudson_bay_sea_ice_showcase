@@ -43,7 +43,7 @@ or extends them.
 | S-001 | F401 (unused import)             | `src/data_download/…` (`from os import link`)                          | error         | `defer` (V0.2-07) | Genuine defect, already documented as F-012 (tests/Findings.md). Removal is a production-code change; scheduled with the F-009–F-012 downloader family rather than inside a tooling issue.                                                                                                             |
 | S-002 | E402 (import not at top of file) | `src/update/build_pages.py`                                            | error         | `defer` (V0.2-07) | The module assigns `logger` before the last import; related to the dead CLI contract documented as F-020. Trivial reorder, but a production-code change — scheduled with the build\_pages cleanup.                                                                                                     |
 | S-003 | F811 (duplicate import)          | `tests/conftest.py`                                                    | error         | `fix`             | Test infrastructure file, no production code; `Path` and `pytest` are imported twice. Safe isolated cleanup during #36.                                                                                                                                                                                |
-| S-004 | dead code (attribute, deep pass) | `src/visualization/timeseries_plot.py` (`polar_output_dir`)            | informational | `accept`          | Intentional, documented behavior: F-017 (tests/Findings.md), pinned by the issue #32 tests; whitelist entry in `tests/vulture_whitelist.py`.                                                                                                                                                           |
+| S-004 | dead code (attribute, deep pass) | `src/visualization/timeseries_plot.py` (`polar_output_dir`)            | informational | `fix` (#38)       | Re-triaged in #38 as genuinely unused (F-017): the attribute is never read in `src/` or `tests/`; the issue #32 tests pin the polar products in the timeseries directory. Attribute and whitelist entry removed; F-017 resolved (behavior unchanged).                                                  |
 | S-005 | F401 (unused import)             | `src/analysis/timeseries_analyzer.py:19` (`from curses import window`) | error         | `defer` (V0.2-07) | Genuine defect: IDE auto-import of the `curses.window` type triggered by the `window: int = 3` parameter. Unused in the module and a hard `ModuleNotFoundError` on Windows (curses is Unix-only). Production code — scheduled with the V0.2-07 cleanup instead of a silent fix inside a tooling issue. |
 
 ---
@@ -138,6 +138,31 @@ With S-020 and S-021 the log is complete: **S-001 … S-021**.
 The 18 `noqa` exceptions (S-011 … S-018) remain the tracked  
 V0.2-07 backlog; the two whitelist entries S-020/S-021 are  
 permanent, documented exceptions.
+
+## Vulture Whitelist Re-Triage (issue #38)
+
+Re-triage of `tests/vulture_whitelist.py` (2026-10-04):
+
+* `polar_output_dir` (S-004, F-017): genuinely unused — the
+  attribute is never read anywhere in `src/` or `tests/`.
+  Removed from `src/visualization/timeseries_plot.py` and
+  from the whitelist. F-017 is resolved accordingly
+  (behavior unchanged; the polar products remain in
+  `output/plots/timeseries/`, as pinned by the issue #32
+  tests).
+* `synthetic_ocean` (S-020): confirmed justified false
+  positive (pytest fixture injection). Retained.
+* `chunk_size` (S-021): confirmed justified false positive
+  (interface fidelity with
+  `requests.Response.iter_content`). Retained.
+
+Post-change verification (standard advisory run):
+
+    ```console
+    vulture src tests tests/vulture_whitelist.py \
+        --min-confidence 90
+    # 0 findings against the reduced whitelist
+    ```
 
 ---
 
