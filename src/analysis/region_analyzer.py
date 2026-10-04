@@ -13,15 +13,20 @@ from pathlib import Path
 import numpy as np
 import rasterio
 
-from src.config.paths import PROJECT_ROOT
-
-logger = logging.getLogger(__name__)
-
-REFERENCE_JSON = (
-    PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
+from src.config.paths import (
+    REFERENCE_FILTERS_DIR as FILTER_DIR,
+)
+from src.config.paths import (
+    REFERENCE_SUMMARY_JSON as REFERENCE_JSON,
+)
+from src.config.settings import (
+    CONCENTRATION_SCALE,
+    ICE_CONCENTRATION_THRESHOLD_TENTHS,
+    MISSING_PIXEL_VALUE,
+    PIXEL_AREA_KM2,
 )
 
-FILTER_DIR = PROJECT_ROOT / "output" / "reference" / "filters"
+logger = logging.getLogger(__name__)
 
 
 class RegionAnalyzer:
@@ -30,7 +35,7 @@ class RegionAnalyzer:
         input_tif: str | Path,
         reference_json: str | Path = REFERENCE_JSON,
         filter_dir: str | Path = FILTER_DIR,
-        pixel_area_km2: float = 625.0,
+        pixel_area_km2: float = PIXEL_AREA_KM2,
     ):
 
         self.input_tif = Path(input_tif)
@@ -128,7 +133,7 @@ class RegionAnalyzer:
         # Step 1: Missing values
         # -------------------------------------------------
 
-        missing_pixels = np.count_nonzero(values == 2550)
+        missing_pixels = np.count_nonzero(values == MISSING_PIXEL_VALUE)
 
         if missing_pixels > 0:
             logger.warning(
@@ -143,7 +148,7 @@ class RegionAnalyzer:
         # Step 2: Keep only valid water pixels
         # -------------------------------------------------
 
-        water = values[(values >= 0) & (values <= 1000)]
+        water = values[(values >= 0) & (values <= CONCENTRATION_SCALE)]
 
         expected = reference["water_pixels"]
 
@@ -161,12 +166,12 @@ class RegionAnalyzer:
         # Step 3: Sea ice
         # -------------------------------------------------
 
-        ice = water >= 150
+        ice = water >= ICE_CONCENTRATION_THRESHOLD_TENTHS
 
         absolute_ice_area = ice.sum() * self.pixel_area_km2
 
         relative_ice_area = (
-            water[ice].sum() / 1000.0 * self.pixel_area_km2
+            water[ice].sum() / CONCENTRATION_SCALE * self.pixel_area_km2
         )
 
         water_area = reference["water_area_pixel_km2"]

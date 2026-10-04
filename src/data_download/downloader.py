@@ -15,12 +15,17 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-from src.config.paths import DATA_DIR
+from src.config.paths import DATA_DIR, GEOTIFF_DIR
+from src.config.settings import DEFAULT_PRODUCT
 
 DEFAULT_NSIDC_GEOTIFF_URL = (
     "https://noaadata.apps.nsidc.org/NOAA/G02135/north/daily/geotiff"
 )
-DEFAULT_GEOTIFF_DIR = DATA_DIR / "geotiff"
+DEFAULT_GEOTIFF_DIR = GEOTIFF_DIR
+
+# Module-specific HTTP transport tuning.
+HTTP_TIMEOUT_SECONDS = 30
+DOWNLOAD_CHUNK_BYTES = 8192
 GEOTIFF_FILENAME_PATTERN = re.compile(
     r"^N_(?P<date>\d{8})_(?P<product>.+?)_v.+\.tif$"
 )
@@ -59,8 +64,8 @@ class NSIDCDownloader:
         self,
         base_url: str = DEFAULT_NSIDC_GEOTIFF_URL,
         local_base: str | Path = DEFAULT_GEOTIFF_DIR,
-        product: str = "concentration",
-        timeout: int = 30,
+        product: str = DEFAULT_PRODUCT,
+        timeout: int = HTTP_TIMEOUT_SECONDS,
         session: requests.Session | None = None,
     ) -> None:
         """Create a downloader for one NSIDC GeoTIFF product.
@@ -209,7 +214,9 @@ class NSIDCDownloader:
             return False
 
         with local_path.open("wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
+            for chunk in response.iter_content(
+                chunk_size=DOWNLOAD_CHUNK_BYTES
+            ):
                 if chunk:
                     file.write(chunk)
 
