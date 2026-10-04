@@ -416,7 +416,7 @@ def no_new_data_environment(
     reference_dir = output_dir / "reference"
     filter_dir = reference_dir / "filters"
     plots_dir = output_dir / "plots"
-    docs_dir = test_environment["root"] / "docs"
+    html_dir = test_environment["root"] / "html"
     build_dir = test_environment["build"]
 
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -443,8 +443,8 @@ def no_new_data_environment(
     )
 
     # Controlled website source.
-    docs_dir.mkdir(parents=True)
-    (docs_dir / "index.html").write_text(
+    html_dir.mkdir(parents=True)
+    (html_dir / "index.html").write_text(
         "<html><body>site</body></html>",
         encoding="utf-8",
     )
@@ -550,7 +550,7 @@ def no_new_data_environment(
 
     # Real build stage against isolated directories (must not
     # run; if it did, it would wipe the seeded build state).
-    monkeypatch.setattr(build_pages_module, "DOCS_DIR", docs_dir)
+    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
     monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
     monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
 

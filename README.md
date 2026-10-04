@@ -411,6 +411,8 @@ hudson_bay_sea_ice/
 │   ├── methodology/
 │   └── development/
 │
+├── html/
+│
 ├── build/
 │
 ├── requirements.txt
@@ -455,7 +457,11 @@ Automated tests and test fixtures.
 
 ### `docs/`
 
-Source files for the project website and detailed project documentation.
+Detailed project documentation.
+
+### `html/`
+
+Source files for the static project website.
 
 ### `build/`
 
@@ -472,7 +478,7 @@ The project website is implemented as a static website.
 The source is maintained under:
 
 ```text
-docs/
+html/
 ```
 
 Generated scientific results remain under:
@@ -490,7 +496,7 @@ build/
 Conceptually:
 
 ```text
-docs/
+html/
    +
 output/analysis/
    +

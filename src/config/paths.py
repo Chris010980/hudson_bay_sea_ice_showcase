@@ -26,7 +26,10 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 """Default directory for generated plot and analysis outputs."""
 
 DOCS_DIR = PROJECT_ROOT / "docs"
-"""Default directory for static website files."""
+"""Default directory for project documentation files."""
+
+HTML_DIR = PROJECT_ROOT / "html"
+"""Default directory for the static website source files."""
 
 BUILD_DIR = PROJECT_ROOT / "build"
 """Default directory for the built GitHub Pages website."""

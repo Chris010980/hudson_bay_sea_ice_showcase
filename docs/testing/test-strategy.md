@@ -292,7 +292,7 @@ TimeSeriesAnalyzer
 and:
 
 ```text
-docs + output
+html + output
       ↓
 build_pages
       ↓

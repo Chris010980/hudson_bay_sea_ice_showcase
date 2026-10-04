@@ -53,7 +53,7 @@ ReferenceBuilder
 The static website is generated separately from the scientific processing flow:
 
 ```text
-docs/ ──────────┐
+html/ ──────────┐
                 ▼
              build_pages
                 ▲
@@ -260,7 +260,7 @@ Visualization products are regenerable outputs and are not inputs to subsequent 
 The website source is maintained under:
 
 ```text
-docs/
+html/
 ```
 
 Generated scientific products are maintained under:
@@ -440,7 +440,7 @@ output/plots/
 ### Website Source
 
 ```text
-docs/
+html/
 ```
 
 ### Deployment Artifact

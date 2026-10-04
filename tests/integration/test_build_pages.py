@@ -3,7 +3,7 @@
 The tests verify the website build integration
 (docs/testing/test-levels.md, section 4.5):
 
-    docs/
+    html/
       +
     output/
       |
@@ -15,7 +15,7 @@ The tests verify the website build integration
 
 and the assembly implemented by src/update/build_pages.py:
 
-* the static website below docs/ is copied to the build root,
+* the static website below html/ is copied to the build root,
 * the generated project output below output/ is copied to
   build/output/ -- the deployment path the website pages use
   for figures and latest.json,
@@ -30,7 +30,7 @@ Test design:
 * The build stage is a pure copy step -- no analysis or
   plotting code runs -- so the controlled inputs are small
   hand-written files:
-  - docs/: a compact page pair (index.html and a nested
+  - html/: a compact page pair (index.html and a nested
     overview/results.html) plus a stylesheet, modeled on the
     production website structure; like the real pages they
     reference plots through "output/plots/..." and the latest
@@ -44,15 +44,15 @@ Test design:
     IHDR/IDAT/IEND with correct CRCs) in the product layout of
     the issue #32 plot set; real rendering is covered there.
 
-* Acceptance criterion "no docs/output/ dependency": the
-  controlled docs/ tree deliberately contains no copy of the
+* Acceptance criterion "no html/output/ dependency": the
+  controlled html/ tree deliberately contains no copy of the
   scientific output; the tests assert that the referenced
   resources resolve exclusively through build/output/, which
   is copied from the real OUTPUT_DIR -- no manually
   maintained second copy (test-levels.md, section 4.5).
 
 * build_pages binds its production paths as definition-time
-  module constants (DOCS_DIR, OUTPUT_DIR, BUILD_DIR -- same
+  module constants (HTML_DIR, OUTPUT_DIR, BUILD_DIR -- same
   non-injectable design family as F-010/F-013/F-015/F-018);
   the fixture redirects them with monkeypatch.setattr on the
   module (see tests/Findings.md, F-021).
@@ -62,7 +62,7 @@ Test design:
   a call without arguments would parse the *pytest* command
   line, so every test passes an explicit empty argv.
 
-* Failure propagation is pinned: a missing docs/ directory
+* Failure propagation is pinned: a missing html/ directory
   fails the build with FileNotFoundError, while a missing
   output/ directory is currently tolerated with a warning
   only (see tests/Findings.md, F-021).
@@ -83,7 +83,7 @@ import pytest
 import src.update.build_pages as build_pages_module
 
 # ------------------------------------------------------------------
-# Controlled docs/ input (modeled on the production website)
+# Controlled html/ input (modeled on the production website)
 # ------------------------------------------------------------------
 
 _INDEX_HTML = """\
@@ -265,20 +265,20 @@ def _png_bytes() -> bytes:
     return signature + header + pixel + trailer
 
 
-def _seed_docs(docs_dir: Path) -> None:
+def _seed_html(html_dir: Path) -> None:
     """Write the controlled static website (docs/ input)."""
-    (docs_dir / "css").mkdir(parents=True)
-    (docs_dir / "overview").mkdir()
+    (html_dir / "css").mkdir(parents=True)
+    (html_dir / "overview").mkdir()
 
-    (docs_dir / "index.html").write_text(
+    (html_dir / "index.html").write_text(
         _INDEX_HTML,
         encoding="utf-8",
     )
-    (docs_dir / "css" / "style.css").write_text(
+    (html_dir / "css" / "style.css").write_text(
         _STYLE_CSS,
         encoding="utf-8",
     )
-    (docs_dir / "overview" / "results.html").write_text(
+    (html_dir / "overview" / "results.html").write_text(
         _RESULTS_HTML,
         encoding="utf-8",
     )
@@ -363,28 +363,28 @@ def build_pages_environment(
     test_environment: dict[str, Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> dict[str, Path]:
-    """Isolate the build stage (docs/ + output/ -> build/).
+    """Isolate the build stage (html/ + output/ -> build/).
 
-    Provides the controlled docs/ and output/ trees and
+    Provides the controlled html/ and output/ trees and
     redirects the definition-time module constants of
     build_pages (see tests/Findings.md, F-021) to the isolated
     directories, so no production path is touched.
     """
     root = test_environment["root"]
-    docs_dir = root / "docs"
+    html_dir = root / "html"
     output_dir = test_environment["output"]
     build_dir = test_environment["build"]
 
-    _seed_docs(docs_dir)
+    _seed_html(html_dir)
     _seed_analysis(output_dir / "analysis")
     _seed_plots(output_dir / "plots")
 
-    monkeypatch.setattr(build_pages_module, "DOCS_DIR", docs_dir)
+    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
     monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
     monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
 
     return {
-        "docs_dir": docs_dir,
+        "html_dir": html_dir,
         "output_dir": output_dir,
         "build_dir": build_dir,
     }
@@ -398,7 +398,7 @@ def build_pages_environment(
 def test_build_creates_expected_directory_structure(
     build_pages_environment: dict[str, Path],
 ) -> None:
-    """The build assembles docs/ and output/ into build/.
+    """The build assembles html/ and output/ into build/.
 
     build/ contains the static website at its root and the
     complete generated output below build/output/; the file
@@ -411,7 +411,7 @@ def test_build_creates_expected_directory_structure(
 
     assert built_dir == env["build_dir"]
 
-    expected = _file_inventory(env["docs_dir"]) | {
+    expected = _file_inventory(env["html_dir"]) | {
         "output/" + name: content
         for name, content in _file_inventory(env["output_dir"]).items()
     }
@@ -432,9 +432,9 @@ def test_website_files_are_deployed_and_references_resolve(
     Every local resource referenced by the built pages
     (stylesheets, nested pages, plot figures, latest.json)
     resolves below build/. The scientific resources resolve
-    exclusively through build/output/ -- the controlled docs/
+    exclusively through build/output/ -- the controlled html/
     tree deliberately contains no copy of output/, so the build
-    introduces no manually maintained docs/output/ dependency.
+    introduces no manually maintained html/output/ dependency.
     """
     env = build_pages_environment
     build_dir = env["build_dir"]
@@ -460,8 +460,8 @@ def test_website_files_are_deployed_and_references_resolve(
                 reference
             )
 
-    # No scientific output was required inside docs/.
-    assert not (env["docs_dir"] / "output").exists()
+    # No scientific output was required inside html/.
+    assert not (env["html_dir"] / "output").exists()
 
 
 # ------------------------------------------------------------------
@@ -552,11 +552,11 @@ def test_rebuild_is_reproducible_and_removes_stale_files(
 # ------------------------------------------------------------------
 
 
-def test_missing_docs_directory_fails_the_build(
+def test_missing_html_directory_fails_the_build(
     build_pages_environment: dict[str, Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A missing docs/ directory propagates FileNotFoundError.
+    """A missing html/ directory propagates FileNotFoundError.
 
     The static website is the one mandatory build input; the
     build must not silently produce a scientific-only or empty
@@ -566,8 +566,8 @@ def test_missing_docs_directory_fails_the_build(
 
     monkeypatch.setattr(
         build_pages_module,
-        "DOCS_DIR",
-        env["docs_dir"].parent / "missing_docs",
+        "HTML_DIR",
+        env["html_dir"].parent / "missing_html",
     )
 
     with pytest.raises(FileNotFoundError):
@@ -600,5 +600,5 @@ def test_missing_output_directory_is_tolerated(
     assert not (env["build_dir"] / "output").exists()
 
     assert _file_inventory(env["build_dir"]) == _file_inventory(
-        env["docs_dir"]
+        env["html_dir"]
     )

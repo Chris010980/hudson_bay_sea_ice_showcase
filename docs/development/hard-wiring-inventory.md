@@ -30,7 +30,7 @@ these seams.
 | stage imports at module level in `main.py` (the `STAGES` defaults) | required for direct dispatch; importing the dispatcher loads all stage modules; no side effects beyond module initialization (the matplotlib "Agg" backend selection in `geotiff_plot.py` is documented with #40) |
 | `download_data.py`: `sync()` receives `years`/`months` kwargs the downloader API does not accept | functional defect F-009 (every CLI download run fails with a TypeError); the fix needs a design decision (map `--year`/`--month` to a date range, or extend `sync()`) and a separate functional-correction issue; #73 does not change behavior |
 | `update_pipeline.py`: stage functions and collaborators bound as module-level names | documented namespace-replacement seams (F-015); the integration tests (issue #30 design) replace them in the module namespace; 100 % coverage; a full configuration injection is #74 scope |
-| `build_pages.py`: `DOCS_DIR`/`OUTPUT_DIR`/`BUILD_DIR` module constants | documented namespace seams (F-018/F-021); #85 fixed the import-time binding of the copy target; 100 % coverage |
+| `build_pages.py`: `HTML_DIR`/`OUTPUT_DIR`/`BUILD_DIR` module constants | documented namespace seams (F-018/F-021); #85 fixed the import-time binding of the copy target; 100 % coverage |
 | call-time path joins in `downloader.py`, `geotiff_plot.py`, `timeseries_plot.py` | documented test seams (F-010/F-018, see `docs/development/config-centralization.md`); they stay readable at call time for the namespace-replacement tests and can be centralized once the tests inject explicitly |
 | `logging_config.configure_logging` mutates global logging state | CLI bootstrap by design; tests pass an explicit `--log-file` below their temporary directory |
 
