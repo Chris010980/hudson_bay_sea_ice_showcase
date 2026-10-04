@@ -40,11 +40,11 @@ or extends them.
 
 | ID    | Check                            | Location                                                               | Severity      | Classification    | Justification / Reference                                                                                                                                                                                                                                                                              |
 | ----- | -------------------------------- | ---------------------------------------------------------------------- | ------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| S-001 | F401 (unused import)             | `src/data_download/…` (`from os import link`)                          | error         | `defer` (V0.2-07) | Genuine defect, already documented as F-012 (tests/Findings.md). Removal is a production-code change; scheduled with the F-009–F-012 downloader family rather than inside a tooling issue.                                                                                                             |
+| S-001 | F401 (unused import)             | `src/data_download/…` (`from os import link`)                          | error         | `fix` (#39)       | Resolved in #39: import removed, F-012 closed. The functional downloader findings (F-009 … F-011) remain open for the V0.2-07 CLI work.                                                                                                                                                                |
 | S-002 | E402 (import not at top of file) | `src/update/build_pages.py`                                            | error         | `defer` (V0.2-07) | The module assigns `logger` before the last import; related to the dead CLI contract documented as F-020. Trivial reorder, but a production-code change — scheduled with the build\_pages cleanup.                                                                                                     |
 | S-003 | F811 (duplicate import)          | `tests/conftest.py`                                                    | error         | `fix`             | Test infrastructure file, no production code; `Path` and `pytest` are imported twice. Safe isolated cleanup during #36.                                                                                                                                                                                |
 | S-004 | dead code (attribute, deep pass) | `src/visualization/timeseries_plot.py` (`polar_output_dir`)            | informational | `fix` (#38)       | Re-triaged in #38 as genuinely unused (F-017): the attribute is never read in `src/` or `tests/`; the issue #32 tests pin the polar products in the timeseries directory. Attribute and whitelist entry removed; F-017 resolved (behavior unchanged).                                                  |
-| S-005 | F401 (unused import)             | `src/analysis/timeseries_analyzer.py:19` (`from curses import window`) | error         | `defer` (V0.2-07) | Genuine defect: IDE auto-import of the `curses.window` type triggered by the `window: int = 3` parameter. Unused in the module and a hard `ModuleNotFoundError` on Windows (curses is Unix-only). Production code — scheduled with the V0.2-07 cleanup instead of a silent fix inside a tooling issue. |
+| S-005 | F401 (unused import)             | `src/analysis/timeseries_analyzer.py:19` (`from curses import window`) | error         | `fix` (#39)       | Resolved in #39: import removed, F-004 closed; the module now also imports cleanly on Windows.                                                                                                                                                                                                         |
 
 ---
 
@@ -78,12 +78,12 @@ exception, or a V0.2-07 deferral):
 | S-008 | F811/F401 (test side)                                    | `tests/conftest.py:11,12`; `tests/component/test_timeseries_event_window.py:36`                               | error    | `fix` (#36)                | Duplicate `Path`/`pytest` imports (confirms S-003) and one unused `pytest` import. Test infrastructure, no production code.                                                                                                                                 |
 | S-009 | B905 (`zip()` without `strict=`)                         | 13× in `tests/conftest.py` and 8 test modules                                                                 | warning  | `fix` (#36)                | Adding `strict=True` turns silent length mismatches into hard errors; the green 148-test suite proves the lengths currently match, so the change is behavior-neutral today and protective tomorrow.                                                         |
 | S-010 | B007 (loop variable `region` unused)                     | `reference_builder.py:165,226`; `timeseries_analyzer.py:325`                                                  | warning  | `fix` (transition commit)  | Auto-fix rename to `_region`; semantically empty.                                                                                                                                                                                                           |
-| S-011 | F401 ×2 + F402                                           | `src/data_download/downloader.py:10,12,455`                                                                   | error    | `defer` (V0.2-07) + `noqa` | Confirms S-001/F-012: unused `from os import link`, unused `shutil`, and `link` shadowed by a loop variable. Deliberately **not** auto-removed — belongs to the planned downloader cleanup (F-009…F-012).                                                   |
-| S-012 | F401 ×2 + F811                                           | `src/update/update_pipeline.py:11,14,50`                                                                      | error    | `defer` (V0.2-07) + `noqa` | Unused `datetime.date`; unused module import `downloader`; the local `downloader = NSIDCDownloader()` (line 50) shadows that import. Consistent wiring, but the import/naming cleanup belongs to the pipeline redesign (cf. F-015), not to a tooling issue. |
-| S-013 | F401 + F811                                              | `timeseries_analyzer.py:19,304`                                                                               | error    | `defer` (V0.2-07) + `noqa` | Confirms S-005: stray `curses.window` import; the `window: int = 3` parameter then shadows it.                                                                                                                                                              |
-| S-014 | F401                                                     | `src/analysis/reference_builder.py:13`                                                                        | error    | `defer` (V0.2-07) + `noqa` | Unused `rasterio.crs.CRS`; removal scheduled with the analysis-stage cleanup.                                                                                                                                                                               |
-| S-015 | F841                                                     | `timeseries_analyzer.py:948` (`default_freezeup_window`)                                                      | error    | `defer` (V0.2-07) + `noqa` | **Bug suspect:** the default freeze-up search window is computed via `_get_event_window()` but never used — possible missing wiring in the event search. Protected by the #25/#27 event-window tests as-is; requires semantic review before any change.     |
-| S-016 | F841                                                     | `geotiff_plot.py:495` (`subtitle`)                                                                            | error    | `defer` (V0.2-07) + `noqa` | Same computed-but-never-applied pattern (a subtitle that never reaches the figure); candidate for missing wiring in the map plotting.                                                                                                                       |
+| S-011 | F401 ×2 + F402                                           | `src/data_download/downloader.py:10,12,455`                                                                   | error    | `fix` (#39)                | Resolved in #39: `from os import link` (F-012) and `import shutil` removed; with the import gone, the loop variable no longer shadows it and the F402 directive was removed with it.                                                                        |
+| S-012 | F401 ×2 + F811                                           | `src/update/update_pipeline.py:11,14,50`                                                                      | error    | `fix` (#39)                | Resolved in #39: unused `datetime.date` dropped from the import; the unused module import `downloader` was removed, which also resolves the F811 shadowing of the local `downloader = NSIDCDownloader()`.                                                   |
+| S-013 | F401 + F811                                              | `timeseries_analyzer.py:19,304`                                                                               | error    | `fix` (#39)                | Resolved in #39: stray `curses.window` import removed (F-004 closed, S-005 resolved); the `window: int = 3` parameter no longer shadows it.                                                                                                                 |
+| S-014 | F401                                                     | `src/analysis/reference_builder.py:13`                                                                        | error    | `fix` (#39)                | Resolved in #39: unused `rasterio.crs.CRS` import removed.                                                                                                                                                                                                  |
+| S-015 | F841                                                     | `timeseries_analyzer.py:948` (`default_freezeup_window`)                                                      | error    | `fix` (#39)                | Semantic review in #39: **not** missing wiring — the dynamic freeze-up adjustment (September-16 check with backward extension to break-up + 1 day) is fully implemented and pinned by `test_dynamic_freezeup_adjustment`. The assignment was a vestige of the pre-dynamic implementation; `_get_event_window()` is side-effect-free, so the removal is behavior-neutral. |
+| S-016 | F841                                                     | `geotiff_plot.py:495` (`subtitle`)                                                                            | error    | `fix` (#39)                | Semantic review in #39: the date subtitle never reaches the figure and no counterpart wiring exists. Dead block removed. A deliberate date subtitle on the overview map would be a showcase feature (#78), to be introduced with its own test.              |
 | S-017 | E402 ×4                                                  | `process_data.py:28`, `timeseries_analyzer.py:28`, `build_pages.py:20` (confirms S-002), `geotiff_plot.py:36` | error    | `defer` (V0.2-07) + `noqa` | Imports after statements. **Not** semantically empty to fix: `process_data.py` bootstraps `sys.path` before importing `src.*`, and the others assign `logger` first — reordering needs a careful per-module review.                                         |
 | S-018 | C901 ×3                                                  | `timeseries_analyzer._find_threshold_crossing` (18), `downloader.sync` (20), `generate_plots.main` (12)       | warning  | `defer` (V0.2-07) + `noqa` | Refactoring three central methods is a semantic change with regression risk; deliberately postponed (policy section 5).                                                                                                                                     |
 | S-019 | F821 + B018                                              | `tests/vulture_whitelist.py:34`                                                                               | error    | `fix` (configuration)      | Not a code defect: the Vulture whitelist intentionally contains bare symbol names. Resolved with a documented per-file-ignore in `pyproject.toml`, not with code changes.                                                                                   |
@@ -143,16 +143,16 @@ permanent, documented exceptions.
 
 Re-triage of `tests/vulture_whitelist.py` (2026-10-04):
 
-* `polar_output_dir` (S-004, F-017): genuinely unused — the
+- `polar_output_dir` (S-004, F-017): genuinely unused — the
   attribute is never read anywhere in `src/` or `tests/`.
   Removed from `src/visualization/timeseries_plot.py` and
   from the whitelist. F-017 is resolved accordingly
   (behavior unchanged; the polar products remain in
   `output/plots/timeseries/`, as pinned by the issue #32
   tests).
-* `synthetic_ocean` (S-020): confirmed justified false
+- `synthetic_ocean` (S-020): confirmed justified false
   positive (pytest fixture injection). Retained.
-* `chunk_size` (S-021): confirmed justified false positive
+- `chunk_size` (S-021): confirmed justified false positive
   (interface fidelity with
   `requests.Response.iter_content`). Retained.
 
@@ -163,6 +163,67 @@ Post-change verification (standard advisory run):
         --min-confidence 90
     # 0 findings against the reduced whitelist
     ```
+
+---
+
+## Unused-Symbol Exception Cleanup (issue #39)
+
+Removal of the `# noqa` exceptions that suppress unused-symbol
+rules (F401/F811/F402/F841; 2026-10-04). Every symbol was
+verified at source level before removal (exactly one
+occurrence: the declaration itself).
+
+Removed (11 directives):
+
+| File | Removed | S-entry |
+| --- | --- | --- |
+| `src/data_download/downloader.py` | `from os import link  # noqa: F401` | S-011 / F-012 |
+| `src/data_download/downloader.py` | `import shutil  # noqa: F401` | S-011 |
+| `src/data_download/downloader.py` | `# noqa: F402` on the `for link in links[:10]` loop | S-011 |
+| `src/update/update_pipeline.py` | `date` in `from datetime import date, timedelta  # noqa: F401` | S-012 |
+| `src/update/update_pipeline.py` | `from src.data_download import downloader  # noqa: F401` | S-012 |
+| `src/update/update_pipeline.py` | `# noqa: F811` on `downloader = NSIDCDownloader()` | S-012 |
+| `src/analysis/timeseries_analyzer.py` | `from curses import window  # noqa: F401` | S-013 / F-004 |
+| `src/analysis/timeseries_analyzer.py` | `# noqa: F811` on the `window: int = 3` parameter | S-013 |
+| `src/analysis/timeseries_analyzer.py` | `default_freezeup_window` block incl. `# noqa: F841, E501` | S-015 |
+| `src/analysis/reference_builder.py` | `from rasterio.crs import CRS  # noqa: F401` | S-014 |
+| `src/visualization/geotiff_plot.py` | subtitle if/else block incl. `# noqa: F841` | S-016 |
+
+Semantic reviews:
+
+- **S-015** (`default_freezeup_window`): not missing wiring —
+  the dynamic freeze-up adjustment (September-16 check,
+  backward extension of the search window to break-up + 1 day)
+  is fully implemented and pinned by
+  `test_dynamic_freezeup_adjustment`. The assignment was a
+  vestige of the pre-dynamic implementation;
+  `_get_event_window()` is side-effect-free, so the removal is
+  behavior-neutral.
+- **S-016** (`subtitle`): the date subtitle never reaches the
+  figure and no counterpart wiring exists. Dead block removed.
+  A deliberate date subtitle on the overview map would be a
+  showcase feature (#78), to be introduced with its own test.
+
+Remaining exceptions after #39 (7 directives, both
+non-unused-symbol rule families, scope of #40):
+
+- S-017 (E402): `process_data.py`, `timeseries_analyzer.py`,
+  `build_pages.py`, `geotiff_plot.py` — imports after
+  statements; reordering requires the per-module review
+  scheduled with #40.
+- S-018 (C901):
+  `timeseries_analyzer._find_threshold_crossing`,
+  `downloader.sync`, `generate_plots.main` — complexity
+  refactoring with regression risk, scope of #40.
+
+Verification:
+
+    ruff check .            # 0 findings
+    ruff format --check .   # green
+    pytest                  # 148 passed
+    grep -rn "noqa" src/    # 7 remaining directives
+    vulture src tests tests/vulture_whitelist.py \
+        --min-confidence 90  # 0 findings
 
 ---
 
@@ -264,3 +325,8 @@ opening line:
   **`src/visualization/generate_plots.py`**
 - line 83: `def main(argv: Sequence[str] | None = None) -> None:  # noqa: C901`  
 (S-018)
+
+Post-#39 state: 11 of these 18 directives were removed in
+issue #39 (see the #39 section above); the 7 remaining
+directives are the S-017 (E402) and S-018 (C901) exceptions,
+tracked with #40.

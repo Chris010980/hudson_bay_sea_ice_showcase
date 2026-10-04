@@ -7,11 +7,10 @@ from __future__ import annotations
 import argparse
 import logging
 from collections.abc import Sequence
-from datetime import date, timedelta  # noqa: F401
+from datetime import timedelta
 
 from src.analysis.process_data import main as process_data
 from src.analysis.results_manager import ResultsManager
-from src.data_download import downloader  # noqa: F401
 from src.data_download.downloader import NSIDCDownloader
 from src.update.build_pages import main as build_pages
 from src.visualization.generate_plots import main as generate_plots
@@ -48,7 +47,7 @@ def main(argv=None):
     if latest is not None:
         start_date = latest + timedelta(days=1)
 
-    downloader = NSIDCDownloader()  # noqa: F811
+    downloader = NSIDCDownloader()
 
     summary = downloader.sync(start_date=start_date)
 

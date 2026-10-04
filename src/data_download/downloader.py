@@ -8,10 +8,8 @@ from __future__ import annotations
 
 import logging
 import re
-import shutil  # noqa: F401
 from dataclasses import dataclass
 from datetime import date
-from os import link  # noqa: F401
 from pathlib import Path
 
 import requests
@@ -497,7 +495,7 @@ class NSIDCDownloader:
             len(links),
         )
 
-        for link in links[:10]:  # noqa: F402
+        for link in links[:10]:
             logger.info(link.get("href"))
 
         return [href for link in links if (href := link.get("href"))]
