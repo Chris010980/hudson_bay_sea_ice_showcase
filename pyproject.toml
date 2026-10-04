@@ -52,6 +52,7 @@ extend-exclude = [
     "output",
     "data",
     "docs",
+    "html",
     "releases",
     ".idea",
     ".venv",

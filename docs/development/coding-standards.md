@@ -532,6 +532,7 @@ In particular:
 * raw downloaded GeoTIFF files are temporary working data,
 * analysis results are persistent project outputs,
 * plots are generated outputs,
+* `html/` is the maintained static website source,
 * `build/` is a generated website artifact.
 
 Generated or temporary files should only be committed when explicitly required by the project.

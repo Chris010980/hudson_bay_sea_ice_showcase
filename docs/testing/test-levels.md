@@ -338,7 +338,7 @@ The spatial plotting chain should be tested analogously using the outputs of the
 The website build should be tested as an integration between the static website source and generated project outputs:
 
 ```text
-docs/
+html/
   +
 output/
   ↓

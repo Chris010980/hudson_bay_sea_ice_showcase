@@ -1,7 +1,7 @@
 """
 Build the GitHub Pages website.
 
-The build step combines the static website located in ``docs/`` with the
+The build step combines the static website located in ``html/`` with the
 latest generated analysis results stored in ``output/`` and creates a
 self-contained ``build/`` directory suitable for GitHub Pages
 deployment.
@@ -17,7 +17,7 @@ from pathlib import Path
 
 from src.config.paths import (
     BUILD_DIR,
-    DOCS_DIR,
+    HTML_DIR,
     OUTPUT_DIR,
 )
 
@@ -66,9 +66,9 @@ def main(argv: Sequence[str] | None = None):
 
     parse_args(argv)
 
-    if not DOCS_DIR.exists():
+    if not HTML_DIR.exists():
         raise FileNotFoundError(
-            f"Website directory not found: {DOCS_DIR}"
+            f"Website directory not found: {HTML_DIR}"
         )
 
     if BUILD_DIR.exists():
@@ -84,7 +84,7 @@ def main(argv: Sequence[str] | None = None):
     logger.info("Copying website.")
 
     copy_directory(
-        DOCS_DIR,
+        HTML_DIR,
         BUILD_DIR,
     )
 

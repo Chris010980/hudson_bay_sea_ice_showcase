@@ -381,7 +381,7 @@ def update_environment(
     analysis_dir = output_dir / "analysis"
     reference_dir = output_dir / "reference"
     filter_dir = reference_dir / "filters"
-    docs_dir = test_environment["root"] / "docs"
+    html_dir = test_environment["root"] / "html"
     build_dir = test_environment["build"]
 
     # Controlled reference products (the build->analysis exchange
@@ -406,8 +406,8 @@ def update_environment(
     )
 
     # Controlled website source.
-    docs_dir.mkdir(parents=True)
-    (docs_dir / "index.html").write_text(
+    html_dir.mkdir(parents=True)
+    (html_dir / "index.html").write_text(
         "<html><body>site</body></html>",
         encoding="utf-8",
     )
@@ -476,7 +476,7 @@ def update_environment(
     )
 
     # Real build stage against isolated directories.
-    monkeypatch.setattr(build_pages_module, "DOCS_DIR", docs_dir)
+    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
     monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
     monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
 

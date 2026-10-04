@@ -197,7 +197,7 @@ tests/Findings.md (fix, document, or whitelist).
   incl. F401/F811/F841), `I` (isort), `B` (bugbear),  
   `UP` (pyupgrade), `C901` (complexity gate),
     - excludes for non-source trees (`build/`, `output/`,  
-  `data/`, `.venv/`, `docs/`).
+  `data/`, `.venv/`, `docs/`, `html/`).
 
     **Advisory (report, triage, whitelist — not gate):**
 

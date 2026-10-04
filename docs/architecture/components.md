@@ -363,7 +363,7 @@ src/update/build_pages.py
 Creates the static deployment artifact by combining:
 
 ```text
-docs/
+html/
 output/
 ```
 
@@ -495,7 +495,7 @@ spatial plots
 Website generation consumes the static website source and generated project output:
 
 ```text
-docs/ ──────────┐
+html/ ──────────┐
                 ▼
              build_pages
                 ▲

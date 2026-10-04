@@ -138,8 +138,8 @@ the analyzed code.
 ## 7. Exclusions
 
 Static analysis applies to Python source only. Excluded from  
-all checks: `build/`, `output/`, `data/`, `docs/`, `releases/`,  
-`.idea/`, `.venv/`.
+all checks: `build/`, `output/`, `data/`, `docs/`, `html/`,
+`releases/`, `.idea/`, `.venv/`.
 
 Cleanup behavior and scientific data trees are covered by the  
 test suite (test-levels.md, section 8), not by linting.

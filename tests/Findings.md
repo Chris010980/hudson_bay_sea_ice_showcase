@@ -525,13 +525,13 @@ make `--clean` the opt-out it documents) or remove them
 **Component:** `src/update/build_pages.py` (`copy_directory()`,  
 `main()`)
 
-**Finding:** `main()` guards `DOCS_DIR` with an explicit  
+**Finding:** `main()` guards `HTML_DIR` with an explicit  
 `FileNotFoundError`, but not `OUTPUT_DIR`: if the output  
 directory is missing, `copy_directory()` only logs a warning  
 and the build succeeds, silently deploying a website without  
 any scientific products (`build/output/` is absent).
 
-Related design note: `DOCS_DIR`, `OUTPUT_DIR` and `BUILD_DIR`  
+Related design note: `HTML_DIR`, `OUTPUT_DIR` and `BUILD_DIR`  
 are definition-time module constants of the same  
 non-injectable family as F-010, F-013, F-015 and F-018; the  
 issue #33 tests redirect them with `monkeypatch.setattr` on  
@@ -541,7 +541,15 @@ the `build_pages` module.
 document the tolerance explicitly as intended behavior  
 (milestone V0.2-07).
 
----
+**Status update (#77, 2026-10-04):** path update only. The
+static website source moved from `docs/` to the dedicated
+top-level `html/` folder (`HTML_DIR` in `src/config/paths.py`);
+`docs/` now contains only the project documentation, and
+`build/` remains the generated GitHub Pages artifact. The
+namespace seam and the tolerated missing-`output/` behavior
+are unchanged; the finding stays open (decision F-029).
+
+* * *
 
 ## Documentation Audit (2026-10-03, issue #75)
 
