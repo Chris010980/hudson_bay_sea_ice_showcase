@@ -11,7 +11,7 @@ from pathlib import Path
 
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import matplotlib
+import matplotlib as mpl
 import matplotlib.colors as mcolors
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
@@ -25,8 +25,7 @@ from src.config.paths import (
     resolve_project_path,
 )
 
-matplotlib.use("Agg")
-
+mpl.use("Agg")
 
 os.environ.setdefault("PROJ_LIB", pyproj.datadir.get_data_dir())
 os.environ.setdefault("GDAL_DATA", pyproj.datadir.get_data_dir())
@@ -36,8 +35,6 @@ DEFAULT_OUTPUT_PLOT_PATH = (
     PROJECT_ROOT / "output" / "plots" / "sea_ice_geotiff_overview.png"
 )
 logger = logging.getLogger(__name__)
-
-import matplotlib as mpl  # noqa: E402
 
 mpl.rcParams.update(
     {

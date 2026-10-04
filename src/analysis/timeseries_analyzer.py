@@ -22,9 +22,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.config.paths import PROJECT_ROOT
+
 logger = logging.getLogger(__name__)
 
-from src.config.paths import PROJECT_ROOT  # noqa: E402
 
 DEFAULT_RESULTS = (
     PROJECT_ROOT / "output" / "analysis" / "ice_coverage_summary.csv"
@@ -479,7 +480,7 @@ class TimeSeriesAnalyzer:
     # ---------------------------------------------------------
     # Freeze-up and break-up events
     # ---------------------------------------------------------
-    def _find_threshold_crossing(  # noqa: C901
+    def _find_threshold_crossing(
         self,
         df: pd.DataFrame,
         column: str,
@@ -507,7 +508,8 @@ class TimeSeriesAnalyzer:
 
         persistence:
             Number of consecutive calendar days for which the
-            value must remain on the target side of the threshold.
+            value must remain on the target side of the
+            threshold.
 
         Returns
         -------
@@ -527,154 +529,187 @@ class TimeSeriesAnalyzer:
                 f"Unknown threshold direction: {direction}"
             )
 
-        # ---------------------------------------------------------
-        # Prepare data
-        # ---------------------------------------------------------
+        data = self._prepare_crossing_data(df, column)
 
-        data = df[
-            [
-                "date",
-                column,
-            ]
-        ].copy()
+        if data is None:
+            return None
 
-        data["date"] = pd.to_datetime(
-            data["date"],
-            errors="coerce",
-        )
+        for start_idx in range(1, len(data)):
+            crossing_date = self._persistent_crossing_at(
+                data=data,
+                start_idx=start_idx,
+                column=column,
+                threshold=threshold,
+                direction=direction,
+                persistence=persistence,
+            )
+
+            if crossing_date is not None:
+                return crossing_date
+
+        return None
+
+    @staticmethod
+    def _prepare_crossing_data(
+        df: pd.DataFrame,
+        column: str,
+    ) -> pd.DataFrame | None:
+        """
+        Extract, clean, and sort the columns used in a
+        threshold search. Return ``None`` if no valid
+        observations remain.
+        """
+
+        data = df[["date", column]].copy()
+
+        data["date"] = pd.to_datetime(data["date"], errors="coerce")
 
         data[column] = pd.to_numeric(
             data[column],
             errors="coerce",
         )
 
-        data.dropna(
-            subset=[
-                "date",
-                column,
-            ],
-            inplace=True,
-        )
+        data.dropna(subset=["date", column], inplace=True)
 
-        data.sort_values(
-            "date",
-            inplace=True,
-        )
+        data.sort_values("date", inplace=True)
 
-        data.reset_index(
-            drop=True,
-            inplace=True,
-        )
+        data.reset_index(drop=True, inplace=True)
 
         if data.empty:
             return None
 
-        # ---------------------------------------------------------
-        # Search for actual threshold crossings
-        # ---------------------------------------------------------
+        return data
 
-        for start_idx in range(
-            1,
-            len(data),
+    def _persistent_crossing_at(
+        self,
+        data: pd.DataFrame,
+        start_idx: int,
+        column: str,
+        threshold: float,
+        direction: str,
+        persistence: int,
+    ) -> pd.Timestamp | None:
+        """
+        Return the crossing date if a persistent threshold
+        crossing starts at ``start_idx``; otherwise ``None``.
+        """
+
+        previous = data.iloc[start_idx - 1]
+        current = data.iloc[start_idx]
+
+        # A crossing must occur between consecutive calendar
+        # days.
+
+        if current["date"] - previous["date"] != pd.Timedelta(days=1):
+            return None
+
+        y0 = previous[column]
+        y1 = current[column]
+
+        if not self._crossed_between(y0, y1, threshold, direction):
+            return None
+
+        segment = self._persistent_segment(
+            data,
+            start_idx,
+            persistence,
+        )
+
+        if segment is None:
+            return None
+
+        if not self._segment_is_persistent(
+            segment,
+            column,
+            threshold,
+            direction,
         ):
-            previous = data.iloc[start_idx - 1]
-            current = data.iloc[start_idx]
+            return None
 
-            # -----------------------------------------------------
-            # Crossing must occur between consecutive calendar days.
-            # -----------------------------------------------------
+        # Valid persistent crossing found: interpolate between
+        # the observations immediately surrounding the
+        # threshold. An observation exactly on the threshold
+        # is returned as-is (F-008); the two unreachable
+        # branches documented in F-008 (``y0 == threshold`` and
+        # ``y1 == y0``) were removed in issue #40 — the crossing
+        # conditions already exclude them.
 
-            if current["date"] - previous["date"] != pd.Timedelta(
-                days=1
-            ):
-                continue
+        if y1 == threshold:
+            return current["date"]
 
-            y0 = previous[column]
-            y1 = current[column]
+        fraction = (threshold - y0) / (y1 - y0)
 
-            # -----------------------------------------------------
-            # Determine whether an actual crossing occurred.
-            # -----------------------------------------------------
+        if not 0.0 <= fraction <= 1.0:
+            return None
 
-            if direction == "down":
-                crossed = y0 > threshold and y1 <= threshold
+        delta = current["date"] - previous["date"]
 
-            else:  # direction == "up"
-                crossed = y0 < threshold and y1 >= threshold
+        return previous["date"] + fraction * delta
 
-            if not crossed:
-                continue
+    @staticmethod
+    def _crossed_between(
+        y0: float,
+        y1: float,
+        threshold: float,
+        direction: str,
+    ) -> bool:
+        """
+        Return whether the values cross the threshold in the
+        requested direction between two consecutive days.
+        """
 
-            # -----------------------------------------------------
-            # Check persistence.
-            #
-            # The crossing day itself counts as the first
-            # persistence day.
-            # -----------------------------------------------------
+        if direction == "down":
+            return y0 > threshold and y1 <= threshold
 
-            end_idx = start_idx + persistence
+        return y0 < threshold and y1 >= threshold
 
-            if end_idx > len(data):
-                continue
+    @staticmethod
+    def _persistent_segment(
+        data: pd.DataFrame,
+        start_idx: int,
+        persistence: int,
+    ) -> pd.DataFrame | None:
+        """
+        Return the persistence window starting at
+        ``start_idx``, or ``None`` if the data ends too early.
+        The crossing day itself counts as the first
+        persistence day.
+        """
 
-            persistent_segment = data.iloc[start_idx:end_idx]
+        end_idx = start_idx + persistence
 
-            if len(persistent_segment) < persistence:
-                continue
+        if end_idx > len(data):
+            return None
 
-            # -----------------------------------------------------
-            # All persistence observations must be consecutive
-            # calendar days.
-            # -----------------------------------------------------
+        segment = data.iloc[start_idx:end_idx]
 
-            date_deltas = persistent_segment["date"].diff().dropna()
+        if len(segment) < persistence:
+            return None
 
-            if not date_deltas.eq(pd.Timedelta(days=1)).all():
-                continue
+        return segment
 
-            # -----------------------------------------------------
-            # Check persistence on the required side.
-            # -----------------------------------------------------
+    @staticmethod
+    def _segment_is_persistent(
+        segment: pd.DataFrame,
+        column: str,
+        threshold: float,
+        direction: str,
+    ) -> bool:
+        """
+        Return whether the segment days are consecutive
+        calendar days and all remain on the target side of
+        the threshold.
+        """
 
-            if direction == "down":
-                persistent = (
-                    persistent_segment[column] <= threshold
-                ).all()
+        date_deltas = segment["date"].diff().dropna()
 
-            else:
-                persistent = (
-                    persistent_segment[column] >= threshold
-                ).all()
+        if not date_deltas.eq(pd.Timedelta(days=1)).all():
+            return False
 
-            if not persistent:
-                continue
+        if direction == "down":
+            return (segment[column] <= threshold).all()
 
-            # -----------------------------------------------------
-            # Valid persistent crossing found.
-            #
-            # Interpolate between the observations immediately
-            # surrounding the threshold.
-            # -----------------------------------------------------
-
-            if y0 == threshold:
-                return previous["date"]
-
-            if y1 == threshold:
-                return current["date"]
-
-            if y1 == y0:
-                return current["date"]
-
-            fraction = (threshold - y0) / (y1 - y0)
-
-            if not 0.0 <= fraction <= 1.0:
-                continue
-
-            delta = current["date"] - previous["date"]
-
-            return previous["date"] + fraction * delta
-
-        return None
+        return (segment[column] >= threshold).all()
 
     def _get_event_window(
         self,

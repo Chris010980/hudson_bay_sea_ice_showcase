@@ -6,6 +6,7 @@ import argparse
 import logging
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
@@ -23,9 +24,6 @@ from src.config.logging_config import (
 from src.config.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
-
-
-from dataclasses import dataclass  # noqa: E402
 
 
 @dataclass(slots=True)

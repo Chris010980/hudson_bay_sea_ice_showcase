@@ -41,7 +41,7 @@ or extends them.
 | ID    | Check                            | Location                                                               | Severity      | Classification    | Justification / Reference                                                                                                                                                                                                                                                                              |
 | ----- | -------------------------------- | ---------------------------------------------------------------------- | ------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | S-001 | F401 (unused import)             | `src/data_download/…` (`from os import link`)                          | error         | `fix` (#39)       | Resolved in #39: import removed, F-012 closed. The functional downloader findings (F-009 … F-011) remain open for the V0.2-07 CLI work.                                                                                                                                                                |
-| S-002 | E402 (import not at top of file) | `src/update/build_pages.py`                                            | error         | `defer` (V0.2-07) | The module assigns `logger` before the last import; related to the dead CLI contract documented as F-020. Trivial reorder, but a production-code change — scheduled with the build\_pages cleanup.                                                                                                     |
+| S-002 | E402 (import not at top of file) | `src/update/build_pages.py`                                            | error         | `fix` (#40)       | Resolved in #40: the import was reordered above the `logger` assignment. The related dead CLI contract (F-020) remains open with the #74 CLI work.                                                                                                                                                     |
 | S-003 | F811 (duplicate import)          | `tests/conftest.py`                                                    | error         | `fix`             | Test infrastructure file, no production code; `Path` and `pytest` are imported twice. Safe isolated cleanup during #36.                                                                                                                                                                                |
 | S-004 | dead code (attribute, deep pass) | `src/visualization/timeseries_plot.py` (`polar_output_dir`)            | informational | `fix` (#38)       | Re-triaged in #38 as genuinely unused (F-017): the attribute is never read in `src/` or `tests/`; the issue #32 tests pin the polar products in the timeseries directory. Attribute and whitelist entry removed; F-017 resolved (behavior unchanged).                                                  |
 | S-005 | F401 (unused import)             | `src/analysis/timeseries_analyzer.py:19` (`from curses import window`) | error         | `fix` (#39)       | Resolved in #39: import removed, F-004 closed; the module now also imports cleanly on Windows.                                                                                                                                                                                                         |
@@ -84,8 +84,8 @@ exception, or a V0.2-07 deferral):
 | S-014 | F401                                                     | `src/analysis/reference_builder.py:13`                                                                        | error    | `fix` (#39)                | Resolved in #39: unused `rasterio.crs.CRS` import removed.                                                                                                                                                                                                  |
 | S-015 | F841                                                     | `timeseries_analyzer.py:948` (`default_freezeup_window`)                                                      | error    | `fix` (#39)                | Semantic review in #39: **not** missing wiring — the dynamic freeze-up adjustment (September-16 check with backward extension to break-up + 1 day) is fully implemented and pinned by `test_dynamic_freezeup_adjustment`. The assignment was a vestige of the pre-dynamic implementation; `_get_event_window()` is side-effect-free, so the removal is behavior-neutral. |
 | S-016 | F841                                                     | `geotiff_plot.py:495` (`subtitle`)                                                                            | error    | `fix` (#39)                | Semantic review in #39: the date subtitle never reaches the figure and no counterpart wiring exists. Dead block removed. A deliberate date subtitle on the overview map would be a showcase feature (#78), to be introduced with its own test.              |
-| S-017 | E402 ×4                                                  | `process_data.py:28`, `timeseries_analyzer.py:28`, `build_pages.py:20` (confirms S-002), `geotiff_plot.py:36` | error    | `defer` (V0.2-07) + `noqa` | Imports after statements. **Not** semantically empty to fix: `process_data.py` bootstraps `sys.path` before importing `src.*`, and the others assign `logger` first — reordering needs a careful per-module review.                                         |
-| S-018 | C901 ×3                                                  | `timeseries_analyzer._find_threshold_crossing` (18), `downloader.sync` (20), `generate_plots.main` (12)       | warning  | `defer` (V0.2-07) + `noqa` | Refactoring three central methods is a semantic change with regression risk; deliberately postponed (policy section 5).                                                                                                                                     |
+| S-017 | E402 ×4                                                  | `process_data.py:28`, `timeseries_analyzer.py:28`, `build_pages.py:20` (confirms S-002), `geotiff_plot.py:36` | error    | `fix` (#40)                | Resolved in #40: all four directives removed by reordering the imports; behavior-neutral. The `sys.path` bootstrap in `process_data.py` is retained — it must precede the `src.*` imports for direct script execution (ruff tolerates the pattern).         |
+| S-018 | C901 ×3                                                  | `timeseries_analyzer._find_threshold_crossing` (18), `downloader.sync` (20), `generate_plots.main` (12)       | warning  | `fix` (#40, 2 of 3)        | Resolved in #40 for two of three: `sync` and `_find_threshold_crossing` decomposed into private helpers (complexity 8 and 7); both directives removed, behavior pinned by the #28 and #26 test suites. `generate_plots.main` is re-triaged as CLI wiring — scope of the #74 CLI restructure; its directive is removed with the restructured dispatcher. |
 | S-019 | F821 + B018                                              | `tests/vulture_whitelist.py:34`                                                                               | error    | `fix` (configuration)      | Not a code defect: the Vulture whitelist intentionally contains bare symbol names. Resolved with a documented per-file-ignore in `pyproject.toml`, not with code changes.                                                                                   |
 
 **Resulting end state of #36:** after the transition commit,  
@@ -222,6 +222,64 @@ Verification:
     ruff format --check .   # green
     pytest                  # 148 passed
     grep -rn "noqa" src/    # 7 remaining directives
+    vulture src tests tests/vulture_whitelist.py \
+        --min-confidence 90  # 0 findings
+
+---
+
+## Maintainability Hotspot Refactoring (issue #40)
+
+Reduction of the `# noqa` exceptions remaining after #39
+(2026-10-04): the four E402 directives (S-017) and two of the
+three C901 directives (S-018).
+
+E402 — imports after statements (all four resolved by
+reordering, no behavior change):
+
+- `process_data.py`: `from dataclasses import dataclass`
+  moved into the top stdlib block; the `sys.path` bootstrap
+  pattern is retained.
+- `timeseries_analyzer.py`: the `src.config.paths` import
+  moved above the `logger` assignment.
+- `build_pages.py`: the `src.config.paths` import block
+  moved above the `logger` assignment (also closes S-002).
+- `geotiff_plot.py`: the late `import matplotlib as mpl`
+  consolidated into the top import block;
+  `matplotlib.use("Agg")` is now called via the `mpl` alias.
+
+C901 — complexity hotspots (decomposed, behavior pinned by
+the existing suites):
+
+- `NSIDCDownloader.sync` (was 20): decomposed into
+  `_year_in_range`, `_month_in_range`,
+  `_remote_files_in_range`, `_missing_files`,
+  `_log_month_comparison`, and `_download_missing`; `sync`
+  now has complexity 8. Covered by the 11 downloader tests
+  (#28), including date-range, dry-run, and failure paths.
+- `TimeSeriesAnalyzer._find_threshold_crossing`
+  (was 18): decomposed into `_prepare_crossing_data`,
+  `_persistent_crossing_at`, `_crossed_between`,
+  `_persistent_segment`, and `_segment_is_persistent`;
+  complexity 7. The two unreachable branches documented in
+  F-008 (`y0 == threshold`, `y1 == y0`) were removed; the
+  reachable `y1 == threshold` branch is preserved (pinned by
+  `test_exact_threshold_observation`). Covered by the 10
+  threshold-crossing tests (#26).
+
+Remaining exception after #40 (1 directive):
+
+- `generate_plots.main` (`# noqa: C901`, S-018): CLI mode
+  wiring — re-triaged as the scope of the #74 CLI
+  restructure; the directive is removed with the
+  restructured dispatcher (see F-019/F-025).
+
+Post-change verification:
+
+    ruff check .            # 0 findings
+    ruff format --check .   # green
+    pytest                  # 148 passed
+    grep -rn "noqa" src/    # exactly 1 directive remains
+    radon cc src -s -n C   # only generate_plots.main (rank C)
     vulture src tests tests/vulture_whitelist.py \
         --min-confidence 90  # 0 findings
 
