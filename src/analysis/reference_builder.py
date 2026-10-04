@@ -13,7 +13,6 @@ import numpy as np
 import rasterio
 from matplotlib.path import Path as MplPath
 from pyproj import Transformer
-from rasterio.crs import CRS  # noqa: F401
 from shapely.geometry import Polygon
 
 from src.config.paths import PROJECT_ROOT

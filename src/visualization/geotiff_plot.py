@@ -499,11 +499,6 @@ class SeaIcePlotter:
 
         title = title or "Hudson Bay Sea Ice Concentration"
 
-        if self.date is not None:
-            subtitle = self.date.strftime("%d %B %Y")
-        else:
-            subtitle = ""  # noqa: F841
-
         self.fig.text(
             0.5,
             0.975,

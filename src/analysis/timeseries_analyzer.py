@@ -17,7 +17,6 @@ can be added without changing the processing pipeline.
 from __future__ import annotations
 
 import logging
-from curses import window  # noqa: F401
 from pathlib import Path
 
 import numpy as np
@@ -254,7 +253,7 @@ class TimeSeriesAnalyzer:
 
     def calculate_moving_average(
         self,
-        window: int = 3,  # noqa: F811
+        window: int = 3,
     ):
 
         logger.info(
@@ -836,18 +835,6 @@ class TimeSeriesAnalyzer:
                     df_region=df_region,
                     event_year=event_year,
                     event_type="break-up",
-                )
-
-                # =================================================
-                # FREEZE-UP DEFAULT WINDOW
-                #
-                # 16 September -> 15 March
-                # =================================================
-
-                default_freezeup_window = self._get_event_window(  # noqa: F841, E501
-                    df_region=df_region,
-                    event_year=event_year,
-                    event_type="freeze-up",
                 )
 
                 # -------------------------------------------------

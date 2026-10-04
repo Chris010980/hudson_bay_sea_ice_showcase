@@ -24,7 +24,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-001 | #20   | ResultsManager                      | bug       | fixed      |
 | F-002 | #20   | ResultsManager                      | bug       | fixed      |
 | F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open       |
-| F-004 | #21   | TimeSeriesAnalyzer                  | design    | open       |
+| F-004 | #21   | TimeSeriesAnalyzer                  | design    | fixed      |
 | F-005 | #21   | TimeSeriesAnalyzer                  | design    | open       |
 | F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented |
 | F-007 | #25   | TimeSeriesPlotter                   | design    | open       |
@@ -32,7 +32,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | open       |
 | F-010 | #28   | NSIDCDownloader                     | design    | open       |
 | F-011 | #28   | NSIDCDownloader                     | design    | open       |
-| F-012 | #28   | NSIDCDownloader                     | design    | open       |
+| F-012 | #28   | NSIDCDownloader                     | design    | fixed      |
 | F-013 | #29   | ReferenceBuilder                    | design    | open       |
 | F-014 | #30   | update\_pipeline                    | bug       | open       |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | open       |
@@ -112,6 +112,9 @@ observations unchanged) and does not assert the gap edges.
 to import on Windows.
 
 **Recommendation:** remove the import line.
+
+**Resolution (#39, 2026-10-04):** import removed; the module  
+now also imports cleanly on Windows (S-005 / S-013 closed).
 
 ## F-005 — `save()` return annotation does not match the return value
 
@@ -282,6 +285,11 @@ same pattern as F-004). Harmless because `os` is always
 available, but dead code.
 
 **Recommendation:** remove the import line.
+
+**Resolution (#39, 2026-10-04):** import removed together  
+with the undocumented companion `import shutil` (S-011);  
+the loop-variable shadowing (F402) resolved itself with  
+the removal.
 
 ## F-013 — ReferenceBuilder writes to non-injectable module constants
 
@@ -533,7 +541,7 @@ references in this audit section were updated accordingly.
 | F-001 | `test_duplicate_date_region_observations_keep_last`, `test_incremental_add_preserves_existing_observations` (`tests/component/test_results_manager.py`) | mapping verified |
 | F-002 | none referenced (fixed during v0.2) | as documented |
 | F-003 | gap tests in `tests/component/test_timeseries_calendar.py` | mapping verified; gap edges → F-030 |
-| F-004 | none — import retained as `# noqa: F401` | see audit notes |
+| F-004 | none — import removed in #39; no test required | resolved (#39) |
 | F-005 | none — `save()` return tuple unasserted | gap → F-026 |
 | F-006 | `timeseries_paths` fixture in `tests/conftest.py` (eager `analysis_dir.mkdir()`, documented) | mapping verified |
 | F-007 | none — trend/R² not testable yet | gap → F-026 |
@@ -541,7 +549,7 @@ references in this audit section were updated accordingly.
 | F-009 | none — CLI wiring untested and currently broken | gap → F-023 |
 | F-010 | `test_delete_local_data` (`tests/component/test_nsidc_downloader.py`) | mapping verified |
 | F-011 | `test_download_error_is_reported_and_leaves_no_file` | mapping verified; remaining paths → F-023 |
-| F-012 | none — import retained as `# noqa: F401` | see audit notes |
+| F-012 | none — import removed in #39; no test required | resolved (#39) |
 | F-013 | 14 tests in `tests/component/test_reference_builder.py` | mapping verified |
 | F-014 | none — first-run path deliberately untested (issue #30 covered incremental only) | gap → F-027 |
 | F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
@@ -554,12 +562,11 @@ references in this audit section were updated accordingly.
 
 Audit notes:
 
-- **F-004 / F-012 are not resolved**: both stray imports are still
-  present in the source, now guarded as documented
-  `# noqa: F401` exceptions. Their removal is tracked by the
-  static-analysis backlog (S-011 … S-018, issues #39/#40). The
-  downloader module also carries a third such exception
-  (`import shutil  # noqa: F401`) that has no F-entry of its own.
+- **F-004 / F-012 resolved in #39**: both stray imports were
+  removed together with the undocumented third exception
+  (`import shutil`, tracked by S-011). The remaining `noqa`
+  exceptions (S-017 E402, S-018 C901) suppress other rule
+  families and are handled by #40.
 - **F-019**: the cosmetic `--regions` help-text line break is
   resolved in the current source; the functional parts (return
   value, `--output` in "all" mode) remain open and are now
