@@ -506,10 +506,19 @@ document the tolerance explicitly as intended behavior
 ## Documentation Audit (2026-10-03, issue #75)
 
 Cross-check of this document against the actual test suite:
-24 test files (1 unit, 18 component, 5 integration), 148 tests,
-plus the shared fixtures in `tests/conftest.py`. Release-level
-documentation (Test Strategy, Coverage) is maintained separately
-in V0.2-08 (#42).
+24 test files (1 unit, 4 fixture, 14 component, 5
+integration; layout after the #76 reorganization),
+148 tests, plus the shared fixtures in `tests/conftest.py`.
+Release-level documentation (Test Strategy, Coverage) is
+maintained separately in V0.2-08 (#42).
+
+Layout update (2026-10-03, issue #76): the four fixture
+verification files moved from `tests/component/` to the new
+`tests/fixture_tests/` directory, and
+`tests/integration/test_generate_plots.py` was renamed to
+`test_generate_plots.py` (typo fix). No test logic changed;
+the suite still comprises 148 tests in 24 files. The path
+references in this audit section were updated accordingly.
 
 ### Entry verification (F-001 … F-021)
 
@@ -532,8 +541,8 @@ in V0.2-08 (#42).
 | F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
 | F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py` | mapping verified; masking scenario → F-028 |
 | F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | mapping verified |
-| F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_gernerate_plots.py` (3) | mapping verified |
-| F-019 | `tests/integration/test_gernerate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |
+| F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) | mapping verified |
+| F-019 | `tests/integration/test_generate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |
 | F-020 | 6 tests in `tests/integration/test_build_pages.py` | mapping verified; option wiring → F-029 |
 | F-021 | `test_missing_output_directory_is_tolerated` | mapping verified; decision → F-029 |
 
@@ -561,10 +570,10 @@ introducing issues (see file docstrings).
 | Test file | Documented subject | F-entries |
 | --- | --- | --- |
 | `unit/test_smoke.py` | pytest infrastructure | — |
-| `component/test_data_fixtures.py` | deterministic CSV/JSON fixtures | — |
-| `component/test_filesystem_fixtures.py` | `test_environment` isolation | — |
-| `component/test_raster_fixtures.py` | synthetic raster fixture | — |
-| `component/test_region_fixtures.py` | region/reference fixtures | — |
+| `fixture_tests/test_data_fixtures.py` | deterministic CSV/JSON fixtures | — |
+| `fixture_tests/test_filesystem_fixtures.py` | `test_environment` isolation | — |
+| `fixture_tests/test_raster_fixtures.py` | synthetic raster fixture | — |
+| `fixture_tests/test_region_fixtures.py` | region/reference fixtures | — |
 | `component/test_nsidc_downloader.py` | NSIDC downloader (#28) | F-009, F-010, F-011, F-012 |
 | `component/test_reference_builder.py` | ReferenceBuilder (#29) | F-013 |
 | `component/test_region_analyzer.py` | RegionAnalyzer (#18) | — |
@@ -580,21 +589,26 @@ introducing issues (see file docstrings).
 | `component/test_timeseries_threshold_crossing.py` | threshold crossing (#26) | F-008 |
 | `component/test_timeseries_yearly.py` | complete years / annual means (#25) | — |
 | `integration/test_build_pages.py` | Pages build (#33) | F-020, F-021 |
-| `integration/test_gernerate_plots.py` | plot generation CLI (#32) | F-018, F-019 |
+| `integration/test_generate_plots.py` | plot generation CLI (#32) | F-018, F-019 |
 | `integration/test_spatial_processing_chain.py` | spatial processing chain (#29) | F-013, F-015 |
 | `integration/test_update_no_new_data.py` | no-new-data behavior (#31) | F-014, F-015, F-016 |
 | `integration/test_update_pipeline.py` | update orchestration (#30) | F-014, F-015, F-016 |
 
 Audit remarks (for the follow-up issues):
 
-- `tests/integration/test_gernerate_plots.py` — filename typo
-  ("gernerate"); rename candidate for #76.
+- `tests/integration/test_generate_plots.py` — filename typo
+  ("gernerate") resolved by the #76 rename.
 - `src/analysis/process_data.py` (`main()`) calls the private
   `RegionAnalyzer._extract_date()` — design/testability candidate
   for the #73 hard-wiring inventory.
-- Several `tests/component/` files test pure functions only
-  (calendar, moving average, climatology, anomalies) and are
-  candidates for `tests/unit/` — in scope of #76.
+- #76 review outcome: the `tests/component/` files for
+  calendar, moving average, climatology, and anomalies
+  construct `TimeSeriesAnalyzer` and write controlled CSV
+  inputs — they exercise the complete component with real
+  file I/O, not isolated units, and remain component tests.
+  No test met the unit criterion (mocked, no I/O); only the
+  fixture verification tests were moved to
+  `tests/fixture_tests/`.
 
 ### Missing tests (audit backlog F-022 … F-030)
 
