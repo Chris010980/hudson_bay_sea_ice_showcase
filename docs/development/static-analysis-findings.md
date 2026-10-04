@@ -285,6 +285,29 @@ Post-change verification:
 
 ---
 
+## CLI Restructure (issue #74)
+
+The last remaining `# noqa` directive — `generate_plots.main`
+(S-018, C901, complexity 12) — is resolved: the function is
+split into pure argument parsing (`parse_args`), a
+table-driven dispatch (`RUNNERS` with one runner per plot
+mode), and injectable plotter factories (`ts_factory`,
+`map_plotter_factory`, the injection pattern of issue #73).
+
+After issue #74 the exception count in the source tree is
+zero:
+
+    ```text
+    grep -rn "noqa" src/    # no output — 0 documented exceptions
+    ```
+
+With S-018 fully resolved, none of the S-011 … S-018
+documented exceptions remain in the code. The
+documented-exception mechanism of the static-analysis
+policy stays in place for future justified deviations.
+
+---
+
 ## Run Protocol
 
     ```console

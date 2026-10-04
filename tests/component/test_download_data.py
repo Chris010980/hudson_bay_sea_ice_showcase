@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src.config.paths import GEOTIFF_DIR
 from src.config.settings import DEFAULT_PRODUCT
 from src.data_download.download_data import main, parse_args
@@ -139,3 +141,10 @@ def test_main_resolves_relative_output_dir(tmp_path: Path) -> None:
     )
 
     assert stage.construction[0]["local_base"] == GEOTIFF_DIR
+
+
+def test_parse_args_rejects_unknown_option() -> None:
+    """Unknown options are rejected with argparse's exit."""
+
+    with pytest.raises(SystemExit):
+        parse_args(["--no-such-option"])

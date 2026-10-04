@@ -504,6 +504,7 @@ tests/
 │
 ├── component/
 │   ├── test_download_data.py
+│   ├── test_generate_plots_cli.py
 │   ├── test_main.py
 │   ├── test_nsidc_downloader.py
 │   ├── test_process_data.py

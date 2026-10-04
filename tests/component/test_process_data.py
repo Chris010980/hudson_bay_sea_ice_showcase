@@ -26,6 +26,7 @@ from datetime import date
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from src.analysis.process_data import (
     ProcessSummary,
@@ -318,3 +319,10 @@ def test_main_runs_with_injected_dependencies(
     frame = pd.read_csv(csv_path)
 
     assert len(frame) == 1
+
+
+def test_parse_args_rejects_invalid_date() -> None:
+    """Malformed --start-date values are rejected."""
+
+    with pytest.raises(SystemExit):
+        parse_args(["--start-date", "not-a-date"])

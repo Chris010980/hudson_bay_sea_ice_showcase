@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from src.config.logging_config import DEFAULT_LOG_FILE
 from src.main import build_stage_args, main, parse_args
 
@@ -166,3 +168,10 @@ def test_dispatcher_runs_all_stages_in_order(tmp_path: Path) -> None:
     )
 
     assert events == ["download", "process", "plots", "build"]
+
+
+def test_parse_args_rejects_unknown_stage() -> None:
+    """An unknown stage is rejected with argparse's exit."""
+
+    with pytest.raises(SystemExit):
+        parse_args(["inspect"])
