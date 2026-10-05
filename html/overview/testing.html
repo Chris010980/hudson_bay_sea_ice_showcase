@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Testing | Hudson Bay Sea Ice Analysis</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Testing and Quality</h1>
+
+<p class="subtitle">
+
+Static quality snapshot of the Hudson Bay Sea Ice Analysis
+project, maintained on the development side and published as
+part of the showcase.
+
+</p>
+
+<nav>
+
+<a href="../index.html">Home</a>
+<a href="pipeline.html">Pipeline</a>
+<a href="methodology.html">Methodology</a>
+<a href="regions.html">Regions</a>
+<a href="results.html">Results</a>
+<a href="roadmap.html">Roadmap</a>
+<a href="testing.html">Testing</a>
+<a
+href="https://github.com/Chris010980/hudson_bay_sea_ice_showcase"
+target="_blank"
+>
+GitHub
+</a>
+
+</nav>
+
+</header>
+
+<div class="container">
+
+<main>
+
+<section class="info-box">
+
+<h2>Snapshot</h2>
+
+<p>
+
+This page is a deliberately static snapshot of the project's
+testing and quality state. The daily update workflow regener
+ates the scientific products but does not run the test suite,
+so these numbers are maintained manually as part of the
+development workflow.
+
+</p>
+
+<p>
+
+<strong>Snapshot date: 2026-10-05</strong>
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Test Model and Suite</h2>
+
+<p>
+
+The project uses a five-level test model:
+
+</p>
+
+<ul>
+
+<li>unit tests,</li>
+
+<li>component tests,</li>
+
+<li>integration tests,</li>
+
+<li>end-to-end tests,</li>
+
+<li>regression tests.</li>
+
+</ul>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Tests</h3>
+
+<p>182</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Test Files</h3>
+
+<p>28</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Line Coverage</h3>
+
+<p>94 %</p>
+
+</div>
+
+</div>
+
+<p>
+
+The suite is organized into one unit test file, four fixture
+verification files, seventeen component test files and six
+integration test files. All tests run deterministically
+against controlled inputs and require no network access.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Findings Register</h2>
+
+<p>
+
+Dynamic-test findings are tracked with stable identifiers
+(F-001 … F-030). Current status distribution:
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Open</h3>
+
+<p>12</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Partial</h3>
+
+<p>5</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Fixed</h3>
+
+<p>5</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Proposed</h3>
+
+<p>5</p>
+
+</div>
+
+</div>
+
+<p>
+
+The currently open findings:
+
+</p>
+
+<table class="results-table">
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>Subject</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr><td>F-003</td><td>Interpolation fills the gap limit per direction</td></tr>
+
+<tr><td>F-005</td><td>save() return annotation does not match the return value</td></tr>
+
+<tr><td>F-007</td><td>Trend and R² calculation is not testable as a unit</td></tr>
+
+<tr><td>F-008</td><td>Strict-threshold edge in the crossing search</td></tr>
+
+<tr><td>F-009</td><td>CLI passes unsupported arguments to sync()</td></tr>
+
+<tr><td>F-010</td><td>delete_local_data() is hard-wired to DATA_DIR / "geotiff"</td></tr>
+
+<tr><td>F-011</td><td>download_file() writes non-atomically</td></tr>
+
+<tr><td>F-013</td><td>ReferenceBuilder writes to non-injectable module constants</td></tr>
+
+<tr><td>F-014</td><td>First pipeline run crashes with None.isoformat()</td></tr>
+
+<tr><td>F-016</td><td>Local files can mask unprocessed observations</td></tr>
+
+<tr><td>F-020</td><td>The CLI options of build_pages are dead</td></tr>
+
+<tr><td>F-021</td><td>Missing output/ only logs a warning</td></tr>
+
+</tbody>
+
+</table>
+
+<p>
+
+One further finding is explicitly documented as intended
+behavior (F-006), five are partially resolved, two backlog
+items were resolved through refactoring issues (F-022,
+F-024), and five proposed backlog items (F-026 … F-030)
+collect the remaining test gaps for deliberate follow-up.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Static Analysis and Quality Gates</h2>
+
+<p>
+
+The source tree is currently free of documented lint
+exceptions: zero inline noqa directives, zero dead-code
+findings at the advisory vulture confidence threshold, and
+no C-rank complexity hotspots.
+
+</p>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>noqa Directives</h3>
+
+<p>0</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Dead-Code Findings</h3>
+
+<p>0</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>C-Rank Complexities</h3>
+
+<p>0</p>
+
+</div>
+
+</div>
+
+<p>
+
+The mandatory CI quality gates run on every change: lint
+(ruff check), format (ruff format --check) and the test suite
+with coverage (pytest --cov=src). Dead-code analysis (vulture
+with a documented whitelist) runs advisingly.
+
+</p>
+
+</section>
+
+<section class="info-box">
+
+<h2>Maintenance</h2>
+
+<p>
+
+This snapshot is updated on the development side whenever
+findings, test counts or coverage change — it is committed
+website source, not generated content, and the daily update
+workflow never touches this page.
+
+</p>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+© <span id="year"></span> Christian Lurz
+
+</p>
+
+</footer>
+
+</div>
+
+<script>
+document.getElementById("year").textContent =
+new Date().getFullYear();
+</script>
+
+</body>
+
+</html>
