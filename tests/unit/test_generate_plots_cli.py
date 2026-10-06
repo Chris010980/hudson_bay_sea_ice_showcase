@@ -1,4 +1,4 @@
-"""Component tests for the plot generation CLI (issue #74).
+"""Unit tests for the plot generation CLI (issues #74, #97).
 
 The tests verify the command line entry point in
 src/visualization/generate_plots.py (tests/Findings.md, F-019

@@ -102,6 +102,27 @@ Suitable tests include:
 * JSON structure validation,
 * handling of missing or malformed metadata.
 
+### 2.3 Current Unit-Level Suite (V0.2-07)
+
+Since issue #97 the unit level is implemented. `tests/unit/`
+comprises ten files:
+
+* the pytest smoke test,
+* the pure parsing and dispatch tests of the CLI entry points
+  (`test_main.py`, `test_download_data.py`,
+  `test_process_data.py`, `test_generate_plots_cli.py`),
+  created in issues #73/#74 as component tests and
+  reclassified in #97 because they operate on pure functions
+  with explicitly injected collaborators and no I/O beyond
+  pytest's temporary directories,
+* and focused unit tests for the pure helpers extracted in
+  issue #40 and the filename date extraction:
+  `test_downloader_helpers.py`,
+  `test_threshold_crossing_helpers.py`,
+  `test_event_window_bounds.py`,
+  `test_region_analyzer_extract_date.py`,
+  `test_moving_average.py`.
+
 ---
 
 ## 3. Component Tests
@@ -649,17 +670,17 @@ It is not an inventory of tests that already exist.
 
 | Component               |   Unit  | Component | Integration |      E2E     |
 | ----------------------- | :-----: | :-------: | :---------: | :----------: |
-| `main.py`               |    –    |     ✓     |      ✓      |       ✓      |
+| `main.py`               |    ✓    |     ✓     |      ✓      |       ✓      |
 | `NSIDCDownloader`       |    ✓    |     ✓     |      ✓      |      ✓*      |
-| `download_data.py`      | limited |     ✓     |      ✓      |      ✓*      |
+| `download_data.py`      |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `ReferenceBuilder`      |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `RegionAnalyzer`        |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `ResultsManager`        |    ✓    |     ✓     |      ✓      |      ✓*      |
-| `process_data.py`       | limited |     ✓     |      ✓      |       ✓      |
+| `process_data.py`       |    ✓    |     ✓     |      ✓      |       ✓      |
 | `TimeSeriesAnalyzer`    |    ✓    |     ✓     |      ✓      |       ✓      |
 | `SeaIcePlotter`         |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `TimeSeriesPlotter`     |    ✓    |     ✓     |      ✓      |       ✓      |
-| `generate_plots.py`     | limited |     ✓     |      ✓      |       ✓      |
+| `generate_plots.py`     |    ✓    |     ✓     |      ✓      |       ✓      |
 | `update_pipeline.py`    | limited |     ✓     |      ✓      |       ✓      |
 | `build_pages.py`        | limited |     ✓     |      ✓      |       ✓      |
 | GitHub Pages deployment |    –    |     –     |   limited   | dedicated CI |
@@ -667,6 +688,8 @@ It is not an inventory of tests that already exist.
 `*` E2E tests should use controlled or mocked external input rather than depend on the live external service.
 
 The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
+
+Current state (V0.2-07, issue #97): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`) and for the pure analysis and downloader helpers are implemented; see section 2.3.
 
 ---
 

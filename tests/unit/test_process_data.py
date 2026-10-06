@@ -1,4 +1,4 @@
-"""Component tests for the process stage CLI (issue #73).
+"""Unit tests for the process stage CLI (issues #73, #97).
 
 The tests verify the command line entry point in
 src/analysis/process_data.py (tests/Findings.md, F-024):

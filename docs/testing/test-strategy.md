@@ -434,7 +434,7 @@ Particular attention should be given to scientifically and operationally critica
 * `ReferenceBuilder`,
 * incremental update processing.
 
-The detailed coverage policy and measurement procedure are defined in `test-coverage.md`.
+The detailed coverage policy and measurement procedure are defined in `coverage.md`.
 
 The 70% value is an initial project target. It should not be interpreted as evidence that the current implementation already achieves this level.
 
@@ -588,7 +588,7 @@ The test strategy provides the basis for verifying the project's functional and 
 | FR-11 Visualization           | Component / integration tests                  |
 | FR-12 Pipeline                | Integration / E2E tests                        |
 | FR-13 Website                 | Integration / E2E / build validation           |
-| FR-14 CLI                     | Component / integration tests                  |
+| FR-14 CLI                     | Unit / component / integration tests           |
 
 The non-functional requirements are addressed primarily through the combination of automated tests, static analysis, coverage measurement, output validation, and CI quality gates.
 

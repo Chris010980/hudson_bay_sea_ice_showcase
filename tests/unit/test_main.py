@@ -1,4 +1,4 @@
-"""Component tests for the pipeline dispatcher (issue #73).
+"""Unit tests for the pipeline dispatcher (issues #73, #97).
 
 The tests verify the CLI dispatcher in src/main.py
 (tests/Findings.md, F-022):
