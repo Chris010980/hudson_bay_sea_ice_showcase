@@ -71,6 +71,19 @@ class RegionAnalyzer:
 
         return self.results
 
+    def extract_date(self):
+        """Public date extraction for external callers.
+
+        Issue #73: the process stage uses this public wrapper
+        instead of the private ``_extract_date`` helper. The
+        helper only stores the date on the instance, so the
+        wrapper returns it.
+        """
+
+        self._extract_date()
+
+        return self.date
+
     # ---------------------------------------------------------
     # loading
     # ---------------------------------------------------------

@@ -228,9 +228,11 @@ extend `sync()` with explicit year/month filters. Requires a
 design decision and a functional-correction issue (milestone  
 V0.2-07).
 
-**Test note:** not covered by issue #28, which tests the  
-downloader component directly; the CLI wiring belongs to the  
-pipeline integration tests.
+**Test note:** the download CLI parsing and construction  
+wiring is tested in `tests/unit/test_download_data.py`  
+(issue #73; reclassified to the unit level in issue #97). The  
+`sync()` call arguments are deliberately not asserted until  
+the F-009 fix lands (backlog F-023).
 
 ## F-010 — `delete_local_data()` is hard-wired to `DATA_DIR / "geotiff"`
 
@@ -610,22 +612,27 @@ Audit notes:
 
 ### Test inventory vs. documentation
 
-All 28 test files are accounted for. Files without an F-entry
+All 33 test files are accounted for. Files without an F-entry
 document no findings; they remain documented through their
 introducing issues (see file docstrings).
 
 | Test file | Documented subject | F-entries |
 | --- | --- | --- |
 | `unit/test_smoke.py` | pytest infrastructure | — |
+| `unit/test_download_data.py` | download CLI parsing/dispatch (#73; unit level #97) | F-023 |
+| `unit/test_downloader_helpers.py` | downloader pure helpers (#97) | — |
+| `unit/test_event_window_bounds.py` | event-window boundaries (#97) | F-008 |
+| `unit/test_generate_plots_cli.py` | plot CLI parsing/dispatch (#74; unit level #97) | F-019, F-025 |
+| `unit/test_main.py` | pipeline dispatcher (#73; unit level #97) | F-022 |
+| `unit/test_moving_average.py` | moving-average unit calculation (#97) | — |
+| `unit/test_process_data.py` | process CLI parsing/dispatch (#73; unit level #97) | F-024 |
+| `unit/test_region_analyzer_extract_date.py` | filename date extraction (#97) | — |
+| `unit/test_threshold_crossing_helpers.py` | threshold-crossing helpers (#97) | F-008 |
 | `fixture_tests/test_data_fixtures.py` | deterministic CSV/JSON fixtures | — |
 | `fixture_tests/test_filesystem_fixtures.py` | `test_environment` isolation | — |
 | `fixture_tests/test_raster_fixtures.py` | synthetic raster fixture | — |
 | `fixture_tests/test_region_fixtures.py` | region/reference fixtures | — |
-| `component/test_download_data.py` | download CLI seam (#73) | F-023 |
-| `component/test_generate_plots_cli.py` | plot CLI parsing/dispatch (#74) | F-019, F-025 |
-| `component/test_main.py` | pipeline dispatcher (#73) | F-022 |
 | `component/test_nsidc_downloader.py` | NSIDC downloader (#28) | F-009, F-010, F-011, F-012 |
-| `component/test_process_data.py` | process CLI seam (#73) | F-024 |
 | `component/test_reference_builder.py` | ReferenceBuilder (#29) | F-013 |
 | `component/test_region_analyzer.py` | RegionAnalyzer (#18) | — |
 | `component/test_region_analyzer_validity.py` | RegionAnalyzer validity checks | — |
@@ -662,16 +669,23 @@ Audit remarks (for the follow-up issues):
   fixture verification tests were moved to
   `tests/fixture_tests/`.
 
+Layout update (issue #97): the pure parsing and dispatch tests
+of the CLI entry points (issues #73/#74) were reclassified as
+unit tests and moved to `tests/unit/` together with new
+pure-helper unit tests (issue #97). The unit level now
+comprises ten files; the inventory table above was updated
+accordingly.
+
 ### Missing tests (audit backlog F-022 … F-030)
 
 Overview additions — merge these rows into the Overview table:
 
 | ID | Issue | Component | Category | Status |
 | --- | --- | --- | --- | --- |
-| F-022 | #75 | main.py (dispatcher) | gap | resolved (#73) |
-| F-023 | #75 | download_data.py (CLI) | gap | partial (#73) |
-| F-024 | #75 | process_data.py (CLI) | gap | resolved (#73) |
-| F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74) |
+| F-022 | #75 | main.py (dispatcher) | gap | resolved (#73; unit level #97) |
+| F-023 | #75 | download_data.py (CLI) | gap | partial (#73; unit level #97) |
+| F-024 | #75 | process_data.py (CLI) | gap | resolved (#73; unit level #97) |
+| F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
 | F-027 | #75 | update_pipeline.py (first run) | gap | proposed |
 | F-028 | #75 | update_pipeline.py (masking) | gap | proposed |

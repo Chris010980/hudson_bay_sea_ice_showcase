@@ -58,13 +58,25 @@ Typical candidates include:
 
 Unit tests should preferably operate on values or small controlled datasets supplied directly by the test.
 
-The initial pytest smoke test is currently located here:
+The unit level currently comprises ten files:
 
 ```text
-tests/unit/test_smoke.py
+tests/unit/
+├── test_download_data.py
+├── test_downloader_helpers.py
+├── test_event_window_bounds.py
+├── test_generate_plots_cli.py
+├── test_main.py
+├── test_moving_average.py
+├── test_process_data.py
+├── test_region_analyzer_extract_date.py
+├── test_smoke.py
+└── test_threshold_crossing_helpers.py
 ```
 
 The smoke test verifies that pytest can collect and execute a test successfully. It does not test scientific functionality.
+
+The CLI parsing and dispatch files (`test_main.py`, `test_download_data.py`, `test_process_data.py`, `test_generate_plots_cli.py`) were created as component tests in issues #73/#74 and reclassified to the unit level in issue #97: they operate on pure functions with explicitly injected collaborators and no I/O beyond pytest's temporary directories. The remaining files were added in issue #97 for the pure helpers extracted in issue #40 and the filename date extraction (docs/testing/test-levels.md, section 2.2).
 
 ### `fixture_tests/`
 
@@ -144,7 +156,7 @@ visualization
 and:
 
 ```text
-docs + output
+html + output
         ↓
 build_pages
         ↓
@@ -473,16 +485,14 @@ Tests should follow the conventions documented in this file and the detailed tes
 
 The pytest infrastructure, the deterministic fixture
 foundation, the scientific component suites, and the
-integration suites are established (issues #18–#33). The
-suite layout was reorganized in issue #76: fixture
-verification tests moved to `tests/fixture_tests/`, the
-plot-generation integration file was renamed
-(`test_generate_plots.py`), and the unit-vs-component
-review confirmed that all remaining `tests/component/`
-files are genuine component tests. The suite currently
-comprises 166 tests in 27 files (issue #73 added the component
-smoke tests for the CLI dispatcher, the download stage, and
-the process stage through explicit dependency injection):
+integration suites are established (issues #18–#33). The suite
+layout was reorganized in issue #76 (fixture verification
+tests), and issue #97 established a real unit level: the pure
+parsing and dispatch tests from issues #73/#74 moved from
+`tests/component/` to `tests/unit/`, and focused pure-helper
+unit tests were added. The suite currently comprises 210
+tests in 33 files (10 unit, 4 fixture_tests, 14 component,
+5 integration):
 
 ```text
 tests/
@@ -494,7 +504,16 @@ tests/
 │   └── README.md
 │
 ├── unit/
-│   └── test_smoke.py
+│   ├── test_download_data.py
+│   ├── test_downloader_helpers.py
+│   ├── test_event_window_bounds.py
+│   ├── test_generate_plots_cli.py
+│   ├── test_main.py
+│   ├── test_moving_average.py
+│   ├── test_process_data.py
+│   ├── test_region_analyzer_extract_date.py
+│   ├── test_smoke.py
+│   └── test_threshold_crossing_helpers.py
 │
 ├── fixture_tests/
 │   ├── test_data_fixtures.py
@@ -503,11 +522,7 @@ tests/
 │   └── test_region_fixtures.py
 │
 ├── component/
-│   ├── test_download_data.py
-│   ├── test_generate_plots_cli.py
-│   ├── test_main.py
 │   ├── test_nsidc_downloader.py
-│   ├── test_process_data.py
 │   ├── test_reference_builder.py
 │   ├── test_region_analyzer.py
 │   ├── test_region_analyzer_validity.py
@@ -532,3 +547,4 @@ tests/
 ├── conftest.py          # shared fixtures
 ├── Findings.md          # per-test findings and audit (#75)
 └── vulture_whitelist.py # documented vulture exceptions
+```

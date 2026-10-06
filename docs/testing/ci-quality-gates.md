@@ -123,7 +123,7 @@ Coverage should be measured together with the test suite.
 
 Coverage is not considered a measure of scientific correctness by itself. A test suite with high coverage may still fail to verify important numerical or scientific behavior.
 
-The detailed coverage policy is defined in `test-coverage.md`.
+The detailed coverage policy is defined in `coverage.md`.
 
 The 70% threshold is an initial project target and should become a mandatory gate only once the coverage infrastructure has been established and the baseline is meaningful.
 
@@ -450,6 +450,8 @@ required build validation
 ```
 
 Additional gates should be introduced once the corresponding checks are reliable and sufficiently tested.
+
+Status (V0.2-07): this baseline is implemented in `.github/workflows/quality-gate.yml` — `ruff check .`, `ruff format --check .` and `pytest --cov=src` are mandatory gates; the vulture dead-code report (with a documented whitelist) runs advisingly.
 
 ---
 

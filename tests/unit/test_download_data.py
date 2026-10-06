@@ -1,4 +1,4 @@
-"""Component tests for the download stage CLI (issue #73).
+"""Unit tests for the download stage CLI (issues #73, #97).
 
 The tests verify the command line entry point in
 src/data_download/download_data.py (tests/Findings.md, F-023):

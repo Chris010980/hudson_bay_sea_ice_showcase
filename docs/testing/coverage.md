@@ -94,12 +94,23 @@ It is intended to establish a measurable baseline after the automated test suite
 
 The target should be reviewed after the first substantial testing cycle.
 
-Increasing the threshold should only be considered after:
+### 4.1 Current Baseline (V0.2-07)
 
-* the basic test structure is established,
-* critical scientific components have meaningful coverage,
-* integration tests are available,
-* coverage results have been evaluated over several development cycles.
+The current baseline, measured with `pytest --cov=src` (state
+after issue #97; issue #77 measured 94 %, 1747 statements, 102
+missed — adjust these figures to the measured values whenever
+the suite changes):
+
+* line coverage: **95 %** (1750 statements, 93 missed),
+* unit level: 10 files (smoke test, four CLI parsing/dispatch
+  files reclassified from the component level in issue #97,
+  five pure-helper files added in issue #97),
+* suite: 210 tests in 33 files (10 unit, 4 fixture
+  verification, 14 component, 5 integration).
+
+Coverage measurement is part of the mandatory CI test gate
+(`pytest --cov=src` in `.github/workflows/quality-gate.yml`);
+the project-wide 70 % minimum target is already exceeded.
 
 ---
 
