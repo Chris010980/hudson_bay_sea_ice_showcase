@@ -29,7 +29,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented    |
 | F-007 | #25   | TimeSeriesPlotter                   | design    | open          |
 | F-008 | #26   | TimeSeriesAnalyzer                  | design    | open          |
-| F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | open          |
+| F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | fixed         |
 | F-010 | #28   | NSIDCDownloader                     | design    | open          |
 | F-011 | #28   | NSIDCDownloader                     | design    | open          |
 | F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
@@ -228,11 +228,23 @@ extend `sync()` with explicit year/month filters. Requires a
 design decision and a functional-correction issue (milestone  
 V0.2-07).
 
-**Test note:** the download CLI parsing and construction  
-wiring is tested in `tests/unit/test_download_data.py`  
-(issue #73; reclassified to the unit level in issue #97). The  
-`sync()` call arguments are deliberately not asserted until  
-the F-009 fix lands (backlog F-023).
+**Resolution (#98, 2026-10-06):** variant A implemented. The
+CLI keeps its appendable --year/--month flags; the new pure
+helper ``build_sync_ranges()`` maps the selection to one
+inclusive start/end date range per selected year (or per
+year-month combination), and ``main()`` loops over the
+ranges, merges the per-range ``DownloadSummary`` results and
+passes only the supported ``start_date`` / ``end_date`` /
+``dry_run`` arguments to ``sync()``. Invalid selections
+(month without year, non-numeric or out-of-range values) are
+rejected by ``parse_args()`` via ``parser.error()``. The
+unfiltered default remains a single sync call; with filters
+each range logs its own synchronizing/finished pair.
+
+**Test note:** the download CLI parsing, construction wiring
+and the sync() call arguments are tested in
+`tests/unit/test_download_data.py` (issues #73/#97; the
+argument contract added in #98). Backlog F-023 resolved.
 
 ## F-010 — `delete_local_data()` is hard-wired to `DATA_DIR / "geotiff"`
 
@@ -582,7 +594,7 @@ references in this audit section were updated accordingly.
 | F-006 | `timeseries_paths` fixture in `tests/conftest.py` (eager `analysis_dir.mkdir()`, documented) | mapping verified |
 | F-007 | none — trend/R² not testable yet | gap → F-026 |
 | F-008 | `test_exact_threshold_observation` + 9 further tests in `tests/component/test_timeseries_threshold_crossing.py` | mapping verified |
-| F-009 | none — CLI wiring untested and currently broken | gap → F-023 |
+| F-009 | `tests/unit/test_download_data.py` (sync argument contract, #98) | resolved (#98) |
 | F-010 | `test_delete_local_data` (`tests/component/test_nsidc_downloader.py`) | mapping verified |
 | F-011 | `test_download_error_is_reported_and_leaves_no_file` | mapping verified; remaining paths → F-023 |
 | F-012 | none — import removed in #39; no test required | resolved (#39) |
@@ -683,7 +695,7 @@ Overview additions — merge these rows into the Overview table:
 | ID | Issue | Component | Category | Status |
 | --- | --- | --- | --- | --- |
 | F-022 | #75 | main.py (dispatcher) | gap | resolved (#73; unit level #97) |
-| F-023 | #75 | download_data.py (CLI) | gap | partial (#73; unit level #97) |
+| F-023 | #75 | download_data.py (CLI) | gap | resolved (#73; sync contract #98) |
 | F-024 | #75 | process_data.py (CLI) | gap | resolved (#73; unit level #97) |
 | F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
