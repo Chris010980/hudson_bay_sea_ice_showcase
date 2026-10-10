@@ -101,11 +101,13 @@ after issue #97; issue #77 measured 94 %, 1747 statements, 102
 missed — adjust these figures to the measured values whenever
 the suite changes):
 
-* line coverage: **95 %** (1750 statements, 93 missed),
+* line coverage: **95 %** (statements/missed as measured;
+  issue #77 measured 1750/93, issue #98 added the
+  build_sync_ranges helper and its unit tests),
 * unit level: 10 files (smoke test, four CLI parsing/dispatch
   files reclassified from the component level in issue #97,
   five pure-helper files added in issue #97),
-* suite: 210 tests in 33 files (10 unit, 4 fixture
+* suite: 218 tests in 33 files (10 unit, 4 fixture
   verification, 14 component, 5 integration).
 
 Coverage measurement is part of the mandatory CI test gate
