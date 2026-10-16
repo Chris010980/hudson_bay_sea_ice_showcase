@@ -55,16 +55,20 @@ def main(argv=None):
         logger.info("Dataset already up to date.")
         return
 
-    process_summary = process_data(
-        [
-            "--log-level",
-            args.log_level,
-            "--log-file",
-            args.log_file,
+    process_argv = [
+        "--log-level",
+        args.log_level,
+        "--log-file",
+        args.log_file,
+    ]
+
+    if start_date is not None:
+        process_argv += [
             "--start-date",
             start_date.isoformat(),
         ]
-    )
+
+    process_summary = process_data(process_argv)
 
     if process_summary.new_results == 0:
         logger.info("Dataset already up to date.")

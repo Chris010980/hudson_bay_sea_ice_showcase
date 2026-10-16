@@ -26,6 +26,8 @@ Covered behavior:
 
 * synchronization and processing start after the latest
   processed observation,
+* a first run on an empty results state processes every
+  locally available observation (issue #99, F-014),
 * only new observations are processed; existing results remain
   intact and new results are persisted,
 * downstream stages run only after successful new observations
@@ -763,3 +765,70 @@ def test_update_keep_data_skips_cleanup(
     _assert_row(df, 1, _DAY_1_WATER)
     _assert_row(df, 2, _DAY_2_MIXED)
     _assert_row(df, 3, _DAY_2_WATER)
+
+
+# ------------------------------------------------------------------
+# Task: verify the first run on an empty results state (F-014)
+# ------------------------------------------------------------------
+
+
+def test_update_first_run_processes_all_observations(
+    update_environment: dict,
+    expected_reference_masks: dict[str, np.ndarray],
+) -> None:
+    """A first run on an empty results state completes (F-014).
+
+    The seeded results state is removed, so the pipeline finds
+    no latest processed date (``start_date is None``). The
+    crash path fixed in issue #99 passed ``--start-date
+    None.isoformat()``; the pinned behavior instead requests
+    the complete archive and processes every locally available
+    observation:
+
+    * sync runs without a start date,
+    * the process stage receives no --start-date,
+    * both provided observations (2026-02-28 and 2026-03-02)
+      are processed and persisted,
+    * the run completes through plots, build and cleanup.
+    """
+
+    env = update_environment
+
+    # Empty results state: no summary CSV, no latest.json.
+    env["csv"].unlink()
+    env["latest"].unlink()
+
+    _write_update_observations(env, expected_reference_masks)
+
+    update_pipeline_module.main(
+        ["--log-file", str(env["log_file"])],
+    )
+
+    # Full run: sync and process stage operate unbounded.
+    assert env["downloader"].sync_calls == [{"start_date": None}]
+    assert env["process_args"][0].start_date is None
+
+    # The complete run through all stages.
+    assert env["events"] == [
+        "sync",
+        "process",
+        "plots",
+        "build",
+        "delete",
+    ]
+
+    # Every available observation was processed (no 02-28
+    # pre-start-date filtering on the first run).
+    df = pd.read_csv(env["csv"])
+
+    assert len(df) == 4
+    _assert_row(df, 0, dict(_DAY_1_MIXED, date="2026-02-28"))
+    _assert_row(df, 1, dict(_DAY_1_WATER, date="2026-02-28"))
+    _assert_row(df, 2, _DAY_2_MIXED)
+    _assert_row(df, 3, _DAY_2_WATER)
+
+    with open(env["latest"], encoding="utf-8") as file:
+        payload = json.load(file)
+
+    assert payload["date"] == "2026-03-02"
+    assert payload["observations"] == 4
