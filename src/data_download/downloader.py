@@ -7,6 +7,7 @@ preprocess rasters, calculate statistics, or create plots.
 from __future__ import annotations
 
 import logging
+import os
 import re
 from dataclasses import dataclass
 from datetime import date
@@ -26,6 +27,9 @@ DEFAULT_GEOTIFF_DIR = GEOTIFF_DIR
 # Module-specific HTTP transport tuning.
 HTTP_TIMEOUT_SECONDS = 30
 DOWNLOAD_CHUNK_BYTES = 8192
+# A single file is downloaded at most this many times before
+# it is skipped and counted as failed (issue #100).
+DOWNLOAD_MAX_ATTEMPTS = 3
 GEOTIFF_FILENAME_PATTERN = re.compile(
     r"^N_(?P<date>\d{8})_(?P<product>.+?)_v.+\.tif$"
 )
@@ -202,9 +206,54 @@ class NSIDCDownloader:
             return True
 
         logger.info("Downloading %s", remote_url)
+
+        temp_path = local_dir / f"{filename}.part"
+
+        for attempt in range(1, DOWNLOAD_MAX_ATTEMPTS + 1):
+            temp_path.unlink(missing_ok=True)
+
+            try:
+                if not self._stream_to_file(
+                    remote_url,
+                    temp_path,
+                ):
+                    return False
+
+                os.replace(temp_path, local_path)
+
+                logger.info("Saved %s", local_path)
+                return True
+
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Download attempt %d/%d for %s failed: %s",
+                    attempt,
+                    DOWNLOAD_MAX_ATTEMPTS,
+                    remote_url,
+                    exc,
+                )
+
+        temp_path.unlink(missing_ok=True)
+
+        return False
+
+    def _stream_to_file(
+        self,
+        remote_url: str,
+        temp_path: Path,
+    ) -> bool:
+        """One download attempt: stream the URL into temp_path.
+
+        Returns False on a non-OK HTTP status (no retry; the
+        request itself failed), True after a complete stream.
+        Request exceptions propagate to the caller, which
+        implements the retry policy (issue #100, F-011).
+        """
+
         response = self.session.get(
             remote_url, stream=True, timeout=self.timeout
         )
+
         if response.status_code != requests.codes.ok:
             logger.warning(
                 "Download failed with HTTP %s: %s",
@@ -213,14 +262,13 @@ class NSIDCDownloader:
             )
             return False
 
-        with local_path.open("wb") as file:
+        with temp_path.open("wb") as file:
             for chunk in response.iter_content(
                 chunk_size=DOWNLOAD_CHUNK_BYTES
             ):
                 if chunk:
                     file.write(chunk)
 
-        logger.info("Saved %s", local_path)
         return True
 
     def sync(
