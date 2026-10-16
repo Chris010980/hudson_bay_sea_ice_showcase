@@ -106,7 +106,7 @@ the suite changes):
 * unit level: 10 files (smoke test, four CLI parsing/dispatch
   files reclassified from the component level in issue #97,
   five pure-helper files added in issue #97),
-* suite: 219 tests in 33 files (10 unit, 4 fixture
+* suite: 226 tests in 33 files (10 unit, 4 fixture
   verification, 14 component, 5 integration).
 
 Coverage measurement is part of the mandatory CI test gate

@@ -270,6 +270,83 @@ def test_local_file_discovery(
 
 
 # ------------------------------------------------------------------
+# Task: count locally present files beyond the processed state
+# (F-016)
+# ------------------------------------------------------------------
+
+
+def test_count_local_files_after_ignores_processed_files(
+    test_environment: dict[str, Path],
+) -> None:
+    """``count_local_files_after`` counts only newer files.
+
+    Boundary: latest processed date 2026-03-01. Locally
+    present: a processed concentration file, an unprocessed
+    concentration file, an extent file with a newer date and a
+    non-GeoTIFF file. Only the concentration file after the
+    boundary counts (issue #101, F-016).
+    """
+    local_base = _local_base(test_environment)
+    _seed_local_file(
+        local_base,
+        "2026",
+        "03_Mar",
+        "N_20260301_concentration_v1.0.tif",
+    )
+    _seed_local_file(
+        local_base,
+        "2026",
+        "03_Mar",
+        "N_20260302_concentration_v1.0.tif",
+    )
+    _seed_local_file(
+        local_base,
+        "2026",
+        "03_Mar",
+        "N_20260303_extent_v1.0.tif",
+    )
+    (local_base / "2026" / "03_Mar" / "notes.txt").write_bytes(b"x")
+    downloader, _ = _make_downloader(local_base)
+
+    assert downloader.count_local_files_after(date(2026, 3, 1)) == 1
+
+
+def test_count_local_files_after_without_boundary_counts_all(
+    test_environment: dict[str, Path],
+) -> None:
+    """Without a boundary every matching local file counts.
+
+    ``start_date=None`` (no processed state yet) counts all
+    local concentration files regardless of their dates.
+    """
+    local_base = _local_base(test_environment)
+    _seed_local_file(
+        local_base,
+        "2025",
+        "03_Mar",
+        "N_20250301_concentration_v1.0.tif",
+    )
+    _seed_local_file(
+        local_base,
+        "2026",
+        "03_Mar",
+        "N_20260302_concentration_v1.0.tif",
+    )
+    downloader, _ = _make_downloader(local_base)
+
+    assert downloader.count_local_files_after(None) == 2
+
+
+def test_count_local_files_after_missing_directory(
+    test_environment: dict[str, Path],
+) -> None:
+    """A missing local archive answers with zero files."""
+    downloader, _ = _make_downloader(_local_base(test_environment))
+
+    assert downloader.count_local_files_after(None) == 0
+
+
+# ------------------------------------------------------------------
 # Task: test remote year/month/file discovery (controlled
 # responses)
 # ------------------------------------------------------------------

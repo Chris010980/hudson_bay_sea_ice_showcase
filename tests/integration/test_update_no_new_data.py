@@ -99,7 +99,10 @@ import src.update.build_pages as build_pages_module
 import src.update.update_pipeline as update_pipeline_module
 from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
-from src.data_download.downloader import DownloadSummary
+from src.data_download.downloader import (
+    DownloadSummary,
+    NSIDCDownloader,
+)
 
 # Persisted rows expected for the two already processed
 # observations (hand calculation, identical to the spatial
@@ -182,12 +185,18 @@ class _ArchiveDownloader:
         self,
         events: list[str],
         available_dates: list[date],
+        local_base: Path | None = None,
     ) -> None:
         self.events = events
         self.available_dates = sorted(available_dates)
         self.sync_calls: list[dict] = []
         self.sync_summaries: list[DownloadSummary] = []
         self.delete_calls = 0
+        self._local_files = (
+            NSIDCDownloader(local_base=local_base)
+            if local_base is not None
+            else None
+        )
 
     def sync(self, **kwargs) -> DownloadSummary:
         self.events.append("sync")
@@ -211,6 +220,12 @@ class _ArchiveDownloader:
     def delete_local_data(self) -> None:
         self.events.append("delete")
         self.delete_calls += 1
+
+    def count_local_files_after(self, start_date) -> int:
+        """Delegate the local scan to the real downloader."""
+        if self._local_files is None:
+            return 0
+        return self._local_files.count_local_files_after(start_date)
 
 
 def _process_observations(
@@ -501,6 +516,7 @@ def no_new_data_environment(
     downloader = _ArchiveDownloader(
         events,
         available_dates=[date(2026, 3, 1), date(2026, 3, 2)],
+        local_base=data_dir / "geotiff",
     )
     monkeypatch.setattr(
         update_pipeline_module,
