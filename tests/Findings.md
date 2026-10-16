@@ -36,7 +36,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-013 | #29   | ReferenceBuilder                    | design    | open          |
 | F-014 | #30   | update\_pipeline                    | bug       | fixed         |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | partial (#73) |
-| F-016 | #31   | update\_pipeline / downloader       | design    | open          |
+| F-016 | #31   | update\_pipeline / downloader       | design    | fixed         |
 | F-017 | #32   | timeseries\_plot                    | design    | fixed         |
 | F-018 | #32   | visualization stage                 | design    | partial (#74) |
 | F-019 | #32   | generate\_plots                     | design    | partial (#74) |
@@ -438,10 +438,33 @@ processable files from `start_date` onwards exist locally), or
 let `sync()` re-validate existing files, or remove downloaded  
 files on the no-new-results exit path.
 
-**Test note:** issue #31 pins the documented no-new-data  
-behavior for a fully processed state; the masking scenario  
-requires the real `sync()` semantics (local file check) and is  
-documented here instead.
+**Resolution (#101, 2026-10-16):** the no-new-data decision
+now reconciles both sources independently. The sync stage is
+unchanged (a locally present file needs no re-download), and
+the pipeline additionally compares the local archive against
+the processed state: the new
+`NSIDCDownloader.count_local_files_after(latest)` counts the
+local GeoTIFF files whose observation date lies after the
+latest processed date (all local files when no processed state
+exists), and the early exit now requires zero downloads AND
+zero locally present but unprocessed files. Locally present
+unprocessed observations are therefore detected and
+processed; the process stage's deduplication
+(`is_date_processed`) keeps the run idempotent, and the
+cleanup stays tied to downloads (a masking run's local files
+remain, as pinned for leftovers in the issue #31 tests).
+
+**Test note:** issue #31 pins the documented no-new-data
+behavior for a fully processed state. Issue #101 adds the
+deliberate masking tests:
+`test_update_processes_local_files_without_downloads`
+(`tests/integration/test_update_pipeline.py`) pins the
+pipeline-level scenario, and
+`test_count_local_files_after_ignores_processed_files`,
+`test_count_local_files_after_without_boundary_counts_all`
+and `test_count_local_files_after_missing_directory`
+(`tests/component/test_nsidc_downloader.py`) cover the
+counting method. Backlog F-028 resolved.
 
 ## F-017 — `polar_output_dir` is configured but never used
 
@@ -627,7 +650,7 @@ references in this audit section were updated accordingly.
 | F-013 | 14 tests in `tests/component/test_reference_builder.py` | mapping verified |
 | F-014 | `test_update_first_run_processes_all_observations` (`tests/integration/test_update_pipeline.py`, #99) | resolved (#99) |
 | F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
-| F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py` | mapping verified; masking scenario → F-028 |
+| F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py`; masking tests in `tests/integration/test_update_pipeline.py` + `tests/component/test_nsidc_downloader.py` (#101) | resolved (#101); backlog F-028 resolved |
 | F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | mapping verified |
 | F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) | mapping verified |
 | F-019 | `tests/integration/test_generate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |

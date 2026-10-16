@@ -51,7 +51,16 @@ def main(argv=None):
 
     summary = downloader.sync(start_date=start_date)
 
-    if summary.downloaded_files == 0:
+    unprocessed_local = downloader.count_local_files_after(latest)
+
+    if unprocessed_local:
+        logger.info(
+            "Found %s locally present but unprocessed "
+            "observation file(s).",
+            unprocessed_local,
+        )
+
+    if summary.downloaded_files == 0 and unprocessed_local == 0:
         logger.info("Dataset already up to date.")
         return
 

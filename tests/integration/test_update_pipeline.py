@@ -10,7 +10,7 @@ section 4.6):
           v
     NSIDC download sync
           |
-          v  (abort if nothing was downloaded)
+          v  (abort if nothing new is available)
     process new observations (--start-date)
           |
           v  (abort if no new results)
@@ -28,6 +28,9 @@ Covered behavior:
   processed observation,
 * a first run on an empty results state processes every
   locally available observation (issue #99, F-014),
+* locally present but unprocessed observations are detected
+  and processed even when the sync stage reports zero
+  downloads (issue #101, F-016),
 * only new observations are processed; existing results remain
   intact and new results are persisted,
 * downstream stages run only after successful new observations
@@ -90,7 +93,10 @@ import src.update.build_pages as build_pages_module
 import src.update.update_pipeline as update_pipeline_module
 from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
-from src.data_download.downloader import DownloadSummary
+from src.data_download.downloader import (
+    DownloadSummary,
+    NSIDCDownloader,
+)
 
 # Persisted rows expected for the controlled observations
 # (hand calculation, identical to the spatial chain integration
@@ -165,19 +171,37 @@ class _FakeDownloader:
     ``delete_local_data`` record their invocations.
     """
 
-    def __init__(self, events: list[str]) -> None:
+    def __init__(
+        self,
+        events: list[str],
+        local_base: Path | None = None,
+    ) -> None:
         self.events = events
         self.downloaded_files = 1
         self.sync_calls: list[dict] = []
+        self.sync_summaries: list[DownloadSummary] = []
         self.delete_calls = 0
+        self._local_files = (
+            NSIDCDownloader(local_base=local_base)
+            if local_base is not None
+            else None
+        )
 
     def sync(self, **kwargs) -> DownloadSummary:
         self.events.append("sync")
         self.sync_calls.append(kwargs)
-        return DownloadSummary(
+        summary = DownloadSummary(
             checked_files=2,
             downloaded_files=self.downloaded_files,
         )
+        self.sync_summaries.append(summary)
+        return summary
+
+    def count_local_files_after(self, start_date) -> int:
+        """Delegate the local scan to the real downloader."""
+        if self._local_files is None:
+            return 0
+        return self._local_files.count_local_files_after(start_date)
 
     def delete_local_data(self) -> None:
         self.events.append("delete")
@@ -430,7 +454,10 @@ def update_environment(
     process_args: list = []
     process_summaries: list[process_data_module.ProcessSummary] = []
 
-    downloader = _FakeDownloader(events)
+    downloader = _FakeDownloader(
+        events,
+        data_dir / "geotiff",
+    )
     monkeypatch.setattr(
         update_pipeline_module,
         "NSIDCDownloader",
@@ -832,3 +859,81 @@ def test_update_first_run_processes_all_observations(
 
     assert payload["date"] == "2026-03-02"
     assert payload["observations"] == 4
+
+
+# ------------------------------------------------------------------
+# Task: verify locally present files are processed even without
+# new downloads (F-016)
+# ------------------------------------------------------------------
+
+
+def test_update_processes_local_files_without_downloads(
+    update_environment: dict,
+    expected_reference_masks: dict[str, np.ndarray],
+) -> None:
+    """Locally present files are processed despite zero
+    downloads (F-016).
+
+    The sync stage reports zero downloads because the new
+    observation 2026-03-02 is already present locally (e.g.
+    downloaded by an earlier run whose processing never
+    happened). The processed state ends at 2026-03-01, so the
+    pipeline must not report "no new data": the local file is
+    unprocessed and must be processed now.
+
+    Expected behavior:
+
+    * the sync starts at 2026-03-02 and reports zero
+      downloads,
+    * the pipeline continues past the sync stage and passes
+      --start-date 2026-03-02 to the process stage,
+    * the previously masked 2026-03-02 results are persisted
+      with the hand-calculated values and the plots and build
+      stages run,
+    * the cleanup does not run: it stays tied to downloads, so
+      the local archive remains (the same leftover behavior
+      pinned by the issue #31 tests).
+    """
+    env = update_environment
+
+    # The masking state: the new observation is locally
+    # present, so the sync stage has nothing to download.
+    _write_update_observations(env, expected_reference_masks)
+    env["downloader"].downloaded_files = 0
+
+    update_pipeline_module.main(
+        ["--log-file", str(env["log_file"])],
+    )
+
+    # The sync stage was satisfied by the local files.
+    assert env["downloader"].sync_calls == [
+        {"start_date": date(2026, 3, 2)},
+    ]
+    assert env["downloader"].sync_summaries[0].downloaded_files == 0
+
+    # The pipeline continued past the sync stage.
+    assert env["process_args"][0].start_date == date(2026, 3, 2)
+    assert env["events"] == [
+        "sync",
+        "process",
+        "plots",
+        "build",
+    ]
+
+    # The previously masked observation is persisted.
+    df = pd.read_csv(env["csv"])
+
+    assert len(df) == 4
+    _assert_row(df, 0, _DAY_1_MIXED)
+    _assert_row(df, 1, _DAY_1_WATER)
+    _assert_row(df, 2, _DAY_2_MIXED)
+    _assert_row(df, 3, _DAY_2_WATER)
+
+    with open(env["latest"], encoding="utf-8") as file:
+        payload = json.load(file)
+
+    assert payload["date"] == "2026-03-02"
+    assert payload["observations"] == 4
+
+    # Cleanup stays tied to downloads: the local files remain.
+    assert env["downloader"].delete_calls == 0

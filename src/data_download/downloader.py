@@ -174,6 +174,40 @@ class NSIDCDownloader:
             )
         return files
 
+    def count_local_files_after(
+        self,
+        start_date: date | None,
+    ) -> int:
+        """Return the number of local GeoTIFF files with an
+        observation date after ``start_date``.
+
+        All matching local files count when ``start_date`` is
+        None. The update pipeline uses this to detect locally
+        present but unprocessed observations (issue #101,
+        F-016): a satisfied sync stage alone must not end the
+        update while files newer than the processed state
+        exist locally.
+        """
+
+        if not self.local_base.exists():
+            logger.debug(
+                "No local GeoTIFF directory yet: %s", self.local_base
+            )
+            return 0
+
+        count = 0
+
+        for path in sorted(self.local_base.rglob("*.tif")):
+            file_date = self._file_date(path.name)
+
+            if file_date is None or self.product not in path.name:
+                continue
+
+            if start_date is None or file_date > start_date:
+                count += 1
+
+        return count
+
     def download_file(
         self, year: str, month: str, filename: str
     ) -> bool:
@@ -444,14 +478,10 @@ class NSIDCDownloader:
         filtered = []
 
         for filename in remote_files:
-            key = self._file_key(filename)
+            file_date = self._file_date(filename)
 
-            if key is None:
+            if file_date is None:
                 continue
-
-            file_date = date.fromisoformat(
-                f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
-            )
 
             if start_date is not None and file_date < start_date:
                 continue
@@ -605,6 +635,20 @@ class NSIDCDownloader:
             return None
 
         return match.group("date"), match.group("product")
+
+    def _file_date(self, filename: str) -> date | None:
+        """Return the observation date encoded in a NSIDC
+        GeoTIFF filename, or None if the name does not match.
+        """
+
+        key = self._file_key(filename)
+
+        if key is None:
+            return None
+
+        return date.fromisoformat(
+            f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
+        )
 
     def _find_equivalent_local_file(
         self,
