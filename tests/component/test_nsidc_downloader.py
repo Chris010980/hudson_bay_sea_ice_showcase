@@ -816,3 +816,149 @@ def test_delete_local_data(
         test_environment["root"] / "missing-data",
     )
     NSIDCDownloader.delete_local_data()
+
+
+# ------------------------------------------------------------------
+# Task: atomic downloads with retry policy (issue #100, F-011)
+# ------------------------------------------------------------------
+
+
+class _FlakyResponse:
+    """Streams a partial payload, then raises a connection error.
+
+    Recovers after ``failures`` failed attempts and then
+    delivers ``chunks``. The same response object is returned
+    for every attempt, so its internal counter advances per
+    iter_content() call.
+    """
+
+    def __init__(self, chunks: tuple[bytes, ...], failures: int):
+        self.status_code = 200
+        self.text = ""
+        self.chunks = chunks
+        self.failures = failures
+
+    def iter_content(self, chunk_size: int = 8192):
+        if self.failures > 0:
+            self.failures -= 1
+            yield b"PARTIAL"
+            raise requests.ConnectionError("connection reset")
+        yield from self.chunks
+
+    def raise_for_status(self) -> None:
+        pass
+
+
+def test_interrupted_download_recovers_on_retry(
+    test_environment: dict[str, Path],
+) -> None:
+    """A stream error is retried and then succeeds atomically.
+
+    The first attempt writes a partial payload and fails with a
+    connection error; the second attempt streams the complete
+    payload. The file only appears at its final path with the
+    complete content, and no .part temp file survives.
+    """
+
+    local_base = _local_base(test_environment)
+    filename = "N_20260101_concentration_v1.0.tif"
+    url = _file_url("2026", "01_Jan", filename)
+
+    responses = {
+        url: _FlakyResponse(
+            chunks=(b"HEADER", b"DATA"),
+            failures=1,
+        ),
+    }
+    session = _FakeSession(responses)
+    downloader = NSIDCDownloader(
+        base_url=BASE_URL,
+        local_base=local_base,
+        product="concentration",
+        session=session,
+    )
+
+    assert downloader.download_file("2026", "01_Jan", filename)
+
+    month_dir = local_base / "2026" / "01_Jan"
+    assert (month_dir / filename).read_bytes() == b"HEADERDATA"
+    assert not (month_dir / f"{filename}.part").exists()
+    assert len(session.requested_urls) == 2
+
+
+def test_interrupted_download_gives_up_after_three_attempts(
+    test_environment: dict[str, Path],
+) -> None:
+    """Persistent stream errors skip the file after 3 attempts.
+
+    No file appears at the final path, no .part temp file
+    survives, and exactly DOWNLOAD_MAX_ATTEMPTS requests were
+    made.
+    """
+
+    local_base = _local_base(test_environment)
+    filename = "N_20260101_concentration_v1.0.tif"
+    url = _file_url("2026", "01_Jan", filename)
+
+    responses = {
+        url: _FlakyResponse(
+            chunks=(b"HEADER",),
+            failures=10,
+        ),
+    }
+    session = _FakeSession(responses)
+    downloader = NSIDCDownloader(
+        base_url=BASE_URL,
+        local_base=local_base,
+        product="concentration",
+        session=session,
+    )
+
+    assert not downloader.download_file("2026", "01_Jan", filename)
+
+    month_dir = local_base / "2026" / "01_Jan"
+    assert not (month_dir / filename).exists()
+    assert not (month_dir / f"{filename}.part").exists()
+    assert (
+        len(session.requested_urls)
+        == downloader_module.DOWNLOAD_MAX_ATTEMPTS
+    )
+
+
+def test_stale_temp_file_is_removed_before_downloading(
+    test_environment: dict[str, Path],
+) -> None:
+    """A stale .part file never masquerades as an observation.
+
+    A leftover temp file from an earlier crash is removed
+    before the new attempt; the successful download leaves
+    only the complete observation.
+    """
+
+    local_base = _local_base(test_environment)
+    filename = "N_20260101_concentration_v1.0.tif"
+    url = _file_url("2026", "01_Jan", filename)
+
+    month_dir = local_base / "2026" / "01_Jan"
+    month_dir.mkdir(parents=True)
+    stale_part = month_dir / f"{filename}.part"
+    stale_part.write_bytes(b"stale partial payload")
+
+    responses = {
+        url: _FlakyResponse(
+            chunks=(b"COMPLETE",),
+            failures=0,
+        ),
+    }
+    session = _FakeSession(responses)
+    downloader = NSIDCDownloader(
+        base_url=BASE_URL,
+        local_base=local_base,
+        product="concentration",
+        session=session,
+    )
+
+    assert downloader.download_file("2026", "01_Jan", filename)
+
+    assert (month_dir / filename).read_bytes() == b"COMPLETE"
+    assert not stale_part.exists()

@@ -31,7 +31,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-008 | #26   | TimeSeriesAnalyzer                  | design    | open          |
 | F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | fixed         |
 | F-010 | #28   | NSIDCDownloader                     | design    | open          |
-| F-011 | #28   | NSIDCDownloader                     | design    | open          |
+| F-011 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-013 | #29   | ReferenceBuilder                    | design    | open          |
 | F-014 | #30   | update\_pipeline                    | bug       | fixed         |
@@ -287,8 +287,24 @@ they propagate out of `download_file()` and abort the entire
 after success; catch per-file request exceptions and count them  
 as failed downloads.
 
-**Test note:** issue #28 covers only the handled error path  
-(non-OK HTTP status → `False`, no file, counted as failed).
+**Resolution (#100, 2026-10-09):** downloads are atomic. Each
+attempt streams into a ``<filename>.part`` temp file in the
+target directory; only a complete stream is moved to the final
+path with ``os.replace()``. ``requests.RequestException`` is
+caught per attempt and retried at most
+``DOWNLOAD_MAX_ATTEMPTS`` (3) times before the file is skipped
+(counted in ``failed_files``; the sync run continues). Temp
+files are removed after every failed attempt and at the end,
+so interrupted downloads never leave a partial file at the
+final path. Non-OK HTTP statuses keep the previous immediate
+``False`` behavior without retry.
+
+**Test note:** issue #28 covers the handled HTTP-error path;
+issue #100 adds the retry-and-atomicity tests
+(`test_interrupted_download_recovers_on_retry`,
+`test_interrupted_download_gives_up_after_three_attempts`,
+`test_stale_temp_file_is_removed_before_downloading`) in
+`tests/component/test_nsidc_downloader.py`.
 
 ## F-012 — Stray `from os import link` import
 
@@ -606,7 +622,7 @@ references in this audit section were updated accordingly.
 | F-008 | `test_exact_threshold_observation` + 9 further tests in `tests/component/test_timeseries_threshold_crossing.py` | mapping verified |
 | F-009 | `tests/unit/test_download_data.py` (sync argument contract, #98) | resolved (#98) |
 | F-010 | `test_delete_local_data` (`tests/component/test_nsidc_downloader.py`) | mapping verified |
-| F-011 | `test_download_error_is_reported_and_leaves_no_file` | mapping verified; remaining paths → F-023 |
+| F-011 | `test_download_error_is_reported_and_leaves_no_file` + 3 retry/atomicity tests (#100) | resolved (#100) |
 | F-012 | none — import removed in #39; no test required | resolved (#39) |
 | F-013 | 14 tests in `tests/component/test_reference_builder.py` | mapping verified |
 | F-014 | `test_update_first_run_processes_all_observations` (`tests/integration/test_update_pipeline.py`, #99) | resolved (#99) |
