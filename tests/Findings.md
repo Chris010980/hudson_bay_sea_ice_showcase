@@ -34,7 +34,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-011 | #28   | NSIDCDownloader                     | design    | open          |
 | F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-013 | #29   | ReferenceBuilder                    | design    | open          |
-| F-014 | #30   | update\_pipeline                    | bug       | open          |
+| F-014 | #30   | update\_pipeline                    | bug       | fixed         |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | partial (#73) |
 | F-016 | #31   | update\_pipeline / downloader       | design    | open          |
 | F-017 | #32   | timeseries\_plot                    | design    | fixed         |
@@ -347,9 +347,19 @@ state work.
 argument) or define an explicit fallback (e.g. earliest observation  
 date).
 
-**Test note:** issue #30 deliberately covers only the incremental  
-path; a first-run test can be added once the fix is decided  
-(milestone V0.2-07).
+**Resolution (#99, 2026-10-09):** the process stage receives
+--start-date only when a latest processed date exists. On a
+first run the pipeline requests the complete remote archive
+(sync without start_date; locally present files are skipped
+by the sync's equivalence check) and processes every locally
+available observation (no --start-date). Incremental runs are
+unchanged. The masking scenario (files present locally but
+never processed) remains a separate decision (F-016).
+
+**Test note:**
+`test_update_first_run_processes_all_observations`
+(`tests/integration/test_update_pipeline.py`, issue #99) pins
+the first-run path. Backlog F-027 resolved.
 
 ## F-015 — Pipeline stages wire collaborators with hard-wired production defaults
 
@@ -599,7 +609,7 @@ references in this audit section were updated accordingly.
 | F-011 | `test_download_error_is_reported_and_leaves_no_file` | mapping verified; remaining paths → F-023 |
 | F-012 | none — import removed in #39; no test required | resolved (#39) |
 | F-013 | 14 tests in `tests/component/test_reference_builder.py` | mapping verified |
-| F-014 | none — first-run path deliberately untested (issue #30 covered incremental only) | gap → F-027 |
+| F-014 | `test_update_first_run_processes_all_observations` (`tests/integration/test_update_pipeline.py`, #99) | resolved (#99) |
 | F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
 | F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py` | mapping verified; masking scenario → F-028 |
 | F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | mapping verified |
@@ -699,7 +709,7 @@ Overview additions — merge these rows into the Overview table:
 | F-024 | #75 | process_data.py (CLI) | gap | resolved (#73; unit level #97) |
 | F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
-| F-027 | #75 | update_pipeline.py (first run) | gap | proposed |
+| F-027 | #75 | update_pipeline.py (first run) | gap | resolved (#99) |
 | F-028 | #75 | update_pipeline.py (masking) | gap | proposed |
 | F-029 | #75 | build_pages.py (CLI options) | gap | proposed |
 | F-030 | #75 | timeseries_analyzer.py (gap edges) | gap | proposed |
