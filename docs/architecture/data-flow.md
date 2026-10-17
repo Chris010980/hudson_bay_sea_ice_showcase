@@ -228,7 +228,7 @@ Spatial visualization uses a GeoTIFF observation as input.
 The resulting figures are stored under:
 
 ```text
-output/plots/
+output/plots/spatial/
 ```
 
 This visualization path is separate from the temporal analysis data flow.
@@ -245,10 +245,12 @@ This visualization path is separate from the temporal analysis data flow.
 * polar seasonal plots,
 * yearly mean plots.
 
-The generated figures are stored under:
+The generated figures are stored under the product classes of
+the plot tree (see the README section on `output/plots/`):
 
 ```text
-output/plots/timeseries/
+output/plots/daily_timeseries/
+output/plots/yearly_timeseries/
 ```
 
 Visualization products are regenerable outputs and are not inputs to subsequent scientific analysis stages.

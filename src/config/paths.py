@@ -73,7 +73,21 @@ LATEST_JSON = ANALYSIS_DIR / "latest.json"
 PLOTS_DIR = OUTPUT_DIR / "plots"
 """Directory for generated figures."""
 
-GEOTIFF_OVERVIEW_PLOT = PLOTS_DIR / "sea_ice_geotiff_overview.png"
+# The plot tree below PLOTS_DIR communicates the three
+# scientific product classes (issue #113): geotiff-based maps,
+# yearly time-series products and daily time-series products.
+# The quantity leaves separate the relative and absolute
+# variants; families without an absolute product create the
+# absolute/ directory and leave it empty until an absolute
+# product exists. The plotting modules join these names with
+# the (test-redirectable) PLOTS_DIR alias at call time.
+SPATIAL_PLOTS_SUBDIR = "spatial"
+YEARLY_TIMESERIES_PLOTS_SUBDIR = "yearly_timeseries"
+DAILY_TIMESERIES_PLOTS_SUBDIR = "daily_timeseries"
+
+GEOTIFF_OVERVIEW_PLOT = (
+    PLOTS_DIR / SPATIAL_PLOTS_SUBDIR / "overview.png"
+)
 """Default output file of the GeoTIFF overview plot."""
 
 REFERENCE_DIR = OUTPUT_DIR / "reference"

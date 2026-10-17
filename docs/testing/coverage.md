@@ -97,11 +97,11 @@ The target should be reviewed after the first substantial testing cycle.
 ### 4.1 Current Baseline (V0.2-07)
 
 The current baseline, measured with `pytest --cov=src` (state
-after issue #97; issue #77 measured 94 %, 1747 statements, 102
+after issue #97; issue #77 measured 96 %, 1844 statements, 81
 missed — adjust these figures to the measured values whenever
 the suite changes):
 
-* line coverage: **96 %** (1848 statements, 82 missed;
+* line coverage: **96 %** (1854 statements, 81 missed;
   measured after issue #103),
 * unit level: 11 files (smoke test, four CLI parsing/dispatch
   files reclassified from the component level in issue #97,

@@ -445,7 +445,38 @@ Reusable spatial reference products such as region masks and reference metadata.
 
 ### `output/plots/`
 
-Generated scientific visualization products.
+Generated scientific visualization products, organized by
+scientific product class (issue #113):
+
+```text
+output/plots/
+├── spatial/
+├── yearly_timeseries/
+│   ├── yearly_means/
+│   │   ├── absolute/
+│   │   └── relative/
+│   └── thresholds/
+│       ├── absolute/
+│       └── relative/
+└── daily_timeseries/
+    ├── anomalies/
+    │   ├── absolute/
+    │   └── relative/
+    ├── classical_timeseries/
+    │   ├── absolute/
+    │   └── relative/
+    └── polar/
+        ├── absolute/
+        └── relative/
+```
+
+`spatial/` contains the geotiff-based map products,
+`yearly_timeseries/` the annual-mean and threshold-duration
+products, and `daily_timeseries/` all products derived from
+the daily series. Each `absolute/`/`relative/` leaf separates
+the two quantities; the threshold and annual-mean products
+currently exist for the relative quantity only, so their
+`absolute/` directories remain empty.
 
 ### `src/`
 
