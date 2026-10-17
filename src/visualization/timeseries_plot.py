@@ -22,6 +22,11 @@ from matplotlib.dates import DateFormatter, MonthLocator
 
 from src.analysis.timeseries_analyzer import compute_linear_trend
 from src.config.paths import (
+    DAILY_TIMESERIES_PLOTS_SUBDIR,
+    PLOTS_DIR,
+    YEARLY_TIMESERIES_PLOTS_SUBDIR,
+)
+from src.config.paths import (
     ICE_COVERAGE_EVENTS_CSV as EVENTS_CSV,
 )
 from src.config.paths import (
@@ -29,9 +34,6 @@ from src.config.paths import (
 )
 from src.config.paths import (
     ICE_COVERAGE_YEARLY_CSV as YEARLY_CSV,
-)
-from src.config.paths import (
-    PLOTS_DIR,
 )
 from src.config.settings import (
     CLIMATOLOGY_END_YEAR,
@@ -146,7 +148,15 @@ class TimeSeriesPlotter:
 
         self.theta_offset = np.deg2rad(15)
 
-        self.output_dir = OUTPUT_DIR / "timeseries"
+        # Plot output tree (issue #113): the products are
+        # organized by scientific product class below the
+        # plots directory; the quantity leaves separate the
+        # relative and absolute variants.
+        self.output_dir = OUTPUT_DIR / DAILY_TIMESERIES_PLOTS_SUBDIR
+
+        self.yearly_output_dir = (
+            OUTPUT_DIR / YEARLY_TIMESERIES_PLOTS_SUBDIR
+        )
 
         self.relative_series = (
             "relative_coverage_percent_of_water",
@@ -315,6 +325,7 @@ class TimeSeriesPlotter:
                 std_column="relative_climatology_std_percent",
                 ylabel="Relative anomaly [percentage points]",
                 filename="relative_anomaly",
+                quantity="relative",
                 region=region,
             )
 
@@ -324,6 +335,7 @@ class TimeSeriesPlotter:
                 std_column="absolute_climatology_std_percent",
                 ylabel="Absolute anomaly [percentage points]",
                 filename="absolute_anomaly",
+                quantity="absolute",
                 region=region,
             )
 
@@ -334,6 +346,7 @@ class TimeSeriesPlotter:
         std_column: str,
         ylabel: str,
         filename: str,
+        quantity: str,
         region: str,
     ) -> None:
         """Plot anomalies for one region."""
@@ -500,7 +513,7 @@ class TimeSeriesPlotter:
         # Save
         # ---------------------------------------------------------
 
-        output_dir = self.output_dir / "anomalies"
+        output_dir = self.output_dir / "anomalies" / quantity
 
         output_dir.mkdir(
             parents=True,
@@ -758,7 +771,14 @@ class TimeSeriesPlotter:
         # Save
         # -------------------------------------------------------------
 
-        output_dir = self.output_dir / "thresholds"
+        output_dir = self.yearly_output_dir / "thresholds" / "relative"
+
+        # Relative-only product (issue #113): no absolute
+        # threshold events exist yet, so the absolute quantity
+        # directory is created and stays empty.
+        (self.yearly_output_dir / "thresholds" / "absolute").mkdir(
+            parents=True, exist_ok=True
+        )
 
         output_dir.mkdir(
             parents=True,
@@ -980,8 +1000,10 @@ class TimeSeriesPlotter:
         # Save
         # ---------------------------------------------------------
 
+        output_dir = self.output_dir / "classical_timeseries" / suffix
+
         filepath = (
-            self.output_dir / f"{region.replace(' ', '_')}_{suffix}.png"
+            output_dir / f"{region.replace(' ', '_')}_{suffix}.png"
         )
 
         filepath.parent.mkdir(
@@ -1226,8 +1248,10 @@ class TimeSeriesPlotter:
             top=self.polar_top,
         )
 
+        output_dir = self.output_dir / "polar" / suffix
+
         filepath = (
-            self.output_dir
+            output_dir
             / f"{region.replace(' ', '_')}_polar_{suffix}.png"
         )
 
@@ -1482,10 +1506,23 @@ class TimeSeriesPlotter:
             # Save
             # ---------------------------------------------------------
 
-            filepath = (
-                self.output_dir
-                / f"{region.replace(' ', '_')}_yearly_mean_relative.png"
+            output_dir = (
+                self.yearly_output_dir / "yearly_means" / "relative"
             )
+
+            # Relative-only product (issue #113): the absolute
+            # annual means are persisted but not plotted, so the
+            # absolute quantity directory is created and stays
+            # empty.
+            (
+                self.yearly_output_dir / "yearly_means" / "absolute"
+            ).mkdir(parents=True, exist_ok=True)
+
+            filename = (
+                f"{region.replace(' ', '_')}_yearly_mean_relative.png"
+            )
+
+            filepath = output_dir / filename
 
             filepath.parent.mkdir(
                 parents=True,

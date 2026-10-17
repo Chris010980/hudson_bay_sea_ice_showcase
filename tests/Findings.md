@@ -564,6 +564,19 @@ in `output/plots/timeseries/` next to the Cartesian plots, as
 pinned by the issue #32 tests; the whitelist entry (S-004)  
 was removed together with the attribute.
 
+**Status update (#113, 2026-10-17):** reopened and resolved by
+the plot-tree restructure. The products are now organized by
+scientific product class: the polar plots live in
+`output/plots/daily_timeseries/polar/{relative,absolute}/`,
+in their own directory per quantity — the original F-017
+intention (a dedicated polar output directory) is realized as
+part of the product-class tree. The previous tree
+(`output/plots/timeseries/` with `anomalies/` and
+`thresholds/` subdirectories, polar files next to the
+Cartesian plots, overview maps at the plots root as
+`sea_ice_geotiff_overview*.png`) is documented here for
+traceability; no product remains in the legacy locations.
+
 ## F-018 — Non-injectable production paths in the visualization stage
 
 **Component:** `src/visualization/timeseries_plot.py`,  
@@ -725,7 +738,7 @@ references in this audit section were updated accordingly.
 | F-014 | `test_update_first_run_processes_all_observations` (`tests/integration/test_update_pipeline.py`, #99) | resolved (#99) |
 | F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
 | F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py`; masking tests in `tests/integration/test_update_pipeline.py` + `tests/component/test_nsidc_downloader.py` (#101) | resolved (#101); backlog F-028 resolved |
-| F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | mapping verified |
+| F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | resolved (#113; plot tree restructure) |
 | F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) | mapping verified |
 | F-019 | `tests/integration/test_generate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |
 | F-020 | 6 tests in `tests/integration/test_build_pages.py` | mapping verified; option wiring → F-029 |
@@ -823,9 +836,9 @@ Overview additions — merge these rows into the Overview table:
 | F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | resolved (#102) |
 | F-027 | #75 | update_pipeline.py (first run) | gap | resolved (#99) |
-| F-028 | #75 | update_pipeline.py (masking) | gap | proposed |
+| F-028 | #75 | update_pipeline.py (masking) | gap | resolved (#101) |
 | F-029 | #75 | build_pages.py (CLI options) | gap | proposed |
-| F-030 | #75 | timeseries_analyzer.py (gap edges) | gap | proposed |
+| F-030 | #75 | timeseries_analyzer.py (gap edges) | gap | resolved (#103) |
 
 ## F-022 — Pipeline dispatcher has no tests
 
@@ -970,6 +983,13 @@ the masking scenario has no test.
 decision is made (re-validate files vs. processed-state boundary).
 
 **Dependencies:** F-016 decision.
+
+**Status update (#101, 2026-10-16):** resolved. The F-016
+masking semantics is decided and pinned by
+`test_update_processes_local_files_without_downloads`
+(`tests/integration/test_update_pipeline.py`) and the three
+`count_local_files_after` tests
+(`tests/component/test_nsidc_downloader.py`).
 
 ## F-029 — build_pages CLI options untested
 

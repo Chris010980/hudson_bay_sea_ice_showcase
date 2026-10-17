@@ -29,8 +29,8 @@ coverage report of the #40 run.
 | `update/build_pages.py` | `BUILD_DIR / "output"` inline | unchanged: the call-time join stays as the test redirect seam (F-018 pattern) |
 | `update/update_pipeline.py` | no local path construction | unchanged |
 | `src/main.py` | no local path construction | unchanged |
-| `visualization/geotiff_plot.py` | overview PNG, regions.json and geotiff fallback dir built locally | `GEOTIFF_OVERVIEW_PLOT` (alias `DEFAULT_OUTPUT_PLOT_PATH` for `generate_plots.py`); regions.json and the fallback dir stay call-time joins from `PROJECT_ROOT`/`DATA_DIR` (test seams, F-018) |
-| `visualization/timeseries_plot.py` | input CSVs and plots dir built locally | central CSV constants (aliases kept); `OUTPUT_DIR` kept as module-level alias of `PLOTS_DIR`, still joined with `/ "timeseries"` at construction time (test seam) |
+| `visualization/geotiff_plot.py` | overview PNG, regions.json and geotiff fallback dir built locally | `GEOTIFF_OVERVIEW_PLOT` (alias `DEFAULT_OUTPUT_PLOT_PATH` for `generate_plots.py`); regions.json and the fallback dir stay call-time joins from `PROJECT_ROOT`/`DATA_DIR` (test seams, F-018). Issue #113 moves the overview product to the `spatial/` product class (`output/plots/spatial/overview.png` plus suffix variants) |
+| `visualization/timeseries_plot.py` | input CSVs and plots dir built locally | central CSV constants (aliases kept); `OUTPUT_DIR` kept as module-level alias of `PLOTS_DIR`, joined with the central product-class subdirectory names `DAILY_TIMESERIES_PLOTS_SUBDIR` / `YEARLY_TIMESERIES_PLOTS_SUBDIR` at construction time (test seam, unchanged); the family and quantity leaves are joined in the module (issue #113) |
 
 ## Constants - resolved findings
 

@@ -243,35 +243,52 @@ _YEARLY_TRENDS = {
     "Test Region Mixed": (-10.0, 20070.0, 1.0),
 }
 
-# The complete time-series product set (paths relative to the
-# isolated plots directory; see test_timeseries_plotter.py).
+# The complete product set of plot_all() (paths relative to the
+# isolated plots directory; the plot tree follows the product
+# classes of issue #113 — F-017 is resolved).
 _ALL_TIMESERIES_PRODUCTS = [
-    "timeseries/Test_Region_Mixed_absolute.png",
-    "timeseries/Test_Region_Mixed_polar_absolute.png",
-    "timeseries/Test_Region_Mixed_polar_relative.png",
-    "timeseries/Test_Region_Mixed_relative.png",
-    "timeseries/Test_Region_Mixed_yearly_mean_relative.png",
-    "timeseries/Test_Region_Water_absolute.png",
-    "timeseries/Test_Region_Water_polar_absolute.png",
-    "timeseries/Test_Region_Water_polar_relative.png",
-    "timeseries/Test_Region_Water_relative.png",
-    "timeseries/Test_Region_Water_yearly_mean_relative.png",
-    "timeseries/anomalies/Test_Region_Mixed_absolute_anomaly.png",
-    "timeseries/anomalies/Test_Region_Mixed_relative_anomaly.png",
-    "timeseries/anomalies/Test_Region_Water_absolute_anomaly.png",
-    "timeseries/anomalies/Test_Region_Water_relative_anomaly.png",
-    "timeseries/thresholds/Test_Region_Mixed_threshold_duration.png",
-    "timeseries/thresholds/Test_Region_Water_threshold_duration.png",
+    "daily_timeseries/anomalies/absolute/"
+    "Test_Region_Mixed_absolute_anomaly.png",
+    "daily_timeseries/anomalies/absolute/"
+    "Test_Region_Water_absolute_anomaly.png",
+    "daily_timeseries/anomalies/relative/"
+    "Test_Region_Mixed_relative_anomaly.png",
+    "daily_timeseries/anomalies/relative/"
+    "Test_Region_Water_relative_anomaly.png",
+    "daily_timeseries/classical_timeseries/absolute/"
+    "Test_Region_Mixed_absolute.png",
+    "daily_timeseries/classical_timeseries/absolute/"
+    "Test_Region_Water_absolute.png",
+    "daily_timeseries/classical_timeseries/relative/"
+    "Test_Region_Mixed_relative.png",
+    "daily_timeseries/classical_timeseries/relative/"
+    "Test_Region_Water_relative.png",
+    "daily_timeseries/polar/absolute/"
+    "Test_Region_Mixed_polar_absolute.png",
+    "daily_timeseries/polar/absolute/"
+    "Test_Region_Water_polar_absolute.png",
+    "daily_timeseries/polar/relative/"
+    "Test_Region_Mixed_polar_relative.png",
+    "daily_timeseries/polar/relative/"
+    "Test_Region_Water_polar_relative.png",
+    "yearly_timeseries/thresholds/relative/"
+    "Test_Region_Mixed_threshold_duration.png",
+    "yearly_timeseries/thresholds/relative/"
+    "Test_Region_Water_threshold_duration.png",
+    "yearly_timeseries/yearly_means/relative/"
+    "Test_Region_Mixed_yearly_mean_relative.png",
+    "yearly_timeseries/yearly_means/relative/"
+    "Test_Region_Water_yearly_mean_relative.png",
 ]
 
 # The map products of the "all" mode: the default plot path and
-# its suffix variants (the --output option is ignored in "all"
-# mode, see F-019).
+# its suffix variants below the spatial product class (the
+# --output option is ignored in "all" mode, see F-019).
 _MAP_PRODUCTS = [
-    "sea_ice_geotiff_overview.png",
-    "sea_ice_geotiff_overview_regions.png",
-    "sea_ice_geotiff_overview_test_region_water.png",
-    "sea_ice_geotiff_overview_test_region_mixed.png",
+    "spatial/overview.png",
+    "spatial/overview_regions.png",
+    "spatial/overview_test_region_water.png",
+    "spatial/overview_test_region_mixed.png",
 ]
 
 
@@ -497,7 +514,7 @@ def generate_plots_environment(
     monkeypatch.setattr(
         geotiff_plot_module,
         "DEFAULT_OUTPUT_PLOT_PATH",
-        plots_dir / "sea_ice_geotiff_overview.png",
+        plots_dir / "spatial" / "overview.png",
     )
 
     for method_name in (
@@ -642,7 +659,9 @@ def test_generate_timeseries_type_creates_region_plots(
         ts_factory=env["ts_factory"],
     )
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
+    classical_dir = (
+        env["plots_dir"] / "daily_timeseries" / "classical_timeseries"
+    )
 
     expected = {
         "Test_Region_Water_relative.png",
@@ -651,13 +670,18 @@ def test_generate_timeseries_type_creates_region_plots(
         "Test_Region_Mixed_absolute.png",
     }
 
-    actual = {path.name for path in timeseries_dir.glob("*.png")}
+    actual = {path.name for path in classical_dir.glob("*/*.png")}
 
     assert actual == expected
 
-    for name in expected:
-        _assert_png_product(timeseries_dir / name)
+    for path in classical_dir.glob("*/*.png"):
+        _assert_png_product(path)
 
     # No other product family was generated.
-    assert not (timeseries_dir / "anomalies").exists()
-    assert not (timeseries_dir / "thresholds").exists()
+    daily_dir = env["plots_dir"] / "daily_timeseries"
+
+    assert {path.name for path in daily_dir.iterdir()} == {
+        "classical_timeseries",
+    }
+
+    assert not (env["plots_dir"] / "yearly_timeseries").exists()

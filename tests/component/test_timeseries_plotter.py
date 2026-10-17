@@ -7,19 +7,27 @@ plot products (docs/testing/test-levels.md, section 3.7).
 Covered products (src/visualization/timeseries_plot.py):
 
 * plot_timeseries(): Cartesian coverage plots per region
-  -> output/plots/timeseries/{region}_{relative,absolute}.png
+  -> output/plots/daily_timeseries/
+     classical_timeseries/{relative,absolute}/
+     {region}_{quantity}.png
 * plot_anomalies(): anomaly plots per region
-  -> .../timeseries/anomalies/
-     {region}_{relative,absolute}_anomaly.png
+  -> .../daily_timeseries/anomalies/{relative,absolute}/
+     {region}_{quantity}_anomaly.png
 * plot_threshold_durations(): seasonal duration plots
-  -> .../timeseries/thresholds/
+  -> .../yearly_timeseries/thresholds/relative/
      {region}_threshold_duration.png
+  (the absolute quantity directory is created empty,
+  issue #113)
 * plot_yearly_means(): annual mean plots with linear trend
-  -> .../timeseries/{region}_yearly_mean_relative.png
+  -> .../yearly_timeseries/yearly_means/relative/
+     {region}_yearly_mean_relative.png
+  (the absolute quantity directory is created empty,
+  issue #113)
 * plot_polar(): polar coverage plots per region
-  -> .../timeseries/{region}_polar_{relative,absolute}.png
-  (polar_output_dir is configured but never used, see
-  tests/Findings.md, F-017)
+  -> .../daily_timeseries/polar/{relative,absolute}/
+     {region}_polar_{quantity}.png
+  (issue #113 resolves F-017: the polar products live in
+  their own product-class directory per quantity)
 * plot_all(): the complete product set (16 files)
 
 Test design:
@@ -239,23 +247,42 @@ _YEARLY_TRENDS = {
 # The complete product set of plot_all() (paths relative to the
 # isolated plots directory; the polar files live in the
 # timeseries directory, see F-017).
+# The complete product set of plot_all() (paths relative to the
+# isolated plots directory; the plot tree follows the product
+# classes of issue #113 — F-017 is resolved).
 _ALL_TIMESERIES_PRODUCTS = [
-    "timeseries/Test_Region_Mixed_absolute.png",
-    "timeseries/Test_Region_Mixed_polar_absolute.png",
-    "timeseries/Test_Region_Mixed_polar_relative.png",
-    "timeseries/Test_Region_Mixed_relative.png",
-    "timeseries/Test_Region_Mixed_yearly_mean_relative.png",
-    "timeseries/Test_Region_Water_absolute.png",
-    "timeseries/Test_Region_Water_polar_absolute.png",
-    "timeseries/Test_Region_Water_polar_relative.png",
-    "timeseries/Test_Region_Water_relative.png",
-    "timeseries/Test_Region_Water_yearly_mean_relative.png",
-    "timeseries/anomalies/Test_Region_Mixed_absolute_anomaly.png",
-    "timeseries/anomalies/Test_Region_Mixed_relative_anomaly.png",
-    "timeseries/anomalies/Test_Region_Water_absolute_anomaly.png",
-    "timeseries/anomalies/Test_Region_Water_relative_anomaly.png",
-    "timeseries/thresholds/Test_Region_Mixed_threshold_duration.png",
-    "timeseries/thresholds/Test_Region_Water_threshold_duration.png",
+    "daily_timeseries/anomalies/absolute/"
+    "Test_Region_Mixed_absolute_anomaly.png",
+    "daily_timeseries/anomalies/absolute/"
+    "Test_Region_Water_absolute_anomaly.png",
+    "daily_timeseries/anomalies/relative/"
+    "Test_Region_Mixed_relative_anomaly.png",
+    "daily_timeseries/anomalies/relative/"
+    "Test_Region_Water_relative_anomaly.png",
+    "daily_timeseries/classical_timeseries/absolute/"
+    "Test_Region_Mixed_absolute.png",
+    "daily_timeseries/classical_timeseries/absolute/"
+    "Test_Region_Water_absolute.png",
+    "daily_timeseries/classical_timeseries/relative/"
+    "Test_Region_Mixed_relative.png",
+    "daily_timeseries/classical_timeseries/relative/"
+    "Test_Region_Water_relative.png",
+    "daily_timeseries/polar/absolute/"
+    "Test_Region_Mixed_polar_absolute.png",
+    "daily_timeseries/polar/absolute/"
+    "Test_Region_Water_polar_absolute.png",
+    "daily_timeseries/polar/relative/"
+    "Test_Region_Mixed_polar_relative.png",
+    "daily_timeseries/polar/relative/"
+    "Test_Region_Water_polar_relative.png",
+    "yearly_timeseries/thresholds/relative/"
+    "Test_Region_Mixed_threshold_duration.png",
+    "yearly_timeseries/thresholds/relative/"
+    "Test_Region_Water_threshold_duration.png",
+    "yearly_timeseries/yearly_means/relative/"
+    "Test_Region_Mixed_yearly_mean_relative.png",
+    "yearly_timeseries/yearly_means/relative/"
+    "Test_Region_Water_yearly_mean_relative.png",
 ]
 
 
@@ -474,14 +501,17 @@ def test_plot_timeseries_creates_region_plots(
     """The classic time-series plots are created for every region.
 
     Two products per region (relative and absolute coverage),
-    saved to output/plots/timeseries/. The plotter loads its
+    saved to the quantity subdirectories of the
+    classical_timeseries product family. The plotter loads its
     inputs on demand (no explicit load() required).
     """
     env = timeseries_plot_environment
 
     env["plotter"].plot_timeseries()
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
+    classical_dir = (
+        env["plots_dir"] / "daily_timeseries" / "classical_timeseries"
+    )
 
     expected = {
         "Test_Region_Water_relative.png",
@@ -490,12 +520,17 @@ def test_plot_timeseries_creates_region_plots(
         "Test_Region_Mixed_absolute.png",
     }
 
-    actual = {path.name for path in timeseries_dir.glob("*.png")}
+    actual = {path.name for path in classical_dir.glob("*/*.png")}
 
     assert actual == expected
 
-    for name in expected:
-        _assert_png_product(timeseries_dir / name)
+    for path in classical_dir.glob("*/*.png"):
+        _assert_png_product(path)
+
+    assert {path.name for path in classical_dir.iterdir()} == {
+        "absolute",
+        "relative",
+    }
 
 
 # ------------------------------------------------------------------
@@ -508,16 +543,17 @@ def test_plot_anomalies_creates_anomaly_plots(
 ) -> None:
     """Relative and absolute anomaly plots are created per region.
 
-    The products are saved to the anomalies subdirectory; the
-    timeseries directory itself receives no files.
+    The products are saved to the quantity subdirectories of
+    the anomalies product family; the daily_timeseries
+    directory itself receives no files.
     """
     env = timeseries_plot_environment
 
     env["plotter"].load()
     env["plotter"].plot_anomalies()
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
-    anomalies_dir = timeseries_dir / "anomalies"
+    daily_dir = env["plots_dir"] / "daily_timeseries"
+    anomalies_dir = daily_dir / "anomalies"
 
     expected = {
         "Test_Region_Water_relative_anomaly.png",
@@ -526,14 +562,19 @@ def test_plot_anomalies_creates_anomaly_plots(
         "Test_Region_Mixed_absolute_anomaly.png",
     }
 
-    actual = {path.name for path in anomalies_dir.glob("*.png")}
+    actual = {path.name for path in anomalies_dir.glob("*/*.png")}
 
     assert actual == expected
 
-    for name in expected:
-        _assert_png_product(anomalies_dir / name)
+    for path in anomalies_dir.glob("*/*.png"):
+        _assert_png_product(path)
 
-    assert {path.name for path in timeseries_dir.iterdir()} == {
+    assert {path.name for path in anomalies_dir.iterdir()} == {
+        "absolute",
+        "relative",
+    }
+
+    assert {path.name for path in daily_dir.iterdir()} == {
         "anomalies",
     }
 
@@ -560,22 +601,33 @@ def test_plot_threshold_durations_creates_duration_plots(
     env["plotter"].load()
     env["plotter"].plot_threshold_durations()
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
-    thresholds_dir = timeseries_dir / "thresholds"
+    yearly_dir = env["plots_dir"] / "yearly_timeseries"
+    thresholds_dir = yearly_dir / "thresholds"
 
     expected = {
         "Test_Region_Water_threshold_duration.png",
         "Test_Region_Mixed_threshold_duration.png",
     }
 
-    actual = {path.name for path in thresholds_dir.glob("*.png")}
+    actual = {
+        path.name for path in thresholds_dir.glob("relative/*.png")
+    }
 
     assert actual == expected
 
     for name in expected:
-        _assert_png_product(thresholds_dir / name)
+        _assert_png_product(thresholds_dir / "relative" / name)
 
-    assert {path.name for path in timeseries_dir.iterdir()} == {
+    # The threshold products are relative-only: the absolute
+    # quantity directory exists but stays empty (issue #113).
+    assert {path.name for path in thresholds_dir.iterdir()} == {
+        "relative",
+        "absolute",
+    }
+
+    assert not list(thresholds_dir.glob("absolute/*.png"))
+
+    assert {path.name for path in yearly_dir.iterdir()} == {
         "thresholds",
     }
 
@@ -599,19 +651,32 @@ def test_plot_yearly_means_creates_annual_plots(
 
     env["plotter"].plot_yearly_means()
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
+    yearly_means_dir = (
+        env["plots_dir"] / "yearly_timeseries" / "yearly_means"
+    )
 
     expected = {
         "Test_Region_Water_yearly_mean_relative.png",
         "Test_Region_Mixed_yearly_mean_relative.png",
     }
 
-    actual = {path.name for path in timeseries_dir.glob("*.png")}
+    actual = {
+        path.name for path in yearly_means_dir.glob("relative/*.png")
+    }
 
     assert actual == expected
 
     for name in expected:
-        _assert_png_product(timeseries_dir / name)
+        _assert_png_product(yearly_means_dir / "relative" / name)
+
+    # The annual mean products are relative-only: the absolute
+    # quantity directory exists but stays empty (issue #113).
+    assert {path.name for path in yearly_means_dir.iterdir()} == {
+        "relative",
+        "absolute",
+    }
+
+    assert not list(yearly_means_dir.glob("absolute/*.png"))
 
 
 # ------------------------------------------------------------------
@@ -624,16 +689,16 @@ def test_plot_polar_creates_polar_plots(
 ) -> None:
     """Polar coverage plots are created per region.
 
-    Two products per region (relative and absolute). Pinned
-    implemented behavior: the files are saved into the
-    timeseries directory (the configured polar_output_dir is
-    never used, see tests/Findings.md, F-017).
+    Two products per region (relative and absolute), saved
+    into the quantity subdirectories of the polar product
+    family (issue #113 resolves F-017: the polar products
+    no longer live next to the Cartesian plots).
     """
     env = timeseries_plot_environment
 
     env["plotter"].plot_polar()
 
-    timeseries_dir = env["plots_dir"] / "timeseries"
+    polar_dir = env["plots_dir"] / "daily_timeseries" / "polar"
 
     expected = {
         "Test_Region_Water_polar_relative.png",
@@ -642,14 +707,17 @@ def test_plot_polar_creates_polar_plots(
         "Test_Region_Mixed_polar_absolute.png",
     }
 
-    actual = {path.name for path in timeseries_dir.glob("*.png")}
+    actual = {path.name for path in polar_dir.glob("*/*.png")}
 
     assert actual == expected
 
-    for name in expected:
-        _assert_png_product(timeseries_dir / name)
+    for path in polar_dir.glob("*/*.png"):
+        _assert_png_product(path)
 
-    assert not (env["plots_dir"] / "polar").exists()
+    assert {path.name for path in polar_dir.iterdir()} == {
+        "absolute",
+        "relative",
+    }
 
 
 # ------------------------------------------------------------------
