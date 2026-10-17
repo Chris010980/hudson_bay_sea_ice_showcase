@@ -66,6 +66,40 @@ FREEZEUP_WINDOW_START = (9, 16)
 FREEZEUP_WINDOW_END = (3, 15)
 
 
+def compute_linear_trend(
+    x: np.ndarray,
+    y: np.ndarray,
+) -> tuple[float, float, float]:
+    """Least-squares linear fit with the coefficient of
+    determination R².
+
+    Returns (slope, intercept, r_squared). R² is NaN when the
+    total variance is zero (constant series): the fit itself
+    is well-defined, the quality measure is not.
+    """
+    slope, intercept = np.polyfit(
+        x,
+        y,
+        1,
+    )
+
+    y_trend = slope * x + intercept
+
+    residuals = y - y_trend
+
+    ss_res = np.sum(residuals**2)
+
+    ss_tot = np.sum((y - np.mean(y)) ** 2)
+
+    if ss_tot > 0:
+        r_squared = 1.0 - ss_res / ss_tot
+
+    else:
+        r_squared = np.nan
+
+    return slope, intercept, r_squared
+
+
 class TimeSeriesAnalyzer:
     def __init__(
         self,
@@ -494,10 +528,49 @@ class TimeSeriesAnalyzer:
             ]
         ).reset_index(drop=True)
 
+        self._add_yearly_trend_columns()
+
         logger.info(
             "Calculated %d yearly mean records.",
             len(self.yearly_df),
         )
+
+    def _add_yearly_trend_columns(self):
+        """Store the linear trend of the relative annual means.
+
+        The trend (F-007) becomes a data product: the yearly
+        CSV carries slope, intercept and R² of the relative
+        mean per region, and the plotter reads them instead of
+        refitting (issue #102). Regions with fewer than two
+        complete years keep NaN trend columns.
+        """
+        slope_column = "relative_mean_trend_slope"
+        intercept_column = "relative_mean_trend_intercept"
+        r2_column = "relative_mean_trend_r_squared"
+
+        self.yearly_df[slope_column] = np.nan
+        self.yearly_df[intercept_column] = np.nan
+        self.yearly_df[r2_column] = np.nan
+
+        for region in self.yearly_df["region"].unique():
+            mask = self.yearly_df["region"] == region
+
+            region_df = self.yearly_df[mask].sort_values("year")
+
+            if len(region_df) < 2:
+                continue
+
+            x = region_df["year"].to_numpy(dtype=float)
+
+            y = region_df["relative_mean_coverage_percent"].to_numpy(
+                dtype=float
+            )
+
+            slope, intercept, r_squared = compute_linear_trend(x, y)
+
+            self.yearly_df.loc[mask, slope_column] = slope
+            self.yearly_df.loc[mask, intercept_column] = intercept
+            self.yearly_df.loc[mask, r2_column] = r_squared
 
     # ---------------------------------------------------------
     # Freeze-up and break-up events
@@ -1057,7 +1130,7 @@ class TimeSeriesAnalyzer:
     # saving
     # ---------------------------------------------------------
 
-    def save(self) -> Path:
+    def save(self) -> None:
         """
         Save the derived time-series dataset. The original
         ice_coverage_summary.csv is never modified.
@@ -1106,9 +1179,4 @@ class TimeSeriesAnalyzer:
         logger.info(
             "Saved threshold events to %s",
             self.events_output_path,
-        )
-
-        return (
-            self.output_path,
-            self.yearly_output_path,
         )

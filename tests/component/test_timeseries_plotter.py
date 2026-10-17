@@ -228,6 +228,14 @@ _YEARLY_ROWS = [
     ("Test Region Mixed", 2001, 60.0, 48.0),
 ]
 
+# (slope, intercept, R²) of the relative annual means — the
+# hand calculations of the module header (-10 %/year); they
+# are exactly the values the previous inline polyfit produced.
+_YEARLY_TRENDS = {
+    "Test Region Water": (-10.0, 20050.0, 1.0),
+    "Test Region Mixed": (-10.0, 20070.0, 1.0),
+}
+
 # The complete product set of plot_all() (paths relative to the
 # isolated plots directory; the polar files live in the
 # timeseries directory, see F-017).
@@ -315,6 +323,8 @@ def _seed_yearly_csv(analysis_dir: Path) -> Path:
     for region, year, relative, absolute in _YEARLY_ROWS:
         water_area = _WATER_AREA_KM2[region]
 
+        trend = _YEARLY_TRENDS[region]
+
         records.append(
             {
                 "region": region,
@@ -327,6 +337,9 @@ def _seed_yearly_csv(analysis_dir: Path) -> Path:
                 "absolute_mean_ice_area_km2": absolute
                 * water_area
                 / 100.0,
+                "relative_mean_trend_slope": trend[0],
+                "relative_mean_trend_intercept": trend[1],
+                "relative_mean_trend_r_squared": trend[2],
             }
         )
 

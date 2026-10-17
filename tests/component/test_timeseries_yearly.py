@@ -14,10 +14,11 @@ The tests verify ``filter_complete_years()`` and
 * multiple regions are evaluated independently per region-year,
 * and filtering does not modify the underlying dataframe.
 
-The linear trend and R-squared tasks of issue #25 are documented
-separately: the calculation currently lives inline in the
-plotting code and is not testable as a unit yet (see
-tests/FINDINGS.md, F-007).
+The linear trend and R-squared tasks of issue #25 are covered
+since issue #102: the pure helper ``compute_linear_trend()`` is
+unit-tested in ``tests/unit/test_linear_trend.py``, and the
+per-region trend columns of the yearly product are asserted
+below (see tests/Findings.md, F-007).
 
 Like the previous component tests, ``interpolate_calendar()`` is
 never called. Expected values are calculated independently.
@@ -449,3 +450,79 @@ def test_multiple_regions_are_evaluated_per_region_year(
         (yearly_df["region"] == "Region A")
         & (yearly_df["year"] == 2024)
     ).sum() == 0
+
+
+def test_yearly_means_include_trend_columns(
+    timeseries_paths: dict[str, Path],
+) -> None:
+    """The yearly product carries the per-region trend (F-007).
+
+    Region A has two complete years (30 %, 50 %): the stored
+    trend is slope 20, intercept -39990, R² = 1.0 on every row
+    of the region. Region B has a single complete year: its
+    trend columns stay NaN.
+    """
+
+    rows = (
+        _days_rows("Region A", date(2001, 1, 1), 365, 30.0)
+        + _days_rows("Region A", date(2002, 1, 1), 365, 50.0)
+        + _days_rows("Region B", date(2001, 1, 1), 365, 70.0)
+    )
+
+    analyzer = _load_analyzer(timeseries_paths, rows)
+
+    analyzer.calculate_yearly_means()
+
+    yearly_df = analyzer.yearly_df
+
+    row_a_2001 = _yearly_row(yearly_df, "Region A", 2001)
+
+    assert row_a_2001["relative_mean_trend_slope"] == pytest.approx(
+        20.0
+    )
+
+    assert row_a_2001["relative_mean_trend_intercept"] == pytest.approx(
+        -39990.0
+    )
+
+    assert row_a_2001["relative_mean_trend_r_squared"] == (
+        pytest.approx(1.0)
+    )
+
+    row_a_2002 = _yearly_row(yearly_df, "Region A", 2002)
+
+    assert row_a_2002["relative_mean_trend_slope"] == pytest.approx(
+        20.0
+    )
+
+    row_b_2001 = _yearly_row(yearly_df, "Region B", 2001)
+
+    assert pd.isna(row_b_2001["relative_mean_trend_slope"])
+
+    assert pd.isna(row_b_2001["relative_mean_trend_intercept"])
+
+    assert pd.isna(row_b_2001["relative_mean_trend_r_squared"])
+
+
+def test_save_returns_none(
+    timeseries_paths: dict[str, Path],
+) -> None:
+    """``save()`` persists the three products and returns None.
+
+    The annotation and the return value agree since issue
+    #102 (F-005): the written paths are constructor state.
+    """
+
+    rows = _days_rows("Region A", date(2000, 1, 1), 365, 30.0)
+
+    analyzer = _load_analyzer(timeseries_paths, rows)
+
+    analyzer.calculate_yearly_means()
+
+    assert analyzer.save() is None
+
+    assert timeseries_paths["timeseries"].exists()
+
+    assert timeseries_paths["yearly"].exists()
+
+    assert timeseries_paths["events"].exists()

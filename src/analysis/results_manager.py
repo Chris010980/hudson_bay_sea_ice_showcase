@@ -71,14 +71,14 @@ class ResultsManager:
 
         return (self.df_existing["date"] == str(date)).any()
 
-    def save(self):
+    def save(self) -> None:
 
         df_new = pd.DataFrame(self.results)
 
         if df_new.empty:
             logger.info("No new results.")
 
-            return self.df_existing
+            return
 
         df = pd.concat(
             [
@@ -115,8 +115,6 @@ class ResultsManager:
             "Saved %d rows.",
             len(df),
         )
-
-        return df
 
     def get_latest_processed_date(self) -> date | None:
         """

@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.dates import DateFormatter, MonthLocator
 
+from src.analysis.timeseries_analyzer import compute_linear_trend
 from src.config.paths import (
     ICE_COVERAGE_EVENTS_CSV as EVENTS_CSV,
 )
@@ -658,25 +659,12 @@ class TimeSeriesPlotter:
             # ---------------------------------------------------------
 
             if len(data) >= 2:
-                slope, intercept = np.polyfit(
+                slope, intercept, r_squared = compute_linear_trend(
                     x,
                     y,
-                    1,
                 )
 
                 y_trend = slope * x + intercept
-
-                residuals = y - y_trend
-
-                ss_res = np.sum(residuals**2)
-
-                ss_tot = np.sum((y - np.mean(y)) ** 2)
-
-                if ss_tot > 0:
-                    r_squared = 1.0 - ss_res / ss_tot
-
-                else:
-                    r_squared = np.nan
 
                 # Trend line
                 ax.plot(
@@ -1274,6 +1262,9 @@ class TimeSeriesPlotter:
             "year",
             "region",
             "relative_mean_coverage_percent",
+            "relative_mean_trend_slope",
+            "relative_mean_trend_intercept",
+            "relative_mean_trend_r_squared",
         }
 
         missing = required_columns - set(df.columns)
@@ -1331,29 +1322,18 @@ class TimeSeriesPlotter:
             )
 
             # ---------------------------------------------------------
-            # Linear trend
+            # Linear trend (precomputed by the analyzer, F-007)
             # ---------------------------------------------------------
 
-            slope, intercept = np.polyfit(
-                x,
-                y,
-                1,
-            )
+            row = df_region.iloc[0]
+
+            slope = row["relative_mean_trend_slope"]
+
+            intercept = row["relative_mean_trend_intercept"]
+
+            r_squared = row["relative_mean_trend_r_squared"]
 
             y_trend = slope * x + intercept
-
-            # Coefficient of determination R²
-            residuals = y - y_trend
-
-            ss_res = np.sum(residuals**2)
-
-            ss_tot = np.sum((y - np.mean(y)) ** 2)
-
-            if ss_tot > 0:
-                r_squared = 1.0 - ss_res / ss_tot
-
-            else:
-                r_squared = np.nan
 
             # ---------------------------------------------------------
             # Figure
@@ -1401,12 +1381,6 @@ class TimeSeriesPlotter:
             # ---------------------------------------------------------
 
             reference_year = DAY_OF_YEAR_AXIS_YEAR
-
-            slope, intercept = np.polyfit(
-                x,
-                y,
-                1,
-            )
 
             reference_value = slope * reference_year + intercept
 

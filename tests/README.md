@@ -66,6 +66,7 @@ tests/unit/
 ├── test_downloader_helpers.py
 ├── test_event_window_bounds.py
 ├── test_generate_plots_cli.py
+├── test_linear_trend.py
 ├── test_main.py
 ├── test_moving_average.py
 ├── test_process_data.py
@@ -76,7 +77,7 @@ tests/unit/
 
 The smoke test verifies that pytest can collect and execute a test successfully. It does not test scientific functionality.
 
-The CLI parsing and dispatch files (`test_main.py`, `test_download_data.py`, `test_process_data.py`, `test_generate_plots_cli.py`) were created as component tests in issues #73/#74 and reclassified to the unit level in issue #97: they operate on pure functions with explicitly injected collaborators and no I/O beyond pytest's temporary directories. The remaining files were added in issue #97 for the pure helpers extracted in issue #40 and the filename date extraction (docs/testing/test-levels.md, section 2.2).
+The CLI parsing and dispatch files (`test_main.py`, `test_download_data.py`, `test_process_data.py`, `test_generate_plots_cli.py`) were created as component tests in issues #73/#74 and reclassified to the unit level in issue #97: they operate on pure functions with explicitly injected collaborators and no I/O beyond pytest's temporary directories. The remaining files were added in issue #97 for the pure helpers extracted in issue #40 and the filename date extraction; issue #102 added the linear-trend helper test (docs/testing/test-levels.md, section 2.2).
 
 ### `fixture_tests/`
 
@@ -490,11 +491,12 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 226
-tests in 33 files (10 unit, 4 fixture_tests, 14 component,
+unit tests were added. The suite currently comprises 233
+tests in 34 files (11 unit, 4 fixture_tests, 14 component,
 5 integration; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first
-run, and issue #101 closed the F-016 masking gap):
+run, issue #101 closed the F-016 masking gap, and issue #102
+aligned the analyzer API contracts (F-005/F-007)):
 
 ```text
 tests/
@@ -510,6 +512,7 @@ tests/
 │   ├── test_downloader_helpers.py
 │   ├── test_event_window_bounds.py
 │   ├── test_generate_plots_cli.py
+│   ├── test_linear_trend.py
 │   ├── test_main.py
 │   ├── test_moving_average.py
 │   ├── test_process_data.py
