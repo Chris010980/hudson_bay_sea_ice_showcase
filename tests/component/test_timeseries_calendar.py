@@ -6,23 +6,26 @@ calendar and the configured interpolation rules of
 ``interpolate_calendar``:
 
 * missing calendar days are created,
-* gaps within the configured maximum of 14 consecutive days are
-  linearly interpolated (method="time"),
+* gaps of at most the configured maximum of 14 consecutive
+  missing days between two observations are linearly
+  interpolated (method="time"; issue #103, F-003),
 * a gap of exactly the configured limit is still interpolated,
-* gaps exceeding the configured limit remain unbridged in the
-  middle (no crossing of unsupported gaps),
+* gaps exceeding the configured limit are not filled at all:
+  the limit applies to the total gap size, not per direction,
+* and missing days without a preceding observation are never
+  filled (forward direction only),
 * leap-year dates are handled correctly,
 * and multiple regions receive independent calendars.
 
 Expected values are calculated independently as linear day-by-day
 interpolation between the surrounding observations.
 
-Note on the limit semantics: pandas fills up to ``limit`` values
-per direction (``limit_direction="both"``). The tests therefore
-assert the unambiguous core behavior: gaps within the limit are
-fully interpolated, and the middle of a gap far exceeding the limit
-remains NaN, while the observations bounding the gap keep their
-original values.
+Note on the limit semantics (issue #103, F-003): a gap counts as
+small when at most 14 consecutive days are missing between two
+observed values. Small gaps are filled linearly in the forward
+direction; longer gaps are never bridged, so real data outages
+stay visible and the affected days are excluded from the
+complete-year statistics.
 
 All inputs are controlled synthetic datasets written to the
 isolated test environment; no production data is required. The
@@ -285,13 +288,13 @@ def test_gap_of_exactly_limit_is_interpolated(
 def test_gap_exceeding_maximum_remains_unbridged(
     timeseries_paths: dict[str, Path],
 ) -> None:
-    """A gap far exceeding the limit is not bridged in the middle.
+    """A gap far exceeding the limit is not bridged at all.
 
     Observations: 2026-01-01 = 10 % and 2026-02-10 = 80 % with 39
     missing days in between. The gap exceeds the configured limit
-    of 14 consecutive days, so the middle of the gap remains
-    without values. The bounding observations keep their original
-    values; interpolation does not cross the unsupported gap.
+    of 14 consecutive days, so no day of the gap is interpolated
+    (issue #103, F-003: the limit applies to the total gap size).
+    The bounding observations keep their original values.
     """
 
     csv_path = _write_summary(
@@ -309,14 +312,108 @@ def test_gap_exceeding_maximum_remains_unbridged(
     # The calendar itself still contains every day.
     assert len(region_df) == 41
 
-    # The middle of the gap remains unbridged.
+    # The gap is not bridged at all: every missing day stays NaN.
+    assert region_df["relative_coverage_percent"].isna().sum() == 39
+
+    assert pd.isna(_coverage(region_df, date(2026, 1, 2)))
+
     assert pd.isna(_coverage(region_df, date(2026, 1, 21)))
 
-    assert region_df["relative_coverage_percent"].isna().sum() > 0
+    assert pd.isna(_coverage(region_df, date(2026, 2, 9)))
 
     # The bounding observations keep their original values.
     assert _coverage(region_df, date(2026, 1, 1)) == 10.0
     assert _coverage(region_df, date(2026, 2, 10)) == 80.0
+
+
+# ------------------------------------------------------------------
+# Task: test the gap-size boundary (F-003, issue #103)
+# ------------------------------------------------------------------
+
+
+def test_gap_just_above_limit_is_not_filled_at_all(
+    timeseries_paths: dict[str, Path],
+) -> None:
+    """A gap of 15 missing days is not filled at all (F-003).
+
+    Observations: 2026-01-01 = 10 % and 2026-01-17 = 80 % with
+    15 missing days in between. The gap exceeds the configured
+    limit of 14 by one day: no day of the gap is interpolated.
+    The previous per-direction semantics filled such a gap from
+    both sides; issue #103 pins the total-gap-size decision.
+    """
+
+    csv_path = _write_summary(
+        timeseries_paths["csv"],
+        [
+            _row("Test Region", date(2026, 1, 1), 10.0),
+            _row("Test Region", date(2026, 1, 17), 80.0),
+        ],
+    )
+
+    df = _build_calendar(timeseries_paths, csv_path)
+
+    region_df = _region_frame(df, "Test Region")
+
+    assert len(region_df) == 17
+
+    # Every gap day remains missing.
+    for day in range(2, 17):
+        assert pd.isna(_coverage(region_df, date(2026, 1, day)))
+
+    # The bounding observations keep their original values.
+    assert _coverage(region_df, date(2026, 1, 1)) == 10.0
+    assert _coverage(region_df, date(2026, 1, 17)) == 80.0
+
+
+def test_leading_missing_days_are_never_filled(
+    timeseries_paths: dict[str, Path],
+) -> None:
+    """Missing days without a preceding observation stay NaN.
+
+    The first day of the region carries no values; the
+    interpolation is forward-looking only (issue #103, F-003),
+    so no backward fill invents a leading value. The single
+    missing day between the two observed values is filled:
+
+    01-04 = (30 + 50) / 2 = 40 %
+    """
+
+    leading = _row("Test Region", date(2026, 1, 1), 0.0)
+
+    for column in [
+        "water_pixels",
+        "water_area_km2",
+        "absolute_ice_area_km2",
+        "relative_ice_area_km2",
+        "absolute_coverage_percent",
+        "relative_coverage_percent",
+        "missing_pixels",
+    ]:
+        leading[column] = float("nan")
+
+    csv_path = _write_summary(
+        timeseries_paths["csv"],
+        [
+            leading,
+            _row("Test Region", date(2026, 1, 3), 30.0),
+            _row("Test Region", date(2026, 1, 5), 50.0),
+        ],
+    )
+
+    df = _build_calendar(timeseries_paths, csv_path)
+
+    region_df = _region_frame(df, "Test Region")
+
+    assert len(region_df) == 5
+
+    # The leading missing day is never filled.
+    assert pd.isna(_coverage(region_df, date(2026, 1, 1)))
+
+    # The gap between the observations is filled.
+    assert _coverage(region_df, date(2026, 1, 4)) == pytest.approx(40.0)
+
+    assert _coverage(region_df, date(2026, 1, 3)) == 30.0
 
 
 # ------------------------------------------------------------------

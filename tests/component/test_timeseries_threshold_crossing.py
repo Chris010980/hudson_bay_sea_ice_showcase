@@ -10,8 +10,11 @@ Documented rules of the implementation:
 
 * a crossing occurs between two observations on consecutive
   calendar days,
-* downward crossing ("down"): y0 > threshold and y1 <= threshold,
-* upward crossing ("up"): y0 < threshold and y1 >= threshold,
+* downward crossing ("down"): y0 >= threshold, y1 <= threshold
+  and y0 > y1 (an observation exactly on the threshold is on the
+  target side, issue #103 / F-008),
+* upward crossing ("up"): y0 <= threshold, y1 >= threshold
+  and y0 < y1,
 * the crossing day itself counts as the first persistence day;
   ``persistence`` consecutive calendar days must remain on the
   target side of the threshold (production default: 7),
@@ -22,8 +25,10 @@ Documented rules of the implementation:
 
 * an observation exactly on the threshold (y1 == threshold)
   returns the current day without interpolation,
-* a series already at the threshold (y0 == threshold) does not
-  count as a crossing (strict inequality),
+* a crossing that starts exactly on the threshold (y0 ==
+  threshold) is dated to the previous day (fraction 0),
+* and two equal days (including both exactly on the threshold)
+  are not a crossing,
 * missing observations are dropped: a missing day breaks the
   consecutive-day requirement,
 * and a crossing that is found without a persistent crossing
@@ -369,11 +374,11 @@ def test_exact_threshold_observation(
     (no interpolation, fraction = 0).
 
     Case 2 -- previous observation exactly on the threshold
-    (y0 == 50): 06-01: 50 %, 06-02..06-09: 40 % and below.
-    The strict condition (y0 > threshold) is not met: the series
-    registers no crossing at all, although it falls below the
-    threshold on 06-02 (documented implementation semantics, see
-    tests/FINDINGS.md, F-008).
+    (y0 == 50): 06-01: 50 %, 06-02..06-09: 40 %. The day exactly
+    on the threshold is on the target side (issue #103, F-008):
+    the crossing is dated to 06-01 itself (fraction = 0), and
+    the seven days from 06-02 satisfy the persistence
+    requirement.
     """
 
     analyzer = _analyzer(timeseries_paths)
@@ -392,7 +397,8 @@ def test_exact_threshold_observation(
 
     _assert_crossing(result, date(2026, 6, 3), 0.0)
 
-    # Case 2: y0 == threshold -> no crossing (strict inequality).
+    # Case 2: y0 == threshold -> crossing dated to the previous
+    # day (fraction = 0).
     frame = _daily_frame(
         [50.0] + [40.0] * 8,
     )
@@ -404,7 +410,7 @@ def test_exact_threshold_observation(
         direction="down",
     )
 
-    _assert_no_crossing(result)
+    _assert_crossing(result, date(2026, 6, 1), 0.0)
 
 
 # ------------------------------------------------------------------
@@ -609,6 +615,57 @@ def test_persistence_window_boundary(
     # Case 2: one day short.
     frame = _daily_frame(
         [80.0, 80.0] + [40.0] * 6,
+    )
+
+    _assert_no_crossing(
+        _find(
+            analyzer,
+            frame,
+            threshold=50.0,
+            direction="down",
+        )
+    )
+
+
+# ------------------------------------------------------------------
+# Task: test crossings starting exactly on the threshold (#103)
+# ------------------------------------------------------------------
+
+
+def test_threshold_equality_edges(
+    timeseries_paths: dict[str, Path],
+) -> None:
+    """Crossings from exactly the threshold are recognized (F-008).
+
+    Case 1 -- upward crossing starting at the threshold:
+    06-01: 50 %, 06-02..06-08: 60 %. The day exactly on the
+    threshold is on the target side: the crossing is dated to
+    06-01 (fraction = 0); the persistence window is satisfied
+    from 06-02.
+
+    Case 2 -- two equal days exactly on the threshold are not a
+    crossing: a constant series at 50 % registers nothing.
+    """
+
+    analyzer = _analyzer(timeseries_paths)
+
+    # Case 1: y0 == threshold, rising -> crossing at 06-01.
+    frame = _daily_frame(
+        [50.0] + [60.0] * 7,
+    )
+
+    result = _find(
+        analyzer,
+        frame,
+        threshold=50.0,
+        direction="up",
+    )
+
+    _assert_crossing(result, date(2026, 6, 1), 0.0)
+
+    # Case 2: constant at the threshold -> no crossing.
+    frame = _daily_frame(
+        [50.0] * 9,
     )
 
     _assert_no_crossing(

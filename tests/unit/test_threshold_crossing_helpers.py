@@ -240,3 +240,37 @@ def test_find_threshold_crossing_validates_arguments() -> None:
             direction="sideways",
             persistence=7,
         )
+
+
+def test_crossed_between_handles_threshold_equality() -> None:
+    """Exact threshold values are on the target side (F-008,
+    issue #103).
+
+    A fall from the threshold value is a downward crossing, a
+    rise from the threshold value is an upward crossing. Two
+    equal days -- including both exactly on the threshold --
+    are not a crossing.
+    """
+
+    # Fall from exactly the threshold value.
+    assert (
+        TimeSeriesAnalyzer._crossed_between(15.0, 10.0, 15.0, "down")
+        is True
+    )
+
+    # Rise from exactly the threshold value.
+    assert (
+        TimeSeriesAnalyzer._crossed_between(15.0, 20.0, 15.0, "up")
+        is True
+    )
+
+    # Two equal days exactly on the threshold: no crossing.
+    assert (
+        TimeSeriesAnalyzer._crossed_between(15.0, 15.0, 15.0, "down")
+        is False
+    )
+
+    assert (
+        TimeSeriesAnalyzer._crossed_between(15.0, 15.0, 15.0, "up")
+        is False
+    )
