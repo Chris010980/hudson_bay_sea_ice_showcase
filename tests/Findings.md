@@ -25,9 +25,9 @@ documentation pending) · `documented` (accepted as-is)
 | F-002 | #20   | ResultsManager                      | bug       | fixed         |
 | F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open          |
 | F-004 | #21   | TimeSeriesAnalyzer                  | design    | fixed         |
-| F-005 | #21   | TimeSeriesAnalyzer                  | design    | open          |
+| F-005 | #21   | TimeSeriesAnalyzer                  | design    | fixed         |
 | F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented    |
-| F-007 | #25   | TimeSeriesPlotter                   | design    | open          |
+| F-007 | #25   | TimeSeriesPlotter                   | design    | fixed         |
 | F-008 | #26   | TimeSeriesAnalyzer                  | design    | open          |
 | F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | fixed         |
 | F-010 | #28   | NSIDCDownloader                     | design    | open          |
@@ -128,6 +128,19 @@ path is written but not returned.
 `-> tuple[Path, Path]` (and consider returning the events path as  
 well).
 
+**Resolution (#102, 2026-10-17):** the return value was removed
+instead. No caller ever consumed the tuple, and the written
+paths are constructor state, so `save()` is now annotated
+`-> None` and returns nothing. The same contract is applied to
+`ResultsManager.save()`, which returned the persisted frame
+without any caller using it. A return value can be re-added
+cleanly if a consumer ever needs one.
+
+**Test note:** `test_save_returns_none` in
+`tests/component/test_results_manager.py` and
+`tests/component/test_timeseries_yearly.py` pins the None
+contract on both save paths. Backlog F-026 resolved.
+
 ## F-006 — Inconsistent output-directory creation between managers
 
 **Component:** `src/analysis/results_manager.py`,  
@@ -173,6 +186,28 @@ whether the trend calculation should live on the
 `TimeSeriesAnalyzer` (data product, e.g. a trend column in the  
 yearly/events datasets) or as a small helper next to the plotting  
 code (presentation-only quantity).
+
+**Resolution (#102, 2026-10-17):** the design decision is the
+data-product variant. The pure module function
+`compute_linear_trend(x, y)` in
+`src/analysis/timeseries_analyzer.py` returns slope, intercept
+and R² (NaN for zero total variance); the analyzer persists the
+trend of the relative annual means per region as the columns
+`relative_mean_trend_slope`, `relative_mean_trend_intercept`
+and `relative_mean_trend_r_squared` in the yearly product.
+`plot_yearly_means()` reads the stored values instead of
+refitting, and the threshold-duration plot calls the same
+helper for its inline fit. The yearly figure remains
+byte-stable: the stored values are exactly the previous
+polyfit results.
+
+**Test note:** `tests/unit/test_linear_trend.py` pins the helper
+with hand calculations (noisy fit, perfect fit, constant
+series, two points);
+`test_yearly_means_include_trend_columns`
+(`tests/component/test_timeseries_yearly.py`) pins the stored
+per-region columns including the single-year NaN edge. Backlog
+F-026 resolved.
 
 ## F-008 — Dead branches and strict-threshold edge in `_find_threshold_crossing`
 
@@ -639,9 +674,9 @@ references in this audit section were updated accordingly.
 | F-002 | none referenced (fixed during v0.2) | as documented |
 | F-003 | gap tests in `tests/component/test_timeseries_calendar.py` | mapping verified; gap edges → F-030 |
 | F-004 | none — import removed in #39; no test required | resolved (#39) |
-| F-005 | none — `save()` return tuple unasserted | gap → F-026 |
+| F-005 | `test_save_returns_none` + `test_empty_result_handling` (`tests/component/test_results_manager.py`); `test_save_returns_none` (`tests/component/test_timeseries_yearly.py`) (#102) | resolved (#102) |
 | F-006 | `timeseries_paths` fixture in `tests/conftest.py` (eager `analysis_dir.mkdir()`, documented) | mapping verified |
-| F-007 | none — trend/R² not testable yet | gap → F-026 |
+| F-007 | `tests/unit/test_linear_trend.py`; `test_yearly_means_include_trend_columns` (`tests/component/test_timeseries_yearly.py`) (#102) | resolved (#102); backlog F-026 resolved |
 | F-008 | `test_exact_threshold_observation` + 9 further tests in `tests/component/test_timeseries_threshold_crossing.py` | mapping verified |
 | F-009 | `tests/unit/test_download_data.py` (sync argument contract, #98) | resolved (#98) |
 | F-010 | `test_delete_local_data` (`tests/component/test_nsidc_downloader.py`) | mapping verified |
@@ -747,7 +782,7 @@ Overview additions — merge these rows into the Overview table:
 | F-023 | #75 | download_data.py (CLI) | gap | resolved (#73; sync contract #98) |
 | F-024 | #75 | process_data.py (CLI) | gap | resolved (#73; unit level #97) |
 | F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
-| F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | proposed |
+| F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | resolved (#102) |
 | F-027 | #75 | update_pipeline.py (first run) | gap | resolved (#99) |
 | F-028 | #75 | update_pipeline.py (masking) | gap | proposed |
 | F-029 | #75 | build_pages.py (CLI options) | gap | proposed |
@@ -861,6 +896,12 @@ pending), add trend/R² unit tests; add a `save()` return-value
 test.
 
 **Dependencies:** F-005, F-007 extraction.
+
+**Status update (#102, 2026-10-17):** resolved. The trend/R²
+extraction (F-007) and the consistent `save()` contract
+(F-005) are implemented; `tests/unit/test_linear_trend.py`,
+`test_yearly_means_include_trend_columns` and the two
+`test_save_returns_none` tests close both parts of the gap.
 
 ## F-027 — First-run pipeline test missing
 

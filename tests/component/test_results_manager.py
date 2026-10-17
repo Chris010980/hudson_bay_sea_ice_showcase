@@ -497,14 +497,12 @@ def test_empty_result_handling(
 
     A manager without any results writes no CSV and no latest.json
     and reports no processed date. A manager with persisted state
-    but no new results returns the existing state unchanged.
+    but no new results leaves the persisted state unchanged.
     """
 
     fresh = _make_manager(results_paths)
 
-    returned = fresh.save()
-
-    assert returned.empty
+    assert fresh.save() is None
     assert not results_paths["csv"].exists()
     assert not results_paths["latest"].exists()
     assert fresh.get_latest_processed_date() is None
@@ -525,9 +523,7 @@ def test_empty_result_handling(
 
     update = _make_manager(results_paths)
 
-    returned = update.save()
-
-    assert len(returned) == 1
+    assert update.save() is None
 
     df = _read_csv(results_paths["csv"])
 
@@ -618,3 +614,26 @@ def test_incremental_add_preserves_existing_observations(
         "Test Region Water"
     ]
     assert regions[0]["absolute_ice_area_km2"] == 800.0
+
+
+def test_save_returns_none(results_paths: dict[str, Path]) -> None:
+    """``save()`` persists new results and returns None (F-005).
+
+    The contract is annotated and implemented since issue
+    #102; the persisted state is read back from the CSV.
+    """
+
+    manager = _make_manager(results_paths)
+
+    manager.add_results(
+        {
+            "Test Region Water": _observation(
+                "Test Region Water",
+                date(2026, 3, 15),
+            ),
+        }
+    )
+
+    assert manager.save() is None
+
+    assert len(_read_csv(results_paths["csv"])) == 1

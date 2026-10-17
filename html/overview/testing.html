@@ -66,7 +66,7 @@ development workflow.
 
 <p>
 
-<strong>Snapshot date: 2026-10-06</strong>
+<strong>Snapshot date: 2026-10-17</strong>
 
 </p>
 
@@ -102,7 +102,7 @@ The project uses a five-level test model:
 
 <h3>Tests</h3>
 
-<p>226</p>
+<p>233</p>
 
 </div>
 
@@ -110,7 +110,7 @@ The project uses a five-level test model:
 
 <h3>Test Files</h3>
 
-<p>33</p>
+<p>34</p>
 
 </div>
 
@@ -126,7 +126,7 @@ The project uses a five-level test model:
 
 <p>
 
-The suite is organized into ten unit test files, four fixture
+The suite is organized into eleven unit test files, four fixture
 verification files, fourteen component test files and five
 integration test files. All tests run deterministically
 against controlled inputs and require no network access.
@@ -152,7 +152,7 @@ Dynamic-test findings are tracked with stable identifiers
 
 <h3>Open</h3>
 
-<p>8</p>
+<p>6</p>
 
 </div>
 
@@ -168,7 +168,7 @@ Dynamic-test findings are tracked with stable identifiers
 
 <h3>Fixed</h3>
 
-<p>9</p>
+<p>11</p>
 
 </div>
 
@@ -176,7 +176,7 @@ Dynamic-test findings are tracked with stable identifiers
 
 <h3>Proposed</h3>
 
-<p>4</p>
+<p>3</p>
 
 </div>
 
@@ -206,10 +206,6 @@ The currently open findings:
 
 <tr><td>F-003</td><td>Interpolation fills the gap limit per direction</td></tr>
 
-<tr><td>F-005</td><td>save() return annotation does not match the return value</td></tr>
-
-<tr><td>F-007</td><td>Trend and R² calculation is not testable as a unit</td></tr>
-
 <tr><td>F-008</td><td>Strict-threshold edge in the crossing search</td></tr>
 
 <tr><td>F-010</td><td>delete_local_data() is hard-wired to DATA_DIR / "geotiff"</td></tr>
@@ -228,13 +224,13 @@ The currently open findings:
 
 One further finding is explicitly documented as intended
 
-behavior (F-006), five are partially resolved, five backlog
+behavior (F-006), five are partially resolved, six backlog
 
 items were resolved through refactoring and correction
 
-issues (F-022, F-023, F-024, F-027, F-028), and the proposed
+issues (F-022, F-023, F-024, F-026, F-027, F-028), and the proposed
 
-backlog items (F-026, F-029, F-030) collect the remaining
+backlog items (F-029, F-030) collect the remaining
 
 test gaps for deliberate follow-up.
 
