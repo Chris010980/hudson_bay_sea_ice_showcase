@@ -481,9 +481,9 @@ def test_yearly_means_include_trend_columns(
         20.0
     )
 
-    assert row_a_2001[
-        "relative_mean_trend_intercept"
-    ] == pytest.approx(-39990.0)
+    assert row_a_2001["relative_mean_trend_intercept"] == pytest.approx(
+        -39990.0
+    )
 
     assert row_a_2001["relative_mean_trend_r_squared"] == (
         pytest.approx(1.0)
