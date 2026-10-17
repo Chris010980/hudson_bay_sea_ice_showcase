@@ -45,8 +45,9 @@ logger = logging.getLogger(__name__)
 
 # Module-specific analysis parameters.
 
-# A gap in the daily calendar is interpolated over at most this
-# many consecutive days.
+# A gap in the daily calendar is only interpolated when at most
+# this many consecutive days are missing between two observed
+# values (total gap size, F-003); the fill is forward-looking.
 INTERPOLATION_LIMIT_DAYS = 14
 
 # Half-width of the centered moving-average window in days.
@@ -98,6 +99,45 @@ def compute_linear_trend(
         r_squared = np.nan
 
     return slope, intercept, r_squared
+
+
+def _interpolate_small_gaps(
+    frame: pd.DataFrame,
+    limit: int,
+) -> pd.DataFrame:
+    """Linearly fill only small gaps between observed values.
+
+    A gap of at most ``limit`` consecutive missing days between
+    two observed values is filled linearly (method="time").
+    Longer gaps stay missing: interpolation bridges small gaps
+    only and must not invent data across real data outages
+    (F-003, issue #103). The fill is forward-looking: missing
+    days without a preceding observation are never filled.
+    """
+    filled = frame.copy()
+
+    for column in frame.columns:
+        values = frame[column]
+
+        missing = values.isna()
+
+        run_id = missing.ne(missing.shift()).cumsum()
+
+        run_length = missing.groupby(run_id).transform("size")
+
+        small_gap = missing & run_length.le(limit)
+
+        column_interpolated = values.interpolate(
+            method="time",
+            limit_direction="forward",
+        )
+
+        filled[column] = column_interpolated.where(
+            small_gap,
+            values,
+        )
+
+    return filled
 
 
 class TimeSeriesAnalyzer:
@@ -199,10 +239,9 @@ class TimeSeriesAnalyzer:
 
             numeric = df_region.select_dtypes(include="number").columns
 
-            df_region[numeric] = df_region[numeric].interpolate(
-                method="time",
-                limit=INTERPOLATION_LIMIT_DAYS,
-                limit_direction="both",
+            df_region[numeric] = _interpolate_small_gaps(
+                df_region[numeric],
+                INTERPOLATION_LIMIT_DAYS,
             )
 
             df_region.index.name = "date"
@@ -724,18 +763,16 @@ class TimeSeriesAnalyzer:
         # Valid persistent crossing found: interpolate between
         # the observations immediately surrounding the
         # threshold. An observation exactly on the threshold
-        # is returned as-is (F-008); the two unreachable
-        # branches documented in F-008 (``y0 == threshold`` and
-        # ``y1 == y0``) were removed in issue #40 — the crossing
-        # conditions already exclude them.
+        # is returned as-is; a crossing that starts exactly on
+        # the threshold (``y0 == threshold``, F-008, issue
+        # #103) has fraction 0 and is dated to the previous
+        # day. The inclusive crossing conditions guarantee
+        # 0 <= fraction <= 1, so no range guard is needed.
 
         if y1 == threshold:
             return current["date"]
 
         fraction = (threshold - y0) / (y1 - y0)
-
-        if not 0.0 <= fraction <= 1.0:
-            return None
 
         delta = current["date"] - previous["date"]
 
@@ -751,12 +788,19 @@ class TimeSeriesAnalyzer:
         """
         Return whether the values cross the threshold in the
         requested direction between two consecutive days.
+
+        An observation exactly on the threshold is on the
+        target side (F-008, issue #103): a fall from the
+        threshold value is a downward crossing, a rise from the
+        threshold value is an upward crossing. Two equal days
+        (including both exactly on the threshold) are not a
+        crossing.
         """
 
         if direction == "down":
-            return y0 > threshold and y1 <= threshold
+            return y0 >= threshold and y1 <= threshold and y0 > y1
 
-        return y0 < threshold and y1 >= threshold
+        return y0 <= threshold and y1 >= threshold and y0 < y1
 
     @staticmethod
     def _persistent_segment(

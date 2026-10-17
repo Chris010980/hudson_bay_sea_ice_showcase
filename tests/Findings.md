@@ -23,12 +23,12 @@ documentation pending) · `documented` (accepted as-is)
 | ----- | ----- | ----------------------------------- | --------- | ------------- |
 | F-001 | #20   | ResultsManager                      | bug       | fixed         |
 | F-002 | #20   | ResultsManager                      | bug       | fixed         |
-| F-003 | #21   | TimeSeriesAnalyzer                  | semantics | open          |
+| F-003 | #21   | TimeSeriesAnalyzer                  | semantics | fixed         |
 | F-004 | #21   | TimeSeriesAnalyzer                  | design    | fixed         |
 | F-005 | #21   | TimeSeriesAnalyzer                  | design    | fixed         |
 | F-006 | #21   | TimeSeriesAnalyzer                  | design    | documented    |
 | F-007 | #25   | TimeSeriesPlotter                   | design    | fixed         |
-| F-008 | #26   | TimeSeriesAnalyzer                  | design    | open          |
+| F-008 | #26   | TimeSeriesAnalyzer                  | design    | fixed         |
 | F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | fixed         |
 | F-010 | #28   | NSIDCDownloader                     | design    | open          |
 | F-011 | #28   | NSIDCDownloader                     | design    | fixed         |
@@ -102,6 +102,24 @@ are filled.
 deliberately asserts only the unambiguous core behavior (gaps ≤ 14  
 fully interpolated; middle of a 39-day gap NaN; bounding  
 observations unchanged) and does not assert the gap edges.
+
+**Resolution (#103, 2026-10-17):** the per-direction fill is
+not the intended scientific behavior. The gap limit now
+applies to the total gap size: a gap is interpolated only when
+at most `INTERPOLATION_LIMIT_DAYS` consecutive days are
+missing between two observed values, and it is then filled
+completely in the forward direction. Longer gaps stay
+missing entirely (no edge fills), and missing days without a
+preceding observation are never backfilled. Small gaps keep
+single missing days from excluding a region-year; real data
+outages remain visible.
+
+**Test note:** `test_gap_just_above_limit_is_not_filled_at_all`
+and `test_leading_missing_days_are_never_filled` in
+`tests/component/test_timeseries_calendar.py` pin both decided
+edges (15-day gap unfilled; forward-only fill);
+`test_gap_exceeding_maximum_remains_unbridged` now asserts that
+no day of a 39-day gap is filled. Backlog F-030 resolved.
 
 ## F-004 — Stray `from curses import window` import
 
@@ -241,6 +259,27 @@ Otherwise remove the two dead branches to avoid confusion. The
 behavior is documented by  
 `tests/component/test_timeseries_threshold_crossing.py`  
 (`test_exact_threshold_observation`).
+
+**Resolution (#103, 2026-10-17):** the strict-threshold
+semantics is decided: an observation exactly on the threshold
+lies on the target side. The crossing conditions are
+inclusive (`down`: y0 >= threshold, y1 <= threshold, y0 > y1;
+`up`: y0 <= threshold, y1 >= threshold, y0 < y1), so a series
+that sits exactly on a threshold and continues in the event
+direction now registers a crossing dated to the day on the
+threshold (fraction 0). Two equal days (including both
+exactly on the threshold) remain no crossing. With the
+inclusive conditions the interpolated fraction is provably in
+[0, 1], so the last remaining range guard in
+`_persistent_crossing_at` was removed as unreachable.
+
+**Test note:** `test_exact_threshold_observation` and the new
+`test_threshold_equality_edges`
+(`tests/component/test_timeseries_threshold_crossing.py`) pin
+the decided edges; `test_crossed_between_handles_threshold_equality`
+(`tests/unit/test_threshold_crossing_helpers.py`) pins the
+condition helper. All other pinning tests stay green
+unchanged. Backlog F-030 resolved.
 
 ## F-009 — CLI passes unsupported arguments to `sync()`
 
@@ -672,12 +711,12 @@ references in this audit section were updated accordingly.
 | --- | --- | --- |
 | F-001 | `test_duplicate_date_region_observations_keep_last`, `test_incremental_add_preserves_existing_observations` (`tests/component/test_results_manager.py`) | mapping verified |
 | F-002 | none referenced (fixed during v0.2) | as documented |
-| F-003 | gap tests in `tests/component/test_timeseries_calendar.py` | mapping verified; gap edges → F-030 |
+| F-003 | gap tests + gap-edge tests in `tests/component/test_timeseries_calendar.py` (#103) | resolved (#103) |
 | F-004 | none — import removed in #39; no test required | resolved (#39) |
 | F-005 | `test_save_returns_none` + `test_empty_result_handling` (`tests/component/test_results_manager.py`); `test_save_returns_none` (`tests/component/test_timeseries_yearly.py`) (#102) | resolved (#102) |
 | F-006 | `timeseries_paths` fixture in `tests/conftest.py` (eager `analysis_dir.mkdir()`, documented) | mapping verified |
 | F-007 | `tests/unit/test_linear_trend.py`; `test_yearly_means_include_trend_columns` (`tests/component/test_timeseries_yearly.py`) (#102) | resolved (#102); backlog F-026 resolved |
-| F-008 | `test_exact_threshold_observation` + 9 further tests in `tests/component/test_timeseries_threshold_crossing.py` | mapping verified |
+| F-008 | `test_exact_threshold_observation` + `test_threshold_equality_edges` (`tests/component/test_timeseries_threshold_crossing.py`), `test_crossed_between_handles_threshold_equality` (`tests/unit/test_threshold_crossing_helpers.py`) (#103) | resolved (#103) |
 | F-009 | `tests/unit/test_download_data.py` (sync argument contract, #98) | resolved (#98) |
 | F-010 | `test_delete_local_data` (`tests/component/test_nsidc_downloader.py`) | mapping verified |
 | F-011 | `test_download_error_is_reported_and_leaves_no_file` + 3 retry/atomicity tests (#100) | resolved (#100) |
@@ -960,3 +999,10 @@ edge behavior is unasserted for any pandas version.
 then add gap-edge tests that pin the decision.
 
 **Dependencies:** F-003 decision.
+
+**Status update (#103, 2026-10-17):** resolved. The F-003 gap
+semantics is decided (total gap size, forward-only fill) and
+pinned by the gap-edge tests in
+`tests/component/test_timeseries_calendar.py`; the F-008
+strict-threshold decision is pinned alongside
+(see F-003 / F-008 resolutions).

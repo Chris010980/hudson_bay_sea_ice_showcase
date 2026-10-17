@@ -58,7 +58,7 @@ Typical candidates include:
 
 Unit tests should preferably operate on values or small controlled datasets supplied directly by the test.
 
-The unit level currently comprises ten files:
+The unit level currently comprises eleven files:
 
 ```text
 tests/unit/
@@ -491,12 +491,14 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 233
+unit tests were added. The suite currently comprises 237
 tests in 34 files (11 unit, 4 fixture_tests, 14 component,
 5 integration; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first
-run, issue #101 closed the F-016 masking gap, and issue #102
-aligned the analyzer API contracts (F-005/F-007)):
+run, issue #101 closed the F-016 masking gap, issue #102
+aligned the analyzer API contracts (F-005/F-007), and issue
+#103 pinned the interpolation gap and strict-threshold
+semantics (F-003/F-008)):
 
 ```text
 tests/
