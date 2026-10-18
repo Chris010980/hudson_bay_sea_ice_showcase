@@ -30,10 +30,10 @@ documentation pending) · `documented` (accepted as-is)
 | F-007 | #25   | TimeSeriesPlotter                   | design    | fixed         |
 | F-008 | #26   | TimeSeriesAnalyzer                  | design    | fixed         |
 | F-009 | #28   | download\_data.py / NSIDCDownloader | bug       | fixed         |
-| F-010 | #28   | NSIDCDownloader                     | design    | open          |
+| F-010 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-011 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
-| F-013 | #29   | ReferenceBuilder                    | design    | open          |
+| F-013 | #29   | ReferenceBuilder                    | design    | fixed         |
 | F-014 | #30   | update\_pipeline                    | bug       | fixed         |
 | F-015 | #30   | update\_pipeline / process\_data    | design    | partial (#73) |
 | F-016 | #31   | update\_pipeline / downloader       | design    | fixed         |
@@ -343,6 +343,23 @@ align the docstring with the implemented semantics.
 `.tif` files removed, other files preserved, empty directories  
 removed.
 
+**Status update (#104, 2026-10-18):** fixed. The cleanup root is  
+an injectable keyword-only parameter,  
+``delete_local_data(*, geotiff_root=GEOTIFF_DIR)``, following  
+the #73/#74 injection pattern with the central ``GEOTIFF_DIR``  
+from ``paths.py`` as the production default. The call-time  
+``DATA_DIR / "geotiff"`` join and its namespace seam are gone;  
+``update_pipeline`` calls the cleanup without arguments, so  
+production behavior is unchanged. The docstring now matches the  
+implemented semantics (empty month/year directories are  
+removed, other files survive).  
+
+**Test note (#104):** the test injects the isolated cleanup  
+root via ``geotiff_root`` instead of monkeypatching ``DATA_DIR``;  
+the new  
+``test_delete_local_data_default_root_is_geotiff_dir`` pins the  
+production default. The namespace patch is gone.  
+
 ## F-011 — `download_file()` writes non-atomically and lets request exceptions escape
 
 **Component:** `src/data_download/downloader.py`  
@@ -418,6 +435,27 @@ patching instead of plain dependency injection.
 and summary path) to the constructor with the current constants  
 as defaults, analogous to `RegionAnalyzer`, which already accepts  
 `reference_json` and `filter_dir` parameters.
+
+**Status update (#104, 2026-10-18):** fixed. The constructor  
+accepts the injectable keyword-only output paths ``mask_dir``  
+(default ``REFERENCE_FILTERS_DIR``) and ``summary_path``  
+(default ``REFERENCE_SUMMARY_JSON``), analogous to  
+``RegionAnalyzer`` and the #73/#74 injection pattern; ``build()``,  
+``_save_summary()`` and ``ensure_reference()`` read the  
+instance attributes instead of the module constants. The  
+naturalearth ocean read stays on the module constant  
+``OCEAN_SHAPEFILE`` (config-centralization policy: reads use  
+``paths.py`` as the single source of truth); tests keep  
+stubbing the ``gpd`` collaborator, which is a collaborator  
+stub, not a path seam.  
+
+**Test note (#104):** the four component build-path tests and  
+the integration chain  
+(``tests/integration/test_spatial_processing_chain.py``) inject  
+``mask_dir``/``summary_path`` through the constructor; the new  
+``test_reference_builder_output_defaults_are_central`` pins the  
+production defaults. The ``FILTER_DIR``/``REFERENCE_SUMMARY``  
+namespace patches are gone.  
 
 ## F-014 — First pipeline run crashes with `None.isoformat()`
 

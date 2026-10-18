@@ -16,7 +16,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-from src.config.paths import DATA_DIR, GEOTIFF_DIR
+from src.config.paths import GEOTIFF_DIR
 from src.config.settings import DEFAULT_PRODUCT
 
 DEFAULT_NSIDC_GEOTIFF_URL = (
@@ -692,13 +692,19 @@ class NSIDCDownloader:
         return [href for link in links if (href := link.get("href"))]
 
     @staticmethod
-    def delete_local_data() -> None:
+    def delete_local_data(
+        *,
+        geotiff_root: Path = GEOTIFF_DIR,
+    ) -> None:
         """
-        Remove all downloaded GeoTIFF files while preserving the
-        directory structure.
-        """
+        Remove all downloaded GeoTIFF files.
 
-        geotiff_root = DATA_DIR / "geotiff"
+        Only ``.tif`` files are deleted; other files survive.
+        Empty month and year directories are removed as well;
+        the GeoTIFF root itself is preserved. The cleanup root
+        is injectable through ``geotiff_root`` (production
+        default: ``GEOTIFF_DIR``; issue #104).
+        """
 
         if not geotiff_root.exists():
             logger.info("No local GeoTIFF directory found.")

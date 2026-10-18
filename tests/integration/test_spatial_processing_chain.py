@@ -41,9 +41,10 @@ Test design:
   environment with hand-chosen concentration values on the
   0-1000 scale (ice pixel threshold: >= 150). Every expected
   metric is calculated by hand in the test docstrings.
-* ReferenceBuilder writes to module-level constants; the
-  chain_environment fixture redirects them to the isolated test
-  environment. The naturalearth ocean dataset is replaced by a
+* ReferenceBuilder takes its output paths through injectable
+  constructor arguments (issue #104); the chain_environment
+  fixture provides the isolated mask directory and summary
+  path. The naturalearth ocean dataset is replaced by a
   controlled ocean polygon (pattern from
   tests/component/test_reference_builder.py), so the chain
   requires no production data.
@@ -204,28 +205,18 @@ def chain_environment(
     test_environment: dict[str, Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> dict[str, Path]:
-    """Isolate the complete spatial chain in the test environment.
+    """Isolate the complete spatial chain
+    in the test environment.
 
-    Redirects the ReferenceBuilder module constants (filter
-    directory and summary path) to the isolated output directory
-    and replaces the naturalearth ocean dataset with a controlled
+    Provides the isolated ReferenceBuilder output paths (mask
+    directory and summary path, injected since issue #104) and
+    replaces the naturalearth ocean dataset with a controlled
     ocean polygon covering the polar extent of the synthetic
     regions, so that no production data is read or written.
     """
     reference_dir = test_environment["output"] / "reference"
     mask_dir = reference_dir / "filters"
     summary_file = reference_dir / "reference_summary.json"
-
-    monkeypatch.setattr(
-        reference_builder_module,
-        "FILTER_DIR",
-        mask_dir,
-    )
-    monkeypatch.setattr(
-        reference_builder_module,
-        "REFERENCE_SUMMARY",
-        summary_file,
-    )
 
     ocean = gpd.GeoDataFrame(
         geometry=[
@@ -320,13 +311,16 @@ def _region_values(
 
 
 def _build_reference(
+    chain_environment: dict[str, Path],
     synthetic_reference_raster: Path,
     synthetic_region_file: Path,
 ) -> None:
-    """Run the real ReferenceBuilder (against the patched paths)."""
+    """Run the real ReferenceBuilder with injected output paths."""
     ReferenceBuilder(
         reference_tif=synthetic_reference_raster,
         region_file=synthetic_region_file,
+        mask_dir=chain_environment["mask_dir"],
+        summary_path=chain_environment["reference_json"],
     ).build()
 
 
@@ -412,6 +406,7 @@ def test_reference_products_are_controlled_and_reproducible(
 
     for _ in range(2):
         _build_reference(
+            chain_environment,
             synthetic_reference_raster,
             synthetic_region_file,
         )
@@ -473,6 +468,7 @@ def test_analyzer_results_match_independent_calculations(
       100 % / 80 % coverage.
     """
     _build_reference(
+        chain_environment,
         synthetic_reference_raster,
         synthetic_region_file,
     )
@@ -544,6 +540,7 @@ def test_persisted_results_match_independent_calculations(
     observations; only the format of ``generated`` is checked.
     """
     _build_reference(
+        chain_environment,
         synthetic_reference_raster,
         synthetic_region_file,
     )
@@ -622,6 +619,7 @@ def test_incremental_processing_preserves_observations(
     reflect the newest date.
     """
     _build_reference(
+        chain_environment,
         synthetic_reference_raster,
         synthetic_region_file,
     )
@@ -742,6 +740,7 @@ def test_production_directories_are_not_modified(
 
     # Full chain run: reference build, analysis, persistence.
     _build_reference(
+        chain_environment,
         synthetic_reference_raster,
         synthetic_region_file,
     )
