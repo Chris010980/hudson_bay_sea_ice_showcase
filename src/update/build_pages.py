@@ -15,6 +15,10 @@ import shutil
 from collections.abc import Sequence
 from pathlib import Path
 
+from src.config.logging_config import (
+    DEFAULT_LOG_FILE,
+    configure_logging,
+)
 from src.config.paths import (
     BUILD_DIR,
     HTML_DIR,
@@ -31,18 +35,13 @@ def parse_args(argv: Sequence[str] | None = None):
     )
 
     parser.add_argument(
-        "--clean",
-        action="store_true",
-        help="Delete existing build directory before building.",
-    )
-
-    parser.add_argument(
         "--log-level",
         default="INFO",
     )
 
     parser.add_argument(
         "--log-file",
+        default=str(DEFAULT_LOG_FILE),
     )
 
     return parser.parse_args(argv)
@@ -64,11 +63,21 @@ def copy_directory(source: Path, destination: Path):
 
 def main(argv: Sequence[str] | None = None):
 
-    parse_args(argv)
+    args = parse_args(argv)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
+    )
 
     if not HTML_DIR.exists():
         raise FileNotFoundError(
             f"Website directory not found: {HTML_DIR}"
+        )
+
+    if not OUTPUT_DIR.exists():
+        raise FileNotFoundError(
+            f"Output directory not found: {OUTPUT_DIR}"
         )
 
     if BUILD_DIR.exists():

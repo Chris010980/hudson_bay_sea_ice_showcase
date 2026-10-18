@@ -100,7 +100,10 @@ def main(argv=None):
 
     build_pages(
         [
-            "--clean",
+            "--log-level",
+            args.log_level,
+            "--log-file",
+            args.log_file,
         ]
     )
 
