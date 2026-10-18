@@ -55,17 +55,18 @@ Test design:
   module constants (HTML_DIR, OUTPUT_DIR, BUILD_DIR -- same
   non-injectable design family as F-010/F-013/F-015/F-018);
   the fixture redirects them with monkeypatch.setattr on the
-  module (see tests/Findings.md, F-021).
+  module (see tests/Findings.md, F-018).
 
-* The CLI options of build_pages have no effect and the parsed
-  arguments are discarded (see tests/Findings.md, F-020);
+* The CLI logging options are wired (configure_logging in
+  main(), issue #105; see tests/Findings.md, F-020, fixed);
   a call without arguments would parse the *pytest* command
-  line, so every test passes an explicit empty argv.
+  line, so every test passes an explicit argv with --log-file
+  under the isolated test root.
 
 * Failure propagation is pinned: a missing html/ directory
-  fails the build with FileNotFoundError, while a missing
-  output/ directory is currently tolerated with a warning
-  only (see tests/Findings.md, F-021).
+  and a missing output/ directory both fail the build with
+  FileNotFoundError (issue #105; see tests/Findings.md,
+  F-021, fixed).
 
 All tests are deterministic and require no network access.
 """
@@ -81,6 +82,7 @@ from pathlib import Path
 import pytest
 
 import src.update.build_pages as build_pages_module
+from src.config.logging_config import DEFAULT_LOG_FILE
 
 # ------------------------------------------------------------------
 # Controlled html/ input (modeled on the production website)
@@ -387,6 +389,7 @@ def build_pages_environment(
         "html_dir": html_dir,
         "output_dir": output_dir,
         "build_dir": build_dir,
+        "log_file": test_environment["root"] / "build.log",
     }
 
 
@@ -407,7 +410,9 @@ def test_build_creates_expected_directory_structure(
     """
     env = build_pages_environment
 
-    built_dir = build_pages_module.main([])
+    built_dir = build_pages_module.main(
+        ["--log-file", str(env["log_file"])]
+    )
 
     assert built_dir == env["build_dir"]
 
@@ -439,7 +444,7 @@ def test_website_files_are_deployed_and_references_resolve(
     env = build_pages_environment
     build_dir = env["build_dir"]
 
-    build_pages_module.main([])
+    build_pages_module.main(["--log-file", str(env["log_file"])])
 
     for name in (
         "index.html",
@@ -482,7 +487,7 @@ def test_scientific_output_is_available_at_deployment_paths(
     env = build_pages_environment
     build_dir = env["build_dir"]
 
-    build_pages_module.main([])
+    build_pages_module.main(["--log-file", str(env["log_file"])])
 
     analysis_dir = build_dir / "output" / "analysis"
 
@@ -533,14 +538,14 @@ def test_rebuild_is_reproducible_and_removes_stale_files(
 
     (build_dir / "orphan.txt").write_bytes(b"stale")
 
-    build_pages_module.main([])
+    build_pages_module.main(["--log-file", str(env["log_file"])])
 
     assert not stale_plot.exists()
     assert not (build_dir / "orphan.txt").exists()
 
     first_inventory = _file_inventory(build_dir)
 
-    build_pages_module.main([])
+    build_pages_module.main(["--log-file", str(env["log_file"])])
 
     second_inventory = _file_inventory(build_dir)
 
@@ -571,20 +576,19 @@ def test_missing_html_directory_fails_the_build(
     )
 
     with pytest.raises(FileNotFoundError):
-        build_pages_module.main([])
+        build_pages_module.main(["--log-file", str(env["log_file"])])
 
 
-def test_missing_output_directory_is_tolerated(
+def test_missing_output_directory_fails_the_build(
     build_pages_environment: dict[str, Path],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Pinned current behavior: a missing output/ only warns.
+    """A missing output/ directory propagates FileNotFoundError.
 
-    The build succeeds and deploys the static website, but no
-    scientific product is copied and build/output/ is absent
-    (see tests/Findings.md, F-021). The tests pin the
-    implemented tolerance instead of assuming a fail-fast
-    behavior that the code does not implement.
+    The scientific products are a mandatory build input like
+    the website itself: silently deploying a scientific-only
+    or product-less site would hide an upstream failure
+    (issue #105; see tests/Findings.md, F-021, fixed).
     """
     env = build_pages_environment
 
@@ -594,11 +598,34 @@ def test_missing_output_directory_is_tolerated(
         env["output_dir"].parent / "missing_output",
     )
 
-    build_pages_module.main([])
+    with pytest.raises(FileNotFoundError):
+        build_pages_module.main(["--log-file", str(env["log_file"])])
 
-    assert (env["build_dir"] / "index.html").is_file()
-    assert not (env["build_dir"] / "output").exists()
+    # The build directory was not populated.
+    assert not (env["build_dir"] / "index.html").exists()
 
-    assert _file_inventory(env["build_dir"]) == _file_inventory(
-        env["html_dir"]
-    )
+
+# ------------------------------------------------------------------
+# CLI contract (issue #105: F-020, F-029)
+# ------------------------------------------------------------------
+
+
+def test_parse_args_logging_defaults_match_other_stages() -> None:
+    """The logging options carry the shared stage defaults
+    (issue #105): level INFO, file DEFAULT_LOG_FILE.
+    """
+
+    args = build_pages_module.parse_args([])
+
+    assert args.log_level == "INFO"
+    assert args.log_file == str(DEFAULT_LOG_FILE)
+
+
+def test_parse_args_rejects_removed_clean_option() -> None:
+    """The misleading --clean option is removed (issue #105):
+    the build always starts from scratch, so the parser
+    rejects the flag instead of accepting a no-op.
+    """
+
+    with pytest.raises(SystemExit):
+        build_pages_module.parse_args(["--clean"])

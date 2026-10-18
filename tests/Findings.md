@@ -40,8 +40,8 @@ documentation pending) · `documented` (accepted as-is)
 | F-017 | #32   | timeseries\_plot                    | design    | fixed         |
 | F-018 | #32   | visualization stage                 | design    | partial (#74) |
 | F-019 | #32   | generate\_plots                     | design    | partial (#74) |
-| F-020 | #33   | build\_pages                        | design    | open          |
-| F-021 | #33   | build\_pages                        | design    | open          |
+| F-020 | #33   | build\_pages                        | design    | fixed         |
+| F-021 | #33   | build\_pages                        | design    | fixed         |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -708,6 +708,21 @@ always pass an explicit argv.
 make `--clean` the opt-out it documents) or remove them  
 (milestone V0.2-07).
 
+**Status update (#105, 2026-10-18):** fixed. Both decisions  \
+implemented: ``--log-level``/``--log-file`` are wired through  \
+``configure_logging()`` in ``main()`` exactly like every other  \
+stage (dispatcher and update_pipeline forward them unchanged),  \
+and the misleading ``--clean`` option is removed — the build  \
+always starts from scratch, which the reproducible-rebuild  \
+tests already pin. ``parse_args`` now carries the shared  \
+logging defaults (level ``INFO``, file ``DEFAULT_LOG_FILE``).  
+
+**Test note (#105):** ``test_parse_args_logging_defaults_match_other_stages``  \
+pins the shared defaults,  \
+``test_parse_args_rejects_removed_clean_option`` pins the  \
+removal; every integration test passes an explicit argv with  \
+``--log-file`` under the isolated root. Backlog F-029 resolved.  
+
 ## F-021 — Missing `output/` only logs a warning
 
 **Component:** `src/update/build_pages.py` (`copy_directory()`,  
@@ -736,6 +751,21 @@ top-level `html/` folder (`HTML_DIR` in `src/config/paths.py`);
 `build/` remains the generated GitHub Pages artifact. The
 namespace seam and the tolerated missing-`output/` behavior
 are unchanged; the finding stays open (decision F-029).
+
+**Status update (#105, 2026-10-18):** fixed. Fail-fast decided:
+a missing ``OUTPUT_DIR`` raises ``FileNotFoundError`` like a
+missing ``HTML_DIR`` — silently deploying a website without any
+scientific products would hide an upstream failure in the
+scheduled update workflow. The ``copy_directory()`` warning
+branch remains as a generic helper guard but is unreachable
+from ``main()``.
+
+**Test note (#105):** the former tolerance test
+``test_missing_output_directory_is_tolerated`` is rewritten as
+``test_missing_output_directory_fails_the_build`` and asserts
+the ``FileNotFoundError`` plus an unpopulated build directory.
+The namespace seam (module constants) is unchanged and remains
+documented under F-018. Backlog F-029 resolved.
 
 * * *
 
@@ -779,8 +809,8 @@ references in this audit section were updated accordingly.
 | F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | resolved (#113; plot tree restructure) |
 | F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) | mapping verified |
 | F-019 | `tests/integration/test_generate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |
-| F-020 | 6 tests in `tests/integration/test_build_pages.py` | mapping verified; option wiring → F-029 |
-| F-021 | `test_missing_output_directory_is_tolerated` | mapping verified; decision → F-029 |
+| F-020 | 8 tests in `tests/integration/test_build_pages.py` | resolved (#105) |
+| F-021 | `test_missing_output_directory_fails_the_build` | resolved (#105) |
 
 Audit notes:
 
@@ -875,7 +905,7 @@ Overview additions — merge these rows into the Overview table:
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | resolved (#102) |
 | F-027 | #75 | update_pipeline.py (first run) | gap | resolved (#99) |
 | F-028 | #75 | update_pipeline.py (masking) | gap | resolved (#101) |
-| F-029 | #75 | build_pages.py (CLI options) | gap | proposed |
+| F-029 | #75 | build_pages.py (CLI options) | gap | resolved (#105) |
 | F-030 | #75 | timeseries_analyzer.py (gap edges) | gap | resolved (#103) |
 
 ## F-022 — Pipeline dispatcher has no tests
@@ -1043,6 +1073,13 @@ decisions are made (wire or remove the options; fail-fast or
 documented tolerance).
 
 **Dependencies:** F-020, F-021 decisions (#74).
+
+**Status update (#105, 2026-10-18):** resolved. Both decisions
+are made and implemented: the logging options are wired
+(F-020), the dead --clean option is removed, and the missing
+output/ directory fails fast (F-021). The option contract is
+pinned by the two new parse_args tests plus the rewritten
+failure-propagation test in `tests/integration/test_build_pages.py`.
 
 ## F-030 — Interpolation gap-edge semantics undecided and untested
 
