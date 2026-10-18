@@ -19,7 +19,7 @@ coverage report of the #40 run.
 | Module | Finding | Resolution |
 | --- | --- | --- |
 | `config/logging_config.py` | log file name built from `LOG_DIR` | `LOG_FILE` in `paths.py`, re-exported as `DEFAULT_LOG_FILE` |
-| `data_download/downloader.py` | `DEFAULT_GEOTIFF_DIR` built locally; identical second construction in `delete_local_data` | `DEFAULT_GEOTIFF_DIR = GEOTIFF_DIR`; the `delete_local_data` join stays call-time from `DATA_DIR` (test seam, F-010) |
+| `data_download/downloader.py` | `DEFAULT_GEOTIFF_DIR` built locally; identical second construction in `delete_local_data` | `DEFAULT_GEOTIFF_DIR = GEOTIFF_DIR`; `delete_local_data` takes an injectable `geotiff_root` with default `GEOTIFF_DIR` (#104, F-010 fixed) |
 | `data_download/download_data.py` | no local path construction | unchanged |
 | `analysis/process_data.py` | glob pattern `"*concentration*.tif"` inline | built from `settings.DEFAULT_PRODUCT` |
 | `analysis/reference_builder.py` | `REFERENCE_TIF`, `FILTER_DIR`, `REFERENCE_SUMMARY`, regions.json and ocean.shp built from `PROJECT_ROOT` | `REFERENCE_TIF`, `REFERENCE_FILTERS_DIR`, `REFERENCE_SUMMARY_JSON`, `REGIONS_FILE`, `OCEAN_SHAPEFILE` in `paths.py` (aliases kept) |
@@ -67,8 +67,9 @@ coverage report of the #40 run.
 ## Justified exceptions (documented, unchanged)
 
 * Call-time path joins that tests redirect via namespace
-  replacement (F-010/F-018 seams): `downloader.DATA_DIR` in
-  `delete_local_data`, `geotiff_plot.PROJECT_ROOT` and
+  replacement (F-018 seams; the F-010 `downloader.DATA_DIR`
+  seam was dissolved in #104 via an injectable `geotiff_root`
+  with default `GEOTIFF_DIR`): `geotiff_plot.PROJECT_ROOT` and
   `geotiff_plot.DATA_DIR` in `find_concentration_geotiff` and
   `load_regions`, `build_pages.BUILD_DIR` in `main`, and
   `timeseries_plot.OUTPUT_DIR` in the plotter constructor. The
@@ -103,10 +104,10 @@ coverage report of the #40 run.
 
 * `grep -rn 'PROJECT_ROOT / ' src/` - `src/config/paths.py`
   (by design) plus the documented call-time seams in
-  `geotiff_plot.py`, `downloader.py` and `build_pages.py`
+  `geotiff_plot.py` and `build_pages.py`
   (see justified exceptions).
-* `grep -rn '"geotiff"' src/` - `src/config/paths.py` plus the
-  `delete_local_data` seam in `downloader.py`.
+* `grep -rn '"geotiff"' src/` - only `src/config/paths.py`; the
+  former `delete_local_data` seam was dissolved in #104.
 * `grep -rn 'EPSG:' src/` - only `src/config/settings.py`.
 * `grep -rnE '== 2550|<= 1000|>= 150|625\.0|1981|2010' src/` -
   no code hits; remaining hits are comments and display labels.

@@ -449,7 +449,6 @@ def test_reference_output_generation(
     synthetic_region_file: Path,
     expected_reference_masks: dict[str, np.ndarray],
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
     synthetic_ocean: gpd.GeoDataFrame,
 ) -> None:
     """Verify that build creates reusable reference outputs."""
@@ -457,20 +456,11 @@ def test_reference_output_generation(
     mask_dir = output_dir / "filters"
     summary_file = output_dir / "reference_summary.json"
 
-    monkeypatch.setattr(
-        reference_builder_module,
-        "FILTER_DIR",
-        mask_dir,
-    )
-    monkeypatch.setattr(
-        reference_builder_module,
-        "REFERENCE_SUMMARY",
-        summary_file,
-    )
-
     builder = ReferenceBuilder(
         reference_tif=synthetic_reference_raster,
         region_file=synthetic_region_file,
+        mask_dir=mask_dir,
+        summary_path=summary_file,
     )
 
     builder.build()
@@ -510,20 +500,11 @@ def test_ensure_reference_builds_when_summary_is_missing(
     mask_dir = output_dir / "filters"
     summary_file = output_dir / "reference_summary.json"
 
-    monkeypatch.setattr(
-        reference_builder_module,
-        "FILTER_DIR",
-        mask_dir,
-    )
-    monkeypatch.setattr(
-        reference_builder_module,
-        "REFERENCE_SUMMARY",
-        summary_file,
-    )
-
     builder = ReferenceBuilder(
         reference_tif=synthetic_reference_raster,
         region_file=synthetic_region_file,
+        mask_dir=mask_dir,
+        summary_path=summary_file,
     )
 
     build_mock = Mock()
@@ -548,20 +529,11 @@ def test_ensure_reference_builds_when_mask_is_missing(
     summary_file.parent.mkdir(parents=True, exist_ok=True)
     summary_file.write_text("{}", encoding="utf-8")
 
-    monkeypatch.setattr(
-        reference_builder_module,
-        "FILTER_DIR",
-        mask_dir,
-    )
-    monkeypatch.setattr(
-        reference_builder_module,
-        "REFERENCE_SUMMARY",
-        summary_file,
-    )
-
     builder = ReferenceBuilder(
         reference_tif=synthetic_reference_raster,
         region_file=synthetic_region_file,
+        mask_dir=mask_dir,
+        summary_path=summary_file,
     )
 
     build_mock = Mock()
@@ -603,20 +575,11 @@ def test_existing_reference_is_reused(
             expected_indices,
         )
 
-    monkeypatch.setattr(
-        reference_builder_module,
-        "REFERENCE_SUMMARY",
-        summary_file,
-    )
-    monkeypatch.setattr(
-        reference_builder_module,
-        "FILTER_DIR",
-        mask_dir,
-    )
-
     builder = ReferenceBuilder(
         reference_tif=synthetic_reference_raster,
         region_file=synthetic_region_file,
+        mask_dir=mask_dir,
+        summary_path=summary_file,
     )
 
     build_mock = Mock()
@@ -633,3 +596,18 @@ def test_existing_reference_is_reused(
             np.load(mask_file),
             expected_indices,
         )
+
+
+def test_reference_builder_output_defaults_are_central() -> None:
+    """The injectable output paths default to the central
+    constants from ``src.config.paths`` (issue #104): mask
+    directory ``REFERENCE_FILTERS_DIR``, summary path
+    ``REFERENCE_SUMMARY_JSON``.
+    """
+
+    builder = ReferenceBuilder()
+
+    assert builder.mask_dir == Path(reference_builder_module.FILTER_DIR)
+    assert builder.summary_path == Path(
+        reference_builder_module.REFERENCE_SUMMARY
+    )

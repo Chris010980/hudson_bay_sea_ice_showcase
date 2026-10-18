@@ -107,7 +107,7 @@ the suite changes):
   files reclassified from the component level in issue #97,
   five pure-helper files added in issue #97, and the
   linear-trend helper test added in issue #102),
-* suite: 237 tests in 34 files (11 unit, 4 fixture
+* suite: 239 tests in 34 files (11 unit, 4 fixture
   verification, 14 component, 5 integration).
 
 Coverage measurement is part of the mandatory CI test gate

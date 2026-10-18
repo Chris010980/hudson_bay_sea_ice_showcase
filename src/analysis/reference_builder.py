@@ -43,6 +43,9 @@ class ReferenceBuilder:
         self,
         reference_tif: str | Path = REFERENCE_TIF,
         region_file: str | Path | None = None,
+        *,
+        mask_dir: str | Path = FILTER_DIR,
+        summary_path: str | Path = REFERENCE_SUMMARY,
     ):
 
         self.reference_tif = Path(reference_tif)
@@ -59,7 +62,9 @@ class ReferenceBuilder:
 
         self.crs = DATA_CRS
 
-        self.mask_dir = FILTER_DIR
+        self.mask_dir = Path(mask_dir)
+
+        self.summary_path = Path(summary_path)
 
         self.pixel_area_km2 = PIXEL_AREA_KM2
 
@@ -71,7 +76,7 @@ class ReferenceBuilder:
 
     def build(self):
 
-        FILTER_DIR.mkdir(parents=True, exist_ok=True)
+        self.mask_dir.mkdir(parents=True, exist_ok=True)
 
         self._load_reference()
 
@@ -268,7 +273,7 @@ class ReferenceBuilder:
     def _save_summary(self):
 
         with open(
-            REFERENCE_SUMMARY,
+            self.summary_path,
             "w",
             encoding="utf-8",
         ) as f:
@@ -280,7 +285,7 @@ class ReferenceBuilder:
 
         logger.info(
             "Saved reference summary to %s",
-            REFERENCE_SUMMARY,
+            self.summary_path,
         )
 
     # ---------------------------------------------------------
@@ -289,7 +294,7 @@ class ReferenceBuilder:
 
     def ensure_reference(self) -> None:
 
-        if not REFERENCE_SUMMARY.exists():
+        if not self.summary_path.exists():
             logger.info("Reference metadata missing.")
             self.build()
             return

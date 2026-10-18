@@ -491,7 +491,7 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 237
+unit tests were added. The suite currently comprises 239
 tests in 34 files (11 unit, 4 fixture_tests, 14 component,
 5 integration; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first

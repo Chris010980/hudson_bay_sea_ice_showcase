@@ -34,12 +34,13 @@ Test design:
 
 from __future__ import annotations
 
+import inspect
 from datetime import date
 from pathlib import Path
 
-import pytest
 import requests
 
+from src.config.paths import GEOTIFF_DIR
 from src.data_download import downloader as downloader_module
 from src.data_download.downloader import (
     DownloadSummary,
@@ -823,17 +824,15 @@ def test_download_error_is_reported_and_leaves_no_file(
 
 def test_delete_local_data(
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """``delete_local_data`` removes only GeoTIFF files.
 
     All ``.tif`` files below ``data/geotiff`` are deleted. Other
     files survive, and directories that become empty are removed.
-    The cleanup root is computed from the module-level ``DATA_DIR``
-    instead of the instance configuration, so the test redirects
-    that constant to the isolated test environment (never to the
-    production ``data/`` directory); see tests/Findings.md
-    (F-010).
+    The cleanup root is injected explicitly via ``geotiff_root``
+    (issue #104), so no namespace replacement is needed and the
+    production ``data/`` directory is never touched; see
+    tests/Findings.md (F-010, fixed).
 
     Seeded tree below the isolated ``data/geotiff``:
 
@@ -859,9 +858,7 @@ def test_delete_local_data(
         b"notes",
     )
 
-    monkeypatch.setattr(downloader_module, "DATA_DIR", data_root)
-
-    NSIDCDownloader.delete_local_data()
+    NSIDCDownloader.delete_local_data(geotiff_root=geotiff_root)
 
     assert not (
         geotiff_root
@@ -883,16 +880,25 @@ def test_delete_local_data(
     assert geotiff_root.exists()
 
     # A second run without GeoTIFF data is a no-op.
-    NSIDCDownloader.delete_local_data()
+    NSIDCDownloader.delete_local_data(geotiff_root=geotiff_root)
     assert (geotiff_root / "2026" / "01_Jan" / "notes.txt").exists()
 
     # A missing geotiff directory does not raise.
-    monkeypatch.setattr(
-        downloader_module,
-        "DATA_DIR",
-        test_environment["root"] / "missing-data",
+    NSIDCDownloader.delete_local_data(
+        geotiff_root=(
+            test_environment["root"] / "missing-data" / "geotiff"
+        ),
     )
-    NSIDCDownloader.delete_local_data()
+
+
+def test_delete_local_data_default_root_is_geotiff_dir() -> None:
+    """The production default of ``geotiff_root`` is the central
+    ``GEOTIFF_DIR`` from ``src.config.paths`` (issue #104).
+    """
+
+    signature = inspect.signature(NSIDCDownloader.delete_local_data)
+
+    assert signature.parameters["geotiff_root"].default == GEOTIFF_DIR
 
 
 # ------------------------------------------------------------------
