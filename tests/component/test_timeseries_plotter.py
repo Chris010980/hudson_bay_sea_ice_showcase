@@ -62,10 +62,10 @@ Test design:
 * Assertions are functional (test-levels.md, section 3.7):
   expected files, output paths, non-empty readable PNGs. Pixel
   identity is deliberately not asserted.
-* The output location is redirected by patching the module
-  constant OUTPUT_DIR (read at call time); the input paths are
-  constructor-injectable. The non-injectable production
-  defaults of the visualization stage are documented in
+* The output location is constructor-injectable through the
+  output_dir parameter (issue #106, F-018 resolved); the
+  fixture passes the isolated plots directory explicitly.
+  The production defaults are documented in
   tests/Findings.md, F-018.
 * Plot generation must not modify the scientific analysis
   values: the three input files remain byte-identical.
@@ -80,7 +80,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 
-import src.visualization.timeseries_plot as timeseries_module
 from src.visualization.timeseries_plot import TimeSeriesPlotter
 
 # Water areas of the synthetic regions (identical to the other
@@ -451,7 +450,6 @@ def _snapshot_tree(root: Path) -> dict[str, bytes]:
 @pytest.fixture
 def timeseries_plot_environment(
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> dict:
     """Isolate the TimeSeriesPlotter.
 
@@ -469,15 +467,13 @@ def timeseries_plot_environment(
     yearly_csv = _seed_yearly_csv(analysis_dir)
     events_csv = _seed_events_csv(analysis_dir)
 
-    # The output directory is read from the module constant at
-    # construction time, so it can be redirected here (the input
-    # defaults are not redirectable this way, see F-018).
-    monkeypatch.setattr(timeseries_module, "OUTPUT_DIR", plots_dir)
-
+    # The output directory is injected explicitly (issue #106,
+    # F-018 resolved); no namespace replacement is required.
     plotter = TimeSeriesPlotter(
         csv_file=timeseries_csv,
         yearly_csv_file=yearly_csv,
         events_csv_file=events_csv,
+        output_dir=plots_dir,
     )
 
     return {

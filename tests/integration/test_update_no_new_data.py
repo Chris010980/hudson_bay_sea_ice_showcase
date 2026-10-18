@@ -49,10 +49,9 @@ Difference to the issue #30 tests
 
 Test design:
 
-* The pipeline wires all collaborators with hard-coded
-  production defaults (see tests/Findings.md, F-015), so the
-  collaborators are replaced in the
-  ``src.update.update_pipeline`` namespace as in
+* Since issue #106 the pipeline accepts its collaborators as
+  injectable keyword arguments (F-015, resolved), so the
+  controlled implementations are passed explicitly as in
   test_update_pipeline.py: the real ResultsManager on isolated
   paths, a fake downloader modeling the remote archive, the
   controlled process stage with the real CLI parser and the
@@ -408,7 +407,6 @@ def _snapshot_tree(root: Path) -> dict[str, bytes]:
 @pytest.fixture
 def no_new_data_environment(
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
     expected_reference_masks: dict[str, np.ndarray],
 ) -> dict:
     """Isolate the update pipeline in a fully processed state.
@@ -422,8 +420,8 @@ def no_new_data_environment(
       two observations,
     * sentinel files for the existing plots and the existing
       website build state,
-    * and namespace replacements for the pipeline collaborators
-      in src/update/update_pipeline.py.
+    * and the controlled pipeline collaborators, injected
+      explicitly since issue #106 (F-015 resolved).
     """
     data_dir = test_environment["data"]
     output_dir = test_environment["output"]
@@ -507,7 +505,8 @@ def no_new_data_environment(
         latest_json_path.read_bytes(),
     )
 
-    # Collaborator replacements.
+    # Controlled collaborators (injected explicitly since
+    # issue #106, F-015 resolved).
     events: list[str] = []
     plots_calls: list[list] = []
     process_args: list = []
@@ -518,19 +517,11 @@ def no_new_data_environment(
         available_dates=[date(2026, 3, 1), date(2026, 3, 2)],
         local_base=data_dir / "geotiff",
     )
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "NSIDCDownloader",
-        lambda: downloader,
-    )
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "ResultsManager",
-        functools.partial(
-            ResultsManager,
-            csv_path=csv_path,
-            latest_json_path=latest_json_path,
-        ),
+
+    results_factory = functools.partial(
+        ResultsManager,
+        csv_path=csv_path,
+        latest_json_path=latest_json_path,
     )
 
     def process_stage(argv):
@@ -548,37 +539,20 @@ def no_new_data_environment(
         process_summaries.append(summary)
         return summary
 
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "process_data",
-        process_stage,
-    )
-
     def plots_stage(argv):
         events.append("plots")
         plots_calls.append(list(argv))
 
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "generate_plots",
-        plots_stage,
-    )
-
     # Real build stage against isolated directories (must not
     # run; if it did, it would wipe the seeded build state).
-    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
-    monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
-    monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
-
     def build_stage(argv):
         events.append("build")
-        build_pages_module.main(argv)
-
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "build_pages",
-        build_stage,
-    )
+        build_pages_module.main(
+            argv,
+            html_dir=html_dir,
+            output_dir=output_dir,
+            build_dir=build_dir,
+        )
 
     return {
         "data_dir": data_dir,
@@ -591,8 +565,26 @@ def no_new_data_environment(
         "plots_calls": plots_calls,
         "process_args": process_args,
         "process_summaries": process_summaries,
+        "results_factory": results_factory,
+        "downloader_factory": lambda: downloader,
+        "process_stage": process_stage,
+        "plots_stage": plots_stage,
+        "build_stage": build_stage,
         "log_file": test_environment["root"] / "update.log",
     }
+
+
+def _run_update(env: dict) -> None:
+    """Run the pipeline with the injected collaborators (#106)."""
+
+    update_pipeline_module.main(
+        ["--log-file", str(env["log_file"])],
+        results_factory=env["results_factory"],
+        downloader_factory=env["downloader_factory"],
+        process_stage=env["process_stage"],
+        plots_stage=env["plots_stage"],
+        build_stage=env["build_stage"],
+    )
 
 
 # ------------------------------------------------------------------
@@ -622,9 +614,7 @@ def test_no_new_data_stops_after_sync(
     """
     env = no_new_data_environment
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # The no-new-data condition: everything the source offers is
     # older than the day after the latest processed observation.
@@ -664,9 +654,7 @@ def test_no_new_data_leaves_analysis_results_unchanged(
 
     analysis_before = _snapshot_tree(env["csv"].parent)
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # Byte-identical: no file was rewritten, no file was added.
     assert _snapshot_tree(env["csv"].parent) == analysis_before
@@ -715,9 +703,7 @@ def test_no_new_data_leaves_plots_and_build_unchanged(
     plots_before = _snapshot_tree(env["plots_dir"])
     build_before = _snapshot_tree(env["build_dir"])
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # Stage evidence: no plots and no build ran.
     assert env["events"] == ["sync"]
@@ -773,9 +759,7 @@ def test_no_new_data_keeps_leftover_local_data(
 
     data_before = _snapshot_tree(env["data_dir"])
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # Terminated after the sync stage, no cleanup ran.
     assert env["events"] == ["sync"]

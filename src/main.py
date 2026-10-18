@@ -11,14 +11,26 @@ from pathlib import Path
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from src.analysis.process_data import (
+    add_arguments as add_process_arguments,
+)
 from src.analysis.process_data import main as process_data
 from src.config.logging_config import (
-    DEFAULT_LOG_FILE,
+    add_log_arguments,
     configure_logging,
+)
+from src.data_download.download_data import (
+    add_arguments as add_download_arguments,
 )
 from src.data_download.download_data import main as download_data
 from src.update.build_pages import main as build_pages
+from src.update.update_pipeline import (
+    add_arguments as add_update_arguments,
+)
 from src.update.update_pipeline import main as update_pipeline
+from src.visualization.generate_plots import (
+    add_arguments as add_plots_arguments,
+)
 from src.visualization.generate_plots import main as generate_plots
 
 logger = logging.getLogger(__name__)
@@ -35,24 +47,15 @@ STAGES: Mapping[str, Stage] = {
 }
 
 
-def _add_common_arguments(parser: argparse.ArgumentParser) -> None:
-    """Add arguments shared by all pipeline stages."""
-
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-        help="Logging level.",
-    )
-
-    parser.add_argument(
-        "--log-file",
-        default=str(DEFAULT_LOG_FILE),
-        help="Path to the log file.",
-    )
-
-
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    """Parse command line options."""
+    """Parse command line options.
+
+    Every stage sub-parser is built from the same argument
+    specification the stage module uses for its own CLI
+    (``add_arguments`` plus the shared logging options), so
+    the dispatcher and the direct invocations expose the
+    identical option set (CLI parity, issue #106).
+    """
 
     parser = argparse.ArgumentParser(
         description="Hudson Bay Sea Ice processing pipeline."
@@ -64,119 +67,165 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar="STAGE",
     )
 
-    # -------------------------------------------------------------
-    # download
-    # -------------------------------------------------------------
-
     download_parser = subparsers.add_parser(
         "download",
         help="Download the latest NSIDC data.",
     )
 
-    _add_common_arguments(download_parser)
-
-    # -------------------------------------------------------------
-    # process
-    # -------------------------------------------------------------
+    add_log_arguments(download_parser)
+    add_download_arguments(download_parser)
 
     process_parser = subparsers.add_parser(
         "process",
         help="Process downloaded GeoTIFF files.",
     )
 
-    _add_common_arguments(process_parser)
-
-    # -------------------------------------------------------------
-    # plots
-    # -------------------------------------------------------------
+    add_log_arguments(process_parser)
+    add_process_arguments(process_parser)
 
     plots_parser = subparsers.add_parser(
         "plots",
-        help="Generate overview plots.",
+        help="Generate plots.",
     )
 
-    _add_common_arguments(plots_parser)
-
-    plots_parser.add_argument(
-        "plot_type",
-        choices=[
-            "overview",
-            "timeseries",
-            "polar",
-            "all",
-        ],
-        help="Type of plot to generate.",
-    )
-
-    plots_parser.add_argument(
-        "--regions",
-        action="store_true",
-        help="Overlay analysis regions.",
-    )
-
-    plots_parser.add_argument(
-        "--region",
-        nargs="+",
-        metavar="REGION",
-        help="Generate plots only for the selected region(s).",
-    )
-
-    plots_parser.add_argument(
-        "--all-regions",
-        action="store_true",
-        help="Generate one plot for every analysis region.",
-    )
-
-    plots_parser.add_argument(
-        "--show",
-        action="store_true",
-        help="Display figures after saving.",
-    )
-
-    # -------------------------------------------------------------
-    # build
-    # -------------------------------------------------------------
+    add_log_arguments(plots_parser)
+    add_plots_arguments(plots_parser)
 
     build_parser = subparsers.add_parser(
         "build",
         help="Build the GitHub Pages website.",
     )
 
-    _add_common_arguments(build_parser)
-
-    # -------------------------------------------------------------
-    # update
-    # -------------------------------------------------------------
+    add_log_arguments(build_parser)
 
     update_parser = subparsers.add_parser(
         "update",
         help="Download only new data and update all results.",
     )
 
-    _add_common_arguments(update_parser)
-
-    update_parser.add_argument(
-        "--keep-data",
-        action="store_true",
-        help="Keep downloaded GeoTIFF files after processing.",
-    )
-
-    # -------------------------------------------------------------
-    # all
-    # -------------------------------------------------------------
+    add_log_arguments(update_parser)
+    add_update_arguments(update_parser)
 
     all_parser = subparsers.add_parser(
         "all",
         help="Run the complete processing pipeline.",
     )
 
-    _add_common_arguments(all_parser)
+    add_log_arguments(all_parser)
 
     return parser.parse_args(argv)
 
 
+def _download_stage_args(args: argparse.Namespace) -> list[str]:
+    """Forward the download stage options with their values."""
+
+    stage_args = [
+        "--base-url",
+        args.base_url,
+        "--output-dir",
+        args.output_dir,
+        "--product",
+        args.product,
+    ]
+
+    for year in args.years or []:
+        stage_args.extend(["--year", year])
+
+    for month in args.months or []:
+        stage_args.extend(["--month", month])
+
+    if args.dry_run:
+        stage_args.append("--dry-run")
+
+    return stage_args
+
+
+def _process_stage_args(args: argparse.Namespace) -> list[str]:
+    """Forward the process stage date filters."""
+
+    stage_args: list[str] = []
+
+    if args.start_date is not None:
+        stage_args.extend(
+            [
+                "--start-date",
+                args.start_date.isoformat(),
+            ]
+        )
+
+    if args.end_date is not None:
+        stage_args.extend(
+            [
+                "--end-date",
+                args.end_date.isoformat(),
+            ]
+        )
+
+    return stage_args
+
+
+def _plots_stage_args(args: argparse.Namespace) -> list[str]:
+    """Forward the plots stage options with their values."""
+
+    stage_args = [args.plot_type]
+
+    if args.input_tiff is not None:
+        stage_args.extend(
+            [
+                "--input-tiff",
+                args.input_tiff,
+            ]
+        )
+
+    stage_args.extend(
+        [
+            "--output",
+            args.output,
+            "--bounds",
+            *(str(bound) for bound in args.bounds),
+        ]
+    )
+
+    if args.regions:
+        stage_args.append("--regions")
+
+    if args.region:
+        stage_args.append("--region")
+        stage_args.extend(args.region)
+
+    if args.all_regions:
+        stage_args.append("--all-regions")
+
+    if args.show:
+        stage_args.append("--show")
+
+    return stage_args
+
+
+def _update_stage_args(args: argparse.Namespace) -> list[str]:
+    """Forward the update stage options."""
+
+    if args.keep_data:
+        return ["--keep-data"]
+
+    return []
+
+
+STAGE_ARGS: Mapping[str, Callable[[argparse.Namespace], list[str]]] = {
+    "download": _download_stage_args,
+    "process": _process_stage_args,
+    "plots": _plots_stage_args,
+    "update": _update_stage_args,
+}
+"""Per-stage argument builders (CLI parity, issue #106)."""
+
+
 def build_stage_args(args: argparse.Namespace) -> list[str]:
-    """Build the argument list forwarded to the selected stage."""
+    """Build the argument list forwarded to the selected stage.
+
+    Every live option of the stage modules is forwarded with
+    its value (CLI parity, issue #106).
+    """
 
     stage_args = [
         "--log-level",
@@ -185,25 +234,10 @@ def build_stage_args(args: argparse.Namespace) -> list[str]:
         args.log_file,
     ]
 
-    if args.stage == "plots":
-        stage_args.append(args.plot_type)
+    builder = STAGE_ARGS.get(args.stage)
 
-        if args.regions:
-            stage_args.append("--regions")
-
-        if args.region:
-            stage_args.append("--region")
-            stage_args.extend(args.region)
-
-        if args.all_regions:
-            stage_args.append("--all-regions")
-
-        if args.show:
-            stage_args.append("--show")
-
-    elif args.stage == "update":
-        if args.keep_data:
-            stage_args.append("--keep-data")
+    if builder is not None:
+        stage_args.extend(builder(args))
 
     return stage_args
 
@@ -232,8 +266,15 @@ def main(
             args.log_file,
         ]
 
-        for stage in ("download", "process", "plots", "build"):
-            stages[stage](stage_args)
+        stages["download"](stage_args)
+
+        stages["process"](stage_args)
+
+        # The plots stage requires its positional plot type;
+        # "all" regenerates the complete product set (#106).
+        stages["plots"]([*stage_args, "all"])
+
+        stages["build"](stage_args)
 
         return
 

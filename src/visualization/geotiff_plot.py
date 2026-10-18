@@ -73,12 +73,26 @@ class SeaIcePlotter:
         bounds: tuple[
             float, float, float, float
         ] = DEFAULT_REGION_BOUNDS,
+        *,
+        region_file: str | Path | None = None,
+        data_dir: str | Path | None = None,
+        default_output_path: str | Path = DEFAULT_OUTPUT_PLOT_PATH,
     ):
+        """Build the plotter.
+
+        Since issue #106 the region definitions, the GeoTIFF
+        fallback directory and the default output path are
+        injectable keyword arguments with the production
+        defaults (F-018); the behavior is unchanged.
+        """
+
         if input_path is None:
-            input_path = self.find_concentration_geotiff()
+            input_path = self.find_concentration_geotiff(data_dir)
 
         self.input_path = resolve_project_path(input_path)
         self.bounds = bounds
+        self.region_file = region_file
+        self.default_output_path = default_output_path
 
         # matplotlib
         self.fig = None
@@ -205,7 +219,7 @@ class SeaIcePlotter:
 
         self._extract_metadata()
 
-        self.load_regions()
+        self.load_regions(self.region_file)
 
     def _create_figure(self):
 
@@ -553,7 +567,7 @@ class SeaIcePlotter:
         """
 
         if output_path is None:
-            output_path = DEFAULT_OUTPUT_PLOT_PATH
+            output_path = self.default_output_path
 
         output_path = resolve_project_path(output_path)
 

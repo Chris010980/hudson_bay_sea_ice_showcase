@@ -26,11 +26,11 @@ coverage report of the #40 run.
 | `analysis/region_analyzer.py` | `REFERENCE_JSON` and `FILTER_DIR` duplicated the reference-builder paths | same central constants (aliases kept) |
 | `analysis/results_manager.py` | `DEFAULT_RESULTS` and `DEFAULT_LATEST` built from `PROJECT_ROOT` | `ICE_COVERAGE_SUMMARY_CSV` and `LATEST_JSON` (aliases kept) |
 | `analysis/timeseries_analyzer.py` | four output CSVs built from `PROJECT_ROOT` | four central CSV constants (aliases kept) |
-| `update/build_pages.py` | `BUILD_DIR / "output"` inline | unchanged: the call-time join stays as the test redirect seam (F-018 pattern) |
+| `update/build_pages.py` | `BUILD_DIR / "output"` inline | unchanged: the join now reads the injectable `build_dir`/`output_dir` parameters (#106, F-018 resolved); the parameter defaults are the central constants |
 | `update/update_pipeline.py` | no local path construction | unchanged |
 | `src/main.py` | no local path construction | unchanged |
-| `visualization/geotiff_plot.py` | overview PNG, regions.json and geotiff fallback dir built locally | `GEOTIFF_OVERVIEW_PLOT` (alias `DEFAULT_OUTPUT_PLOT_PATH` for `generate_plots.py`); regions.json and the fallback dir stay call-time joins from `PROJECT_ROOT`/`DATA_DIR` (test seams, F-018). Issue #113 moves the overview product to the `spatial/` product class (`output/plots/spatial/overview.png` plus suffix variants) |
-| `visualization/timeseries_plot.py` | input CSVs and plots dir built locally | central CSV constants (aliases kept); `OUTPUT_DIR` kept as module-level alias of `PLOTS_DIR`, joined with the central product-class subdirectory names `DAILY_TIMESERIES_PLOTS_SUBDIR` / `YEARLY_TIMESERIES_PLOTS_SUBDIR` at construction time (test seam, unchanged); the family and quantity leaves are joined in the module (issue #113) |
+| `visualization/geotiff_plot.py` | overview PNG, regions.json and geotiff fallback dir built locally | `GEOTIFF_OVERVIEW_PLOT` (alias `DEFAULT_OUTPUT_PLOT_PATH` for `generate_plots.py`); regions.json and the fallback dir remain call-time joins as the fallback defaults of the injectable `region_file`/`data_dir` parameters (#106, F-018 resolved). Issue #113 moves the overview product to the `spatial/` product class (`output/plots/spatial/overview.png` plus suffix variants) |
+| `visualization/timeseries_plot.py` | input CSVs and plots dir built locally | central CSV constants (aliases kept); `OUTPUT_DIR` stays the module-level alias of `PLOTS_DIR` as the production default of the injectable `output_dir` parameter (#106, F-018 resolved); the family and quantity leaves are joined in the module (issue #113) |
 
 ## Constants - resolved findings
 
@@ -66,16 +66,15 @@ coverage report of the #40 run.
 
 ## Justified exceptions (documented, unchanged)
 
-* Call-time path joins that tests redirect via namespace
-  replacement (F-018 seams; the F-010 `downloader.DATA_DIR`
-  seam was dissolved in #104 via an injectable `geotiff_root`
-  with default `GEOTIFF_DIR`): `geotiff_plot.PROJECT_ROOT` and
+* Call-time path joins that remain as the fallback defaults of
+  injectable parameters (the F-018 namespace seams were
+  dissolved in #106; the F-010 `downloader.DATA_DIR` seam was
+  dissolved in #104 via an injectable `geotiff_root` with
+  default `GEOTIFF_DIR`): `geotiff_plot.PROJECT_ROOT` and
   `geotiff_plot.DATA_DIR` in `find_concentration_geotiff` and
-  `load_regions`, `build_pages.BUILD_DIR` in `main`, and
-  `timeseries_plot.OUTPUT_DIR` in the plotter constructor. The
-  source of every name is still `paths.py`; the joins read the
-  module-level names at call time so the tests can isolate
-  them.
+  `load_regions` (fallbacks of the injectable `data_dir` /
+  `region_file` parameters). The source of every name is
+  `paths.py`; tests inject the isolated paths explicitly.
 * Plot styling values in `geotiff_plot.py` and
   `timeseries_plot.py` (figure sizes, margins, fontsizes, gray
   tones, zorders, alphas, grid widths, rcParams, graticule
@@ -103,9 +102,8 @@ coverage report of the #40 run.
 ## Verification
 
 * `grep -rn 'PROJECT_ROOT / ' src/` - `src/config/paths.py`
-  (by design) plus the documented call-time seams in
-  `geotiff_plot.py` and `build_pages.py`
-  (see justified exceptions).
+  (by design) plus the documented call-time fallback join in
+  `geotiff_plot.py` (see justified exceptions).
 * `grep -rn '"geotiff"' src/` - only `src/config/paths.py`; the
   former `delete_local_data` seam was dissolved in #104.
 * `grep -rn 'EPSG:' src/` - only `src/config/settings.py`.

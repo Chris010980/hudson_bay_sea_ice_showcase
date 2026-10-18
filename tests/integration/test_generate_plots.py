@@ -35,26 +35,20 @@ Test design:
   percent * water area / 100, durations 132/123 and 163/153
   days with trends -9/-10 d/year and R² = 1.0, annual means
   with trends -10 %/year).
-* The visualization stage wires several production paths that
-  cannot be redirected through arguments (see
-  tests/Findings.md, F-018):
+* Since issue #106 the visualization stage collaborators are
+  injectable through the CLI seams (see tests/Findings.md,
+  F-018, resolved):
 
-  - since issue #74 the CLI accepts the time-series plotter
-    through the injectable ts_factory seam: every test
-    passes the class wired to the controlled inputs
-    explicitly (the definition-time default can no longer
-    be redirected through the generate_plots namespace),
-  - the plot output directory is redirected by patching the
-    timeseries_plot module constant OUTPUT_DIR (read at call
-    time),
-  - the map products of the "all" mode are written to the
-    geotiff_plot default plot path and its suffix variants --
-    the constant is patched to the isolated plots directory
-    (the --output option is ignored in "all" mode, see F-019),
-  - SeaIcePlotter.load_regions() reads
-    PROJECT_ROOT/src/config/regions.json -- the geotiff_plot
-    PROJECT_ROOT is patched to the isolated test root, which
-    receives the synthetic region file.
+  - every test passes the time-series plotter class wired to
+    the controlled inputs and the isolated output directory
+    through the ts_factory seam (issue #74),
+  - every test that exercises the map products passes the
+    SeaIcePlotter class wired to the shared synthetic region
+    file, the isolated data directory and the isolated
+    spatial output path through the map_plotter_factory seam
+    (issue #106); the "all" mode writes the map products to
+    the spatial product class, where --output is deliberately
+    not honored (see F-019).
 
 * The Natural Earth background features (ocean, land,
   coastline) load external shapefiles at draw time and are
@@ -68,7 +62,6 @@ Test design:
 from __future__ import annotations
 
 import functools
-import shutil
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -79,8 +72,6 @@ import rasterio
 from rasterio.transform import from_origin
 
 import src.visualization.generate_plots as generate_plots_module
-import src.visualization.geotiff_plot as geotiff_plot_module
-import src.visualization.timeseries_plot as timeseries_module
 from src.visualization.geotiff_plot import SeaIcePlotter
 from src.visualization.timeseries_plot import TimeSeriesPlotter
 
@@ -484,9 +475,9 @@ def generate_plots_environment(
     """Isolate the generate_plots CLI.
 
     Provides the controlled analysis products, an isolated
-    plots directory and the namespace replacements required to
-    keep the CLI away from the production output tree (see
-    tests/Findings.md, F-018).
+    plots directory and the plotter factories wired to the
+    isolated inputs and outputs (see tests/Findings.md,
+    F-018, resolved in #106).
     """
     root = test_environment["root"]
     data_dir = test_environment["data"]
@@ -502,21 +493,9 @@ def generate_plots_environment(
     yearly_csv = _seed_yearly_csv(analysis_dir)
     events_csv = _seed_events_csv(analysis_dir)
 
-    # Controlled region definitions below the patched project
-    # root (SeaIcePlotter.load_regions(), see F-018).
-    region_target = root / "src" / "config" / "regions.json"
-    region_target.parent.mkdir(parents=True)
-    shutil.copyfile(synthetic_region_file, region_target)
-
-    # Namespace replacements (F-018).
-    monkeypatch.setattr(geotiff_plot_module, "PROJECT_ROOT", root)
-    monkeypatch.setattr(geotiff_plot_module, "DATA_DIR", data_dir)
-    monkeypatch.setattr(
-        geotiff_plot_module,
-        "DEFAULT_OUTPUT_PLOT_PATH",
-        plots_dir / "spatial" / "overview.png",
-    )
-
+    # The Natural Earth background features load shapefiles at
+    # draw time; they are external dependencies and are replaced
+    # with no-ops (test-levels.md, section 9).
     for method_name in (
         "_draw_ocean",
         "_draw_land",
@@ -524,19 +503,28 @@ def generate_plots_environment(
     ):
         monkeypatch.setattr(SeaIcePlotter, method_name, _no_background)
 
-    monkeypatch.setattr(timeseries_module, "OUTPUT_DIR", plots_dir)
-
     # Since issue #74 the CLI constructs the time-series
-    # plotter through the injectable ts_factory seam: the
-    # same class wired to the controlled inputs is passed
-    # explicitly by every test (the definition-time default
-    # can no longer be redirected through the generate_plots
-    # namespace).
+    # plotter through the injectable ts_factory seam; since
+    # issue #106 the isolated output directory is injected
+    # the same way (F-018 resolved).
     ts_factory = functools.partial(
         TimeSeriesPlotter,
         csv_file=timeseries_csv,
         yearly_csv_file=yearly_csv,
         events_csv_file=events_csv,
+        output_dir=plots_dir,
+    )
+
+    # Since issue #106 the map plotter is wired through the
+    # map_plotter_factory seam: the shared synthetic region
+    # file, the isolated data directory and the isolated
+    # spatial output path are constructor arguments (F-018
+    # resolved).
+    map_plotter_factory = functools.partial(
+        SeaIcePlotter,
+        region_file=synthetic_region_file,
+        data_dir=data_dir,
+        default_output_path=plots_dir / "spatial" / "overview.png",
     )
 
     return {
@@ -544,6 +532,7 @@ def generate_plots_environment(
         "plots_dir": plots_dir,
         "log_file": root / "generate_plots.log",
         "ts_factory": ts_factory,
+        "map_plotter_factory": map_plotter_factory,
     }
 
 
@@ -578,6 +567,7 @@ def test_generate_all_products_from_cli(
             str(env["log_file"]),
         ],
         ts_factory=env["ts_factory"],
+        map_plotter_factory=env["map_plotter_factory"],
     )
 
     actual = sorted(
@@ -620,6 +610,7 @@ def test_generate_all_without_geotiff_falls_back_to_timeseries(
             str(env["log_file"]),
         ],
         ts_factory=env["ts_factory"],
+        map_plotter_factory=env["map_plotter_factory"],
     )
 
     actual = sorted(

@@ -42,10 +42,10 @@ Covered behavior:
 
 Test design:
 
-* The pipeline wires all collaborators with hard-coded production
-  defaults (see tests/Findings.md, F-015), so the collaborators
-  are replaced in the ``src.update.update_pipeline`` namespace
-  with controlled implementations of the same contracts:
+* Since issue #106 the pipeline accepts its collaborators as
+  injectable keyword arguments (F-015, resolved), so the
+  controlled implementations of the same contracts are passed
+  explicitly:
   - ResultsManager: the real class with isolated paths,
   - NSIDCDownloader: a fake that records sync/cleanup calls and
     returns a configurable summary,
@@ -388,7 +388,6 @@ def _assert_row(
 @pytest.fixture
 def update_environment(
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
     expected_reference_masks: dict[str, np.ndarray],
 ) -> dict:
     """Isolate the complete update pipeline.
@@ -399,8 +398,8 @@ def update_environment(
     * a controlled existing-results state: observation 2026-03-01
       is already persisted (summary CSV + latest.json),
     * a controlled website source directory,
-    * and namespace replacements for the pipeline collaborators
-      in src/update/update_pipeline.py.
+    * and the controlled pipeline collaborators, injected
+      explicitly since issue #106 (F-015 resolved).
     """
     data_dir = test_environment["data"]
     output_dir = test_environment["output"]
@@ -448,7 +447,8 @@ def update_environment(
     manager.add_results(_day_1_results(date(2026, 3, 1)))
     manager.save()
 
-    # Collaborator replacements.
+    # Controlled collaborators (injected explicitly since
+    # issue #106, F-015 resolved).
     events: list[str] = []
     plots_calls: list[list] = []
     process_args: list = []
@@ -458,19 +458,11 @@ def update_environment(
         events,
         data_dir / "geotiff",
     )
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "NSIDCDownloader",
-        lambda: downloader,
-    )
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "ResultsManager",
-        functools.partial(
-            ResultsManager,
-            csv_path=csv_path,
-            latest_json_path=latest_json_path,
-        ),
+
+    results_factory = functools.partial(
+        ResultsManager,
+        csv_path=csv_path,
+        latest_json_path=latest_json_path,
     )
 
     def process_stage(argv):
@@ -488,36 +480,20 @@ def update_environment(
         process_summaries.append(summary)
         return summary
 
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "process_data",
-        process_stage,
-    )
-
     def plots_stage(argv):
         events.append("plots")
         plots_calls.append(list(argv))
 
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "generate_plots",
-        plots_stage,
-    )
-
-    # Real build stage against isolated directories.
-    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
-    monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
-    monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
-
+    # Real build stage against isolated directories (the
+    # build directories are injectable since issue #106).
     def build_stage(argv):
         events.append("build")
-        build_pages_module.main(argv)
-
-    monkeypatch.setattr(
-        update_pipeline_module,
-        "build_pages",
-        build_stage,
-    )
+        build_pages_module.main(
+            argv,
+            html_dir=html_dir,
+            output_dir=output_dir,
+            build_dir=build_dir,
+        )
 
     return {
         "data_dir": data_dir,
@@ -531,6 +507,11 @@ def update_environment(
         "plots_calls": plots_calls,
         "process_args": process_args,
         "process_summaries": process_summaries,
+        "results_factory": results_factory,
+        "downloader_factory": lambda: downloader,
+        "process_stage": process_stage,
+        "plots_stage": plots_stage,
+        "build_stage": build_stage,
         "log_file": test_environment["root"] / "update.log",
     }
 
@@ -567,6 +548,23 @@ def _write_update_observations(
     )
 
 
+def _run_update(env: dict, argv: list[str] | None = None) -> None:
+    """Run the pipeline with the injected collaborators (#106)."""
+
+    update_pipeline_module.main(
+        [
+            *(argv or ()),
+            "--log-file",
+            str(env["log_file"]),
+        ],
+        results_factory=env["results_factory"],
+        downloader_factory=env["downloader_factory"],
+        process_stage=env["process_stage"],
+        plots_stage=env["plots_stage"],
+        build_stage=env["build_stage"],
+    )
+
+
 # ------------------------------------------------------------------
 # Task: execute the update pipeline with new observations
 # ------------------------------------------------------------------
@@ -598,9 +596,7 @@ def test_update_processes_only_new_observations(
         expected_reference_masks,
     )
 
-    update_pipeline_module.main(
-        ["--log-file", str(update_environment["log_file"])],
-    )
+    _run_update(update_environment)
 
     env = update_environment
 
@@ -680,9 +676,7 @@ def test_update_without_downloads_stops_after_sync(
     env = update_environment
     env["downloader"].downloaded_files = 0
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     assert env["events"] == ["sync"]
 
@@ -723,9 +717,7 @@ def test_update_without_new_results_stops_after_processing(
     """
     env = update_environment
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     assert env["events"] == ["sync", "process"]
 
@@ -764,13 +756,7 @@ def test_update_keep_data_skips_cleanup(
         expected_reference_masks,
     )
 
-    update_pipeline_module.main(
-        [
-            "--keep-data",
-            "--log-file",
-            str(update_environment["log_file"]),
-        ],
-    )
+    _run_update(update_environment, ["--keep-data"])
 
     env = update_environment
 
@@ -827,9 +813,7 @@ def test_update_first_run_processes_all_observations(
 
     _write_update_observations(env, expected_reference_masks)
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # Full run: sync and process stage operate unbounded.
     assert env["downloader"].sync_calls == [{"start_date": None}]
@@ -901,9 +885,7 @@ def test_update_processes_local_files_without_downloads(
     _write_update_observations(env, expected_reference_masks)
     env["downloader"].downloaded_files = 0
 
-    update_pipeline_module.main(
-        ["--log-file", str(env["log_file"])],
-    )
+    _run_update(env)
 
     # The sync stage was satisfied by the local files.
     assert env["downloader"].sync_calls == [

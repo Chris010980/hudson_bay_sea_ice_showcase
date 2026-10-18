@@ -51,11 +51,10 @@ Test design:
   is copied from the real OUTPUT_DIR -- no manually
   maintained second copy (test-levels.md, section 4.5).
 
-* build_pages binds its production paths as definition-time
-  module constants (HTML_DIR, OUTPUT_DIR, BUILD_DIR -- same
-  non-injectable design family as F-010/F-013/F-015/F-018);
-  the fixture redirects them with monkeypatch.setattr on the
-  module (see tests/Findings.md, F-018).
+* Since issue #106 the build directories are injectable
+  keyword arguments of main() with the production defaults
+  (F-018, resolved); every call passes the isolated
+  directories explicitly (see tests/Findings.md, F-018).
 
 * The CLI logging options are wired (configure_logging in
   main(), issue #105; see tests/Findings.md, F-020, fixed);
@@ -363,14 +362,13 @@ def _referenced_paths(page: Path) -> list[str]:
 @pytest.fixture
 def build_pages_environment(
     test_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> dict[str, Path]:
     """Isolate the build stage (html/ + output/ -> build/).
 
-    Provides the controlled html/ and output/ trees and
-    redirects the definition-time module constants of
-    build_pages (see tests/Findings.md, F-021) to the isolated
-    directories, so no production path is touched.
+    Provides the controlled html/ and output/ trees; every
+    build call passes the isolated directories explicitly
+    through the injectable keyword arguments (issue #106,
+    F-018 resolved), so no production path is touched.
     """
     root = test_environment["root"]
     html_dir = root / "html"
@@ -381,16 +379,29 @@ def build_pages_environment(
     _seed_analysis(output_dir / "analysis")
     _seed_plots(output_dir / "plots")
 
-    monkeypatch.setattr(build_pages_module, "HTML_DIR", html_dir)
-    monkeypatch.setattr(build_pages_module, "OUTPUT_DIR", output_dir)
-    monkeypatch.setattr(build_pages_module, "BUILD_DIR", build_dir)
-
     return {
         "html_dir": html_dir,
         "output_dir": output_dir,
         "build_dir": build_dir,
         "log_file": test_environment["root"] / "build.log",
     }
+
+
+def _run_build(env: dict[str, Path], **overrides) -> Path:
+    """Run the build against the isolated directories (#106)."""
+
+    directories = {
+        "html_dir": env["html_dir"],
+        "output_dir": env["output_dir"],
+        "build_dir": env["build_dir"],
+    }
+
+    directories.update(overrides)
+
+    return build_pages_module.main(
+        ["--log-file", str(env["log_file"])],
+        **directories,
+    )
 
 
 # ------------------------------------------------------------------
@@ -410,9 +421,7 @@ def test_build_creates_expected_directory_structure(
     """
     env = build_pages_environment
 
-    built_dir = build_pages_module.main(
-        ["--log-file", str(env["log_file"])]
-    )
+    built_dir = _run_build(env)
 
     assert built_dir == env["build_dir"]
 
@@ -444,7 +453,7 @@ def test_website_files_are_deployed_and_references_resolve(
     env = build_pages_environment
     build_dir = env["build_dir"]
 
-    build_pages_module.main(["--log-file", str(env["log_file"])])
+    _run_build(env)
 
     for name in (
         "index.html",
@@ -487,7 +496,7 @@ def test_scientific_output_is_available_at_deployment_paths(
     env = build_pages_environment
     build_dir = env["build_dir"]
 
-    build_pages_module.main(["--log-file", str(env["log_file"])])
+    _run_build(env)
 
     analysis_dir = build_dir / "output" / "analysis"
 
@@ -538,14 +547,14 @@ def test_rebuild_is_reproducible_and_removes_stale_files(
 
     (build_dir / "orphan.txt").write_bytes(b"stale")
 
-    build_pages_module.main(["--log-file", str(env["log_file"])])
+    _run_build(env)
 
     assert not stale_plot.exists()
     assert not (build_dir / "orphan.txt").exists()
 
     first_inventory = _file_inventory(build_dir)
 
-    build_pages_module.main(["--log-file", str(env["log_file"])])
+    _run_build(env)
 
     second_inventory = _file_inventory(build_dir)
 
@@ -559,7 +568,6 @@ def test_rebuild_is_reproducible_and_removes_stale_files(
 
 def test_missing_html_directory_fails_the_build(
     build_pages_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A missing html/ directory propagates FileNotFoundError.
 
@@ -569,19 +577,15 @@ def test_missing_html_directory_fails_the_build(
     """
     env = build_pages_environment
 
-    monkeypatch.setattr(
-        build_pages_module,
-        "HTML_DIR",
-        env["html_dir"].parent / "missing_html",
-    )
-
     with pytest.raises(FileNotFoundError):
-        build_pages_module.main(["--log-file", str(env["log_file"])])
+        _run_build(
+            env,
+            html_dir=env["html_dir"].parent / "missing_html",
+        )
 
 
 def test_missing_output_directory_fails_the_build(
     build_pages_environment: dict[str, Path],
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A missing output/ directory propagates FileNotFoundError.
 
@@ -592,14 +596,11 @@ def test_missing_output_directory_fails_the_build(
     """
     env = build_pages_environment
 
-    monkeypatch.setattr(
-        build_pages_module,
-        "OUTPUT_DIR",
-        env["output_dir"].parent / "missing_output",
-    )
-
     with pytest.raises(FileNotFoundError):
-        build_pages_module.main(["--log-file", str(env["log_file"])])
+        _run_build(
+            env,
+            output_dir=env["output_dir"].parent / "missing_output",
+        )
 
     # The build directory was not populated.
     assert not (env["build_dir"] / "index.html").exists()

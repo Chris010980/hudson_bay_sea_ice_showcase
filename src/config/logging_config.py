@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 from pathlib import Path
 
@@ -11,6 +12,27 @@ DEFAULT_LOG_FORMAT = (
     "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 )
 DEFAULT_LOG_FILE = LOG_FILE
+
+
+def add_log_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add the logging options shared by every stage CLI.
+
+    The dispatcher and the stage modules call this helper so
+    the shared options (names, defaults, help texts) have a
+    single source of truth (issue #106, CLI parity).
+    """
+
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        help="Logging level.",
+    )
+
+    parser.add_argument(
+        "--log-file",
+        default=str(DEFAULT_LOG_FILE),
+        help="Path to the log file.",
+    )
 
 
 def configure_logging(

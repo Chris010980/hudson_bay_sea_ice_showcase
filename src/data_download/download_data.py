@@ -14,7 +14,7 @@ if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from src.config.logging_config import (
-    DEFAULT_LOG_FILE,
+    add_log_arguments,
     configure_logging,
 )
 from src.config.paths import resolve_project_path
@@ -32,22 +32,58 @@ DownloaderFactory = Callable[..., NSIDCDownloader]
 """Constructor contract of the download stage (issue #73)."""
 
 
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add the download-stage-specific options (CLI parity, #106).
+
+    The module CLI and the dispatcher sub-parser share this
+    specification, so both entry points expose the identical
+    option set.
+    """
+
+    parser.add_argument(
+        "--base-url",
+        default=DEFAULT_NSIDC_GEOTIFF_URL,
+        help="Base URL of the NSIDC GeoTIFF archive.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=str(DEFAULT_GEOTIFF_DIR),
+        help="Directory the GeoTIFF files are stored in.",
+    )
+    parser.add_argument(
+        "--product",
+        default=DEFAULT_PRODUCT,
+        help="NSIDC product short name.",
+    )
+    parser.add_argument(
+        "--year",
+        action="append",
+        dest="years",
+        help="Only download this year (repeatable).",
+    )
+    parser.add_argument(
+        "--month",
+        action="append",
+        dest="months",
+        help="Only download this month (repeatable).",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report missing files without downloading.",
+    )
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     """Parse command line options for the NSIDC download stage."""
 
     parser = argparse.ArgumentParser(
         description="Download raw NSIDC GeoTIFF data."
     )
-    parser.add_argument("--base-url", default=DEFAULT_NSIDC_GEOTIFF_URL)
-    parser.add_argument(
-        "--output-dir", default=str(DEFAULT_GEOTIFF_DIR)
-    )
-    parser.add_argument("--product", default=DEFAULT_PRODUCT)
-    parser.add_argument("--year", action="append", dest="years")
-    parser.add_argument("--month", action="append", dest="months")
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
+
+    add_log_arguments(parser)
+
+    add_arguments(parser)
 
     args = parser.parse_args(argv)
 

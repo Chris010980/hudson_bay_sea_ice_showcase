@@ -16,12 +16,10 @@ Test design:
   uses the suite's raster geometry (5 x 5 pixels, EPSG:3411,
   25 km pixels) with the observation date 2026-03-02 encoded in
   the filename (exercising the metadata extraction).
-* SeaIcePlotter.load_regions() reads the region definitions
-  from PROJECT_ROOT/src/config/regions.json, which cannot be
-  injected through the public API (see tests/Findings.md,
-  F-018). The test patches the geotiff_plot PROJECT_ROOT to
-  the isolated test root and places the shared synthetic region
-  file there.
+* The region definitions are injected through the
+  constructor's region_file parameter (issue #106, F-018
+  resolved); the fixture passes the shared synthetic region
+  file explicitly.
 * The Natural Earth background features (ocean, land,
   coastline) load external shapefiles at draw time and are
   isolated as no-ops (test-levels.md, section 9: external
@@ -36,7 +34,6 @@ Test design:
 
 from __future__ import annotations
 
-import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -46,7 +43,6 @@ import pytest
 import rasterio
 from rasterio.transform import from_origin
 
-import src.visualization.geotiff_plot as geotiff_plot_module
 from src.visualization.geotiff_plot import SeaIcePlotter
 
 # ------------------------------------------------------------------
@@ -128,24 +124,13 @@ def map_plot_environment(
 ) -> dict:
     """Isolate the SeaIcePlotter.
 
-    Provides an isolated project root with the shared synthetic
-    region definitions (for the hard-wired regions.json path)
-    and an isolated plots directory.
+    Provides the shared synthetic region definitions (injected
+    through the region_file parameter, issue #106) and an
+    isolated plots directory.
     """
-    root = test_environment["root"]
     plots_dir = test_environment["output"] / "plots"
 
     plots_dir.mkdir()
-
-    # SeaIcePlotter.load_regions() reads the region definitions
-    # from PROJECT_ROOT / "src/config/regions.json" (not
-    # injectable, F-018); the controlled project root receives
-    # the synthetic region file of the suite.
-    region_target = root / "src" / "config" / "regions.json"
-    region_target.parent.mkdir(parents=True)
-    shutil.copyfile(synthetic_region_file, region_target)
-
-    monkeypatch.setattr(geotiff_plot_module, "PROJECT_ROOT", root)
 
     # The Natural Earth background features load shapefiles at
     # draw time; they are external dependencies and are replaced
@@ -160,6 +145,7 @@ def map_plot_environment(
     return {
         "data_dir": test_environment["data"],
         "plots_dir": plots_dir,
+        "region_file": synthetic_region_file,
     }
 
 
@@ -185,7 +171,10 @@ def test_overview_plot_is_created_from_geotiff(
         "N_20260302_concentration_v1.0.tif",
     )
 
-    plotter = SeaIcePlotter(input_path=observation)
+    plotter = SeaIcePlotter(
+        input_path=observation,
+        region_file=env["region_file"],
+    )
     plotter.load()
 
     # Metadata extracted from the filename.
@@ -221,7 +210,10 @@ def test_regions_overlay_plot_is_created(
         "N_20260302_concentration_v1.0.tif",
     )
 
-    plotter = SeaIcePlotter(input_path=observation)
+    plotter = SeaIcePlotter(
+        input_path=observation,
+        region_file=env["region_file"],
+    )
     plotter.load()
     plotter.plot_regions()
 
@@ -248,7 +240,10 @@ def test_single_region_plot_is_created(
         "N_20260302_concentration_v1.0.tif",
     )
 
-    plotter = SeaIcePlotter(input_path=observation)
+    plotter = SeaIcePlotter(
+        input_path=observation,
+        region_file=env["region_file"],
+    )
     plotter.load()
     plotter.plot_single_region("Test Region Water")
 

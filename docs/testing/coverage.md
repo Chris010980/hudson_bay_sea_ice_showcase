@@ -97,17 +97,17 @@ The target should be reviewed after the first substantial testing cycle.
 ### 4.1 Current Baseline (V0.2-07)
 
 The current baseline, measured with `pytest --cov=src` (state
-after issue #97; issue #77 measured 96 %, 1857 statements, 82
+after issue #97; issue #77 measured 95 %, 1900 statements, 87
 missed — adjust these figures to the measured values whenever
 the suite changes):
 
-* line coverage: **96 %** (1857 statements, 82 missed;
+* line coverage: **96 %** (1900 statements, 87 missed;
   measured after issue #103),
 * unit level: 11 files (smoke test, four CLI parsing/dispatch
   files reclassified from the component level in issue #97,
   five pure-helper files added in issue #97, and the
   linear-trend helper test added in issue #102),
-* suite: 241 tests in 34 files (11 unit, 4 fixture
+* suite: 24 tests in 34 files (11 unit, 4 fixture
   verification, 14 component, 5 integration).
 
 Coverage measurement is part of the mandatory CI test gate
