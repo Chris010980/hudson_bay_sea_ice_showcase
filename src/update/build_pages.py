@@ -16,7 +16,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from src.config.logging_config import (
-    DEFAULT_LOG_FILE,
+    add_log_arguments,
     configure_logging,
 )
 from src.config.paths import (
@@ -34,15 +34,7 @@ def parse_args(argv: Sequence[str] | None = None):
         description="Build GitHub Pages website."
     )
 
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-    )
-
-    parser.add_argument(
-        "--log-file",
-        default=str(DEFAULT_LOG_FILE),
-    )
+    add_log_arguments(parser)
 
     return parser.parse_args(argv)
 
@@ -61,7 +53,19 @@ def copy_directory(source: Path, destination: Path):
     )
 
 
-def main(argv: Sequence[str] | None = None):
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    html_dir: Path = HTML_DIR,
+    output_dir: Path = OUTPUT_DIR,
+    build_dir: Path = BUILD_DIR,
+) -> Path:
+    """Build the GitHub Pages website.
+
+    Since issue #106 the three directories are injectable
+    keyword arguments with the production defaults (F-018);
+    the build behavior is unchanged.
+    """
 
     args = parse_args(argv)
 
@@ -70,22 +74,22 @@ def main(argv: Sequence[str] | None = None):
         log_file=args.log_file,
     )
 
-    if not HTML_DIR.exists():
+    if not html_dir.exists():
         raise FileNotFoundError(
-            f"Website directory not found: {HTML_DIR}"
+            f"Website directory not found: {html_dir}"
         )
 
-    if not OUTPUT_DIR.exists():
+    if not output_dir.exists():
         raise FileNotFoundError(
-            f"Output directory not found: {OUTPUT_DIR}"
+            f"Output directory not found: {output_dir}"
         )
 
-    if BUILD_DIR.exists():
+    if build_dir.exists():
         logger.info("Removing previous build directory.")
 
-        shutil.rmtree(BUILD_DIR)
+        shutil.rmtree(build_dir)
 
-    BUILD_DIR.mkdir(
+    build_dir.mkdir(
         parents=True,
         exist_ok=True,
     )
@@ -93,17 +97,17 @@ def main(argv: Sequence[str] | None = None):
     logger.info("Copying website.")
 
     copy_directory(
-        HTML_DIR,
-        BUILD_DIR,
+        html_dir,
+        build_dir,
     )
 
     logger.info("Copying generated output.")
 
     copy_directory(
-        OUTPUT_DIR,
-        BUILD_DIR / "output",
+        output_dir,
+        build_dir / "output",
     )
 
     logger.info("Website build completed.")
 
-    return BUILD_DIR
+    return build_dir

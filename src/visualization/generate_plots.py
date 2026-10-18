@@ -14,7 +14,7 @@ if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from src.config.logging_config import (
-    DEFAULT_LOG_FILE,
+    add_log_arguments,
     configure_logging,
 )
 from src.visualization.geotiff_plot import (
@@ -42,18 +42,20 @@ PlotRunner = Callable[
 """Signature of a plot mode runner (issue #74)."""
 
 
-def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    """Parse command line options for the plot generation stage."""
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add the plot-stage-specific options (CLI parity, #106).
 
-    parser = argparse.ArgumentParser(description="Generate plots.")
+    The module CLI and the dispatcher sub-parser share this
+    specification, so both entry points expose the identical
+    option set. The dead --title option is removed (F-019):
+    it was parsed but never consumed by any plot mode.
+    """
 
     parser.add_argument(
         "plot_type",
         choices=PLOT_TYPES,
         help="Type of plot to generate.",
     )
-    parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
     parser.add_argument(
         "--input-tiff",
         default=None,
@@ -71,11 +73,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar=("LON_MIN", "LON_MAX", "LAT_MIN", "LAT_MAX"),
         default=list(DEFAULT_REGION_BOUNDS),
         help="Geographic bounds used for the preview map.",
-    )
-    parser.add_argument(
-        "--title",
-        default=None,
-        help="Optional title for the generated plot.",
     )
     parser.add_argument(
         "--show",
@@ -100,6 +97,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Generate one plot for every analysis region.",
     )
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command line options for the plot generation stage."""
+
+    parser = argparse.ArgumentParser(description="Generate plots.")
+
+    add_log_arguments(parser)
+
+    add_arguments(parser)
+
     return parser.parse_args(argv)
 
 

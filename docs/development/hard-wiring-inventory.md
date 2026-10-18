@@ -22,6 +22,15 @@ these seams.
 | `src/analysis/process_data.py` | processing loop inline in `main()` | extracted `process_geotiffs()` with injectable `analyzer_factory` |
 | `src/analysis/process_data.py` | call of the private `RegionAnalyzer._extract_date()` (audit remark from #75) | public `RegionAnalyzer.extract_date()` wrapper |
 
+## Resolved in #106
+
+| Module | Hard wiring | Seam introduced |
+| --- | --- | --- |
+| `src/update/update_pipeline.py` | stage functions and collaborators bound as module-level names | injectable keyword arguments `results_factory`, `downloader_factory`, `process_stage`, `plots_stage`, `build_stage` with the production defaults (F-015 resolved) |
+| `src/update/build_pages.py` | `HTML_DIR`/`OUTPUT_DIR`/`BUILD_DIR` read from module constants in `main()` | injectable keyword arguments `html_dir`, `output_dir`, `build_dir` with the module constants as defaults (F-018 resolved) |
+| `src/visualization/timeseries_plot.py` | `TimeSeriesPlotter` reads the module alias `OUTPUT_DIR` at construction time | injectable `output_dir` constructor parameter (default `OUTPUT_DIR`) (F-018 resolved) |
+| `src/visualization/geotiff_plot.py` | `SeaIcePlotter` regions.json default, GeoTIFF fallback directory and default output path read from module constants | injectable `region_file`, `data_dir`, `default_output_path` constructor parameters; the fallback defaults remain call-time module reads (F-018 resolved) |
+
 ## Remaining, justified
 
 | Item | Justification |
@@ -29,9 +38,6 @@ these seams.
 | `sys.path` bootstrap at import time in `main.py`, `download_data.py`, `process_data.py` | required for direct script execution (`python src/main.py`); imports as a package bypass it, so tests are unaffected |
 | stage imports at module level in `main.py` (the `STAGES` defaults) | required for direct dispatch; importing the dispatcher loads all stage modules; no side effects beyond module initialization (the matplotlib "Agg" backend selection in `geotiff_plot.py` is documented with #40) |
 | `download_data.py`: `sync()` receives `years`/`months` kwargs the downloader API does not accept | functional defect F-009 (every CLI download run fails with a TypeError); the fix needs a design decision (map `--year`/`--month` to a date range, or extend `sync()`) and a separate functional-correction issue; #73 does not change behavior |
-| `update_pipeline.py`: stage functions and collaborators bound as module-level names | documented namespace-replacement seams (F-015); the integration tests (issue #30 design) replace them in the module namespace; 100 % coverage; a full configuration injection is #74 scope |
-| `build_pages.py`: `HTML_DIR`/`OUTPUT_DIR`/`BUILD_DIR` module constants | documented namespace seams (F-018; the F-021 missing-output tolerance was resolved in #105 with fail-fast); #85 fixed the import-time binding of the copy target; 100 % coverage |
-| call-time path joins in `geotiff_plot.py`, `timeseries_plot.py` | documented test seams (F-018, see `docs/development/config-centralization.md`); they stay readable at call time for the namespace-replacement tests and can be centralized once the tests inject explicitly. The former `downloader.py` join (F-010) was dissolved in #104: `delete_local_data` now takes an injectable `geotiff_root` (default `GEOTIFF_DIR`) |
 | `logging_config.configure_logging` mutates global logging state | CLI bootstrap by design; tests pass an explicit `--log-file` below their temporary directory |
 
 ## Seam documentation for CLI tests
@@ -46,6 +52,20 @@ these seams.
   timeseries=...)` — full collaborator injection; the loop is
   also directly testable via `process_data.process_geotiffs()`.
 * `RegionAnalyzer.extract_date()` — public date extraction.
+* `update_pipeline.main(argv, results_factory=...,
+  downloader_factory=..., process_stage=..., plots_stage=...,
+  build_stage=...)` — full collaborator injection (issue
+  #106, F-015 resolved).
+* `build_pages.main(argv, html_dir=..., output_dir=...,
+  build_dir=...)` — directory injection (issue #106, F-018
+  resolved).
+* Since issue #106 every stage module exposes its
+  stage-specific options through `add_arguments(parser)` and
+  the shared logging options through
+  `src.config.logging_config.add_log_arguments(parser)`; the
+  dispatcher sub-parsers are built from the same functions,
+  so dispatcher and direct invocations expose the identical
+  option set (CLI parity).
 
 The component smoke tests live in `tests/component/`:
 `test_main.py` (dispatcher), `test_download_data.py`

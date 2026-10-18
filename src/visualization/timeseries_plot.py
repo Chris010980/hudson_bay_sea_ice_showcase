@@ -41,8 +41,9 @@ from src.config.settings import (
     FIGURE_SAVE_DPI,
 )
 
-# Module-level alias of the central plots directory: tests
-# redirect it via namespace replacement (F-018 pattern).
+# Module-level alias of the central plots directory; it is the
+# production default of the injectable output_dir parameter
+# (issue #106, F-018).
 OUTPUT_DIR = PLOTS_DIR
 
 # Arbitrary non-leap placeholder year for day-of-year axes.
@@ -78,11 +79,13 @@ class TimeSeriesPlotter:
         csv_file: str | Path = RESULTS_CSV,
         yearly_csv_file: str | Path = YEARLY_CSV,
         events_csv_file: str | Path = EVENTS_CSV,
+        output_dir: str | Path = OUTPUT_DIR,
     ):
 
         self.csv_file = Path(csv_file)
         self.yearly_csv_file = Path(yearly_csv_file)
         self.events_csv_file = Path(events_csv_file)
+        self.output_root = Path(output_dir)
 
         self.df = None
         self.yearly_df = None
@@ -152,10 +155,12 @@ class TimeSeriesPlotter:
         # organized by scientific product class below the
         # plots directory; the quantity leaves separate the
         # relative and absolute variants.
-        self.output_dir = OUTPUT_DIR / DAILY_TIMESERIES_PLOTS_SUBDIR
+        self.output_dir = (
+            self.output_root / DAILY_TIMESERIES_PLOTS_SUBDIR
+        )
 
         self.yearly_output_dir = (
-            OUTPUT_DIR / YEARLY_TIMESERIES_PLOTS_SUBDIR
+            self.output_root / YEARLY_TIMESERIES_PLOTS_SUBDIR
         )
 
         self.relative_series = (

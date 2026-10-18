@@ -18,7 +18,7 @@ from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
 from src.config.logging_config import (
-    DEFAULT_LOG_FILE,
+    add_log_arguments,
     configure_logging,
 )
 from src.config.paths import DATA_DIR
@@ -38,14 +38,14 @@ class ProcessSummary:
     new_results: int = 0
 
 
-def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    """Parse command line options for the preprocessing stage."""
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add the process-stage-specific options (CLI parity, #106).
 
-    parser = argparse.ArgumentParser(
-        description="Preprocess raw sea ice data."
-    )
-    parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
+    The module CLI and the dispatcher sub-parser share this
+    specification, so both entry points expose the identical
+    option set.
+    """
+
     parser.add_argument(
         "--start-date",
         type=date.fromisoformat,
@@ -61,6 +61,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar="YYYY-MM-DD",
         help="Only process GeoTIFFs up to this date.",
     )
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command line options for the preprocessing stage."""
+
+    parser = argparse.ArgumentParser(
+        description="Preprocess raw sea ice data."
+    )
+
+    add_log_arguments(parser)
+
+    add_arguments(parser)
 
     return parser.parse_args(argv)
 

@@ -35,11 +35,11 @@ documentation pending) · `documented` (accepted as-is)
 | F-012 | #28   | NSIDCDownloader                     | design    | fixed         |
 | F-013 | #29   | ReferenceBuilder                    | design    | fixed         |
 | F-014 | #30   | update\_pipeline                    | bug       | fixed         |
-| F-015 | #30   | update\_pipeline / process\_data    | design    | partial (#73) |
+| F-015 | #30   | update\_pipeline / process\_data    | design    | fixed         |
 | F-016 | #31   | update\_pipeline / downloader       | design    | fixed         |
 | F-017 | #32   | timeseries\_plot                    | design    | fixed         |
-| F-018 | #32   | visualization stage                 | design    | partial (#74) |
-| F-019 | #32   | generate\_plots                     | design    | partial (#74) |
+| F-018 | #32   | visualization stage                 | design    | fixed         |
+| F-019 | #32   | generate\_plots                     | design    | fixed         |
 | F-020 | #33   | build\_pages                        | design    | fixed         |
 | F-021 | #33   | build\_pages                        | design    | fixed         |
 
@@ -524,6 +524,15 @@ analyzer factory, time-series analyzer, data directory). For
 design (issue #30) remains; a full configuration injection is
 `#74` scope.
 
+**Status update (#106, 2026-10-18):** fully resolved for
+`update_pipeline.py`. The pipeline accepts its collaborators
+as injectable keyword arguments with the production defaults
+(`results_factory`, `downloader_factory`, `process_stage`,
+`plots_stage`, `build_stage`), following the #73/#74 injection
+pattern; the update integration tests pass the controlled
+implementations explicitly and the namespace replacements in
+the `src.update.update_pipeline` module are gone.
+
 ## F-016 — Locally present files can mask unprocessed observations as "no new data"
 
 **Component:** `src/update/update_pipeline.py` (`main()`),  
@@ -657,6 +666,18 @@ replacing the generate_plots namespace. The `SeaIcePlotter`
 paths (regions.json default, `DEFAULT_OUTPUT_PLOT_PATH` in
 "all" mode) remain namespace-patched and stay open.
 
+**Status update (#106, 2026-10-18):** fully resolved. All
+remaining seams are injectable now: the plotter accepts the
+output directory through the `output_dir` constructor
+parameter; `SeaIcePlotter` accepts `region_file`, `data_dir`
+and `default_output_path` (the regions.json fallback and the
+GeoTIFF fallback directory keep their production defaults as
+call-time module reads), and `build_pages.main()` accepts
+`html_dir`/`output_dir`/`build_dir` with the module constants
+as defaults. Every visualization and build test injects the
+isolated paths explicitly; the namespace patches of the
+issue #32/#33 test designs are gone.
+
 ## F-019 — Inconsistent `generate_plots.main()` CLI contract
 
 **Component:** `src/visualization/generate_plots.py` (`main()`)
@@ -684,6 +705,20 @@ the table-driven `RUNNERS` dispatch, and one runner per plot
 mode with injectable plotter factories (#73 pattern). The
 `--output` behavior in "all" mode and the unused `--title`
 option remain open for the CLI parity issue.
+
+**Status update (#106, 2026-10-18):** fully resolved. The CLI
+contract is consistent now: the dispatcher and the module CLI
+share one argument specification per stage
+(`add_arguments` plus `logging_config.add_log_arguments`),
+every live option is forwarded with its value, and the dead
+`--title` option is removed. `--output` is deliberately
+honored by the "overview" mode only: the "all" mode writes
+the map products to the spatial product class of the #113
+plot tree, where a per-figure output path would break the
+product-class layout (documented intended behavior). The
+"all" pipeline mode now forwards the required positional
+plot type, so a real dispatcher run no longer exits in the
+argument parser.
 
 ## F-020 — The CLI options of `build_pages` are dead
 
@@ -804,11 +839,11 @@ references in this audit section were updated accordingly.
 | F-012 | none — import removed in #39; no test required | resolved (#39) |
 | F-013 | 14 tests in `tests/component/test_reference_builder.py` | mapping verified |
 | F-014 | `test_update_first_run_processes_all_observations` (`tests/integration/test_update_pipeline.py`, #99) | resolved (#99) |
-| F-015 | 4 tests in `tests/integration/test_update_pipeline.py` | mapping verified |
+| F-015 | 6 tests in `tests/integration/test_update_pipeline.py` + 4 in `test_update_no_new_data.py` (collaborators injected, #106) | resolved (#106) |
 | F-016 | `test_no_new_data_keeps_leftover_local_data` + 3 further tests in `tests/integration/test_update_no_new_data.py`; masking tests in `tests/integration/test_update_pipeline.py` + `tests/component/test_nsidc_downloader.py` (#101) | resolved (#101); backlog F-028 resolved |
 | F-017 | `test_plot_polar_creates_polar_plots` (`tests/component/test_timeseries_plotter.py`) | resolved (#113; plot tree restructure) |
-| F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) | mapping verified |
-| F-019 | `tests/integration/test_generate_plots.py` (all products, GeoTIFF fallback, timeseries type) | mapping verified; overview mode → F-025 |
+| F-018 | `tests/component/test_timeseries_plotter.py` (7 tests), `tests/component/test_sea_ice_map_plot.py` (3), `tests/integration/test_generate_plots.py` (3) — paths injected since #106 | resolved (#106) |
+| F-019 | `tests/unit/test_generate_plots_cli.py` + `tests/integration/test_generate_plots.py` (CLI parity, #106) | resolved (#106); overview mode → F-025 |
 | F-020 | 8 tests in `tests/integration/test_build_pages.py` | resolved (#105) |
 | F-021 | `test_missing_output_directory_fails_the_build` | resolved (#105) |
 
@@ -901,7 +936,7 @@ Overview additions — merge these rows into the Overview table:
 | F-022 | #75 | main.py (dispatcher) | gap | resolved (#73; unit level #97) |
 | F-023 | #75 | download_data.py (CLI) | gap | resolved (#73; sync contract #98) |
 | F-024 | #75 | process_data.py (CLI) | gap | resolved (#73; unit level #97) |
-| F-025 | #75 | generate_plots.py (overview mode) | gap | partial (#74; unit level #97) |
+| F-025 | #75 | generate_plots.py (overview mode) | gap | resolved (#106) |
 | F-026 | #75 | timeseries_analyzer.py (trend, save) | gap | resolved (#102) |
 | F-027 | #75 | update_pipeline.py (first run) | gap | resolved (#99) |
 | F-028 | #75 | update_pipeline.py (masking) | gap | resolved (#101) |
@@ -927,10 +962,15 @@ proper seams per #73 preferred.
 
 **Status update (#73, 2026-10-04):** resolved. The dispatcher
 received the injectable `stages` mapping and the extracted
-`build_stage_args()`; `tests/component/test_main.py` covers
+`build_stage_args()`; `tests/unit/test_main.py` covers
 argument parsing, flag forwarding, and the "all" sequence with
 injected stage doubles. The argument-parity review between
 dispatcher and stage modules remains with #74.
+
+**Status update (#106, 2026-10-18):** the parity review is
+resolved: every stage sub-parser is built from the same
+`add_arguments` specification as the stage module CLI, and
+the new dispatcher tests pin the option parity (see F-019).
 
 ## F-023 — Download CLI untested and currently broken
 
@@ -949,11 +989,16 @@ by the F-009 fix (functional correction, milestone V0.2-07).
 
 **Status update (#73, 2026-10-04):** partially resolved.
 `parse_args` and the constructor wiring are covered by
-`tests/component/test_download_data.py` via the new
+`tests/unit/test_download_data.py` via the new
 `downloader_factory` seam. The `sync()` call itself remains
 unasserted because the wiring is broken (F-009 design decision
 pending); the functional contract test comes with the F-009
 fix.
+
+**Status update (#98, 2026-10-06):** fully resolved. The
+F-009 fix (variant A) is implemented and the `sync()` call
+arguments are asserted in `tests/unit/test_download_data.py`;
+nothing remains open here.
 
 ## F-024 — Process CLI date-filter paths untested
 
@@ -1002,6 +1047,14 @@ the overview-mode branches can be tested against injected
 plotters.
 
 **Dependencies:** F-019 fix, #73.
+
+**Status update (#106, 2026-10-18):** resolved. The overview
+mode branches are covered by
+`tests/unit/test_generate_plots_cli.py` (plain, `--regions`,
+`--region`, `--all-regions`, `--show`), the `--output`
+contract is decided (overview only, see F-019), and the option
+parity between the dispatcher and the stage modules is pinned
+by `test_dispatcher_subparsers_match_stage_modules`.
 
 ## F-026 — Trend/R² and `save()` return unasserted
 
@@ -1064,9 +1117,10 @@ masking semantics is decided and pinned by
 **Component:** `src/update/build_pages.py` (`parse_args()`, `main()`)
 
 **Finding:** the CLI options are dead (F-020) and the missing-
-`output/` tolerance is pinned by
-`test_missing_output_directory_is_tolerated` (F-021); no test
-covers the intended option wiring, because there is none.
+`output/` behavior is pinned by
+`test_missing_output_directory_fails_the_build` (F-021, fixed
+in #105); no test covers the intended option wiring, because
+there is none.
 
 **Recommendation:** add option tests once the F-020/F-021
 decisions are made (wire or remove the options; fail-fast or

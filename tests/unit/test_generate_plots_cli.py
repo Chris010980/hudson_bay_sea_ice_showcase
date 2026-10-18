@@ -139,7 +139,6 @@ def test_parse_args_defaults() -> None:
     assert args.output == str(DEFAULT_OUTPUT_PLOT_PATH)
     assert args.bounds == list(DEFAULT_REGION_BOUNDS)
     assert args.input_tiff is None
-    assert args.title is None
     assert args.regions is False
     assert args.region is None
     assert args.all_regions is False
@@ -161,8 +160,6 @@ def test_parse_args_overview_options() -> None:
             "-75",
             "50",
             "65",
-            "--title",
-            "Hudson Bay",
             "--regions",
             "--region",
             "Region A",
@@ -175,7 +172,6 @@ def test_parse_args_overview_options() -> None:
     assert args.input_tiff == "data/geotiff/observation.tif"
     assert args.output == "output/plots/map.png"
     assert args.bounds == [-95.0, -75.0, 50.0, 65.0]
-    assert args.title == "Hudson Bay"
     assert args.regions is True
     assert args.region == ["Region A"]
     assert args.all_regions is True
@@ -419,3 +415,10 @@ def test_main_overview_show_displays_figure(
 
     assert events == ["load", "plot_overview", "save"]
     assert shown == ["show"]
+
+
+def test_parse_args_rejects_removed_title_option() -> None:
+    """The dead --title option is removed (issue #106, F-019)."""
+
+    with pytest.raises(SystemExit):
+        parse_args(["overview", "--title", "Hudson Bay"])
