@@ -192,6 +192,8 @@ E2E tests should reproduce realistic pipeline behavior while avoiding unnecessar
 
 Because E2E tests are comparatively expensive, they should remain limited and complement rather than replace lower-level tests.
 
+Since issue #41 the two representative E2E workflows of test-levels.md section 5 are implemented in `tests/e2e/`: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3), both with real production stages against isolated directories and controlled inputs. The no-new-data workflow (section 5.4) remains at the integration level by decision. The regression view is documented in `docs/testing/regression-tests.md`.
+
 ### `regression/`
 
 Regression testing protects previously verified behavior against unintended changes.
@@ -499,9 +501,9 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 277
-tests in 42 files (19 unit, 4 fixture_tests, 14 component,
-5 integration; issue #98 added the download CLI sync-range
+unit tests were added. The suite currently comprises 279
+tests in 44 files (19 unit, 4 fixture_tests, 14 component,
+5 integration, 2 e2e; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first
 run, issue #101 closed the F-016 masking gap, issue #102
 aligned the analyzer API contracts (F-005/F-007), and issue
@@ -569,6 +571,10 @@ tests/
 │   ├── test_spatial_processing_chain.py
 │   ├── test_update_no_new_data.py
 │   └── test_update_pipeline.py
+│
+├── e2e/
+│   ├── test_complete_workflow.py
+│   └── test_incremental_update.py
 │
 ├── conftest.py          # shared fixtures
 ├── Findings.md          # per-test findings and audit (#75)

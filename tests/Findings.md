@@ -42,6 +42,7 @@ documentation pending) · `documented` (accepted as-is)
 | F-019 | #32   | generate\_plots                     | design    | fixed         |
 | F-020 | #33   | build\_pages                        | design    | fixed         |
 | F-021 | #33   | build\_pages                        | design    | fixed         |
+| F-031 | #41   | timeseries\_plot                    | bug       | fixed         |
 
 ## F-001 — Duplicate detection ran before date normalization
 
@@ -1155,3 +1156,34 @@ pinned by the gap-edge tests in
 `tests/component/test_timeseries_calendar.py`; the F-008
 strict-threshold decision is pinned alongside
 (see F-003 / F-008 resolutions).
+
+## F-031 — Plotter crashes on the empty yearly product of a
+## fresh dataset
+
+**Component:** `src/visualization/timeseries_plot.py`
+(`load()`)
+
+**Finding:** `load()` reads the yearly CSV with
+`pd.read_csv()` unconditionally. After the very first
+processing run of a fresh dataset (no complete region-year
+yet), `TimeSeriesAnalyzer.save()` writes an empty 0-byte
+yearly product and `pd.read_csv()` raises
+`pandas.errors.EmptyDataError`: every plot mode crashes,
+including the update pipeline's "all" run after the first
+daily update of a fresh installation.
+
+**Impact:** the complete plot stage (and therefore the
+update workflow) is inoperable on a fresh dataset until at
+least one complete region-year exists.
+
+**Resolution (#41, 2026-10-19):** `load()` catches
+`pandas.errors.EmptyDataError`, logs a warning and continues
+with an empty yearly dataframe; `plot_yearly_means()`
+returns early on the empty frame. Fresh datasets produce
+the map, classical, anomaly and polar products; the yearly
+and threshold-duration products appear once complete years
+exist.
+
+**Test note:** both E2E tests of `tests/e2e/` (issue #41)
+run the real plot stage over the empty yearly product and
+pin the operable fresh-dataset state.
