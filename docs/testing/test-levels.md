@@ -102,10 +102,11 @@ Suitable tests include:
 * JSON structure validation,
 * handling of missing or malformed metadata.
 
-### 2.3 Current Unit-Level Suite (V0.2-07)
+### 2.3 Current Unit-Level Suite (V0.2-07, issue #41)
 
-Since issue #97 the unit level is implemented. `tests/unit/`
-comprises ten files:
+Since issue #97 the unit level is implemented; issue #41
+completed the section 2.2 catalog. `tests/unit/` comprises
+nineteen files:
 
 * the pytest smoke test,
 * the pure parsing and dispatch tests of the CLI entry points
@@ -115,13 +116,26 @@ comprises ten files:
   reclassified in #97 because they operate on pure functions
   with explicitly injected collaborators and no I/O beyond
   pytest's temporary directories,
-* and focused unit tests for the pure helpers extracted in
-  issue #40 and the filename date extraction:
-  `test_downloader_helpers.py`,
+* focused unit tests for the pure helpers extracted in
+  issues #40/#73 and the filename date extraction
+  (`test_downloader_helpers.py`,
   `test_threshold_crossing_helpers.py`,
   `test_event_window_bounds.py`,
   `test_region_analyzer_extract_date.py`,
-  `test_moving_average.py`.
+  `test_moving_average.py`),
+* the linear-trend helper test added in issue #102
+  (`test_linear_trend.py`),
+* and the issue #41 unit buildup for the section 2.2
+  scientific-calculation, time-series, validation and
+  configuration candidates:
+  `test_interpolation_gaps.py`,
+  `test_calendar_reconstruction.py`,
+  `test_complete_year_filter.py`,
+  `test_climatology_anomalies.py`,
+  `test_yearly_means.py`,
+  `test_region_metrics.py`,
+  `test_results_merge.py`,
+  `test_logging_config.py`.
 
 ---
 
@@ -689,7 +703,7 @@ It is not an inventory of tests that already exist.
 
 The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
 
-Current state (V0.2-07, issue #97): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`) and for the pure analysis and downloader helpers are implemented; see section 2.3.
+Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3.
 
 ---
 
