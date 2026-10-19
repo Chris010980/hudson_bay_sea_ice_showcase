@@ -37,7 +37,7 @@ F-031); the map below references the relevant entries.
 | Duplicate `(date, region)` records | `tests/unit/test_results_merge.py`, `tests/component/test_results_manager.py`, `tests/integration/test_spatial_processing_chain.py` | keep-last deduplication (F-001) |
 | Accidental loss of historical results | `tests/integration/test_update_pipeline.py`, `tests/e2e/test_incremental_update.py` | history rows byte-identical across the update |
 | Incorrect latest-date detection | `tests/component/test_results_manager.py`, `tests/integration/test_update_pipeline.py` | latest.json reflects the newest processed date |
-| Malformed output files | not yet automated | validated in the QA step of the v0.2 readiness review; the empty-derived-product edge is covered by F-031 and the E2E tests |
+| Malformed output files | `tests/unit/test_output_validator.py` (`src/qa/validate_output.py`) | automated QA validation of the daily pipeline output (docs/testing/qa-validation.md); the empty-derived-product edge is covered by F-031 and the E2E tests |
 | Inconsistent derived datasets | `tests/e2e/test_complete_workflow.py`, `tests/e2e/test_incremental_update.py` | derived CSVs consistent with the persisted results; plot stage operable on fresh datasets (F-031) |
 
 ## 6.4 Pipeline Regression Cases
@@ -57,9 +57,12 @@ F-031); the map below references the relevant entries.
   the unit level (`tests/unit/test_interpolation_gaps.py`).
 * The fresh-dataset crash of the plot stage is fixed and
   pinned by both E2E tests (F-031).
-* The malformed-output validation remains a manual QA step
-  of the v0.2 readiness review (no automated schema
-  validation yet); automating it is a v0.3 backlog candidate.
+* The malformed-output validation is automated since part 3
+  of issue #41: the QA output validator
+  (`src/qa/validate_output.py`, documented in
+  docs/testing/qa-validation.md) checks the daily pipeline
+  output and is covered by
+  `tests/unit/test_output_validator.py`.
 
 ## Maintenance
 

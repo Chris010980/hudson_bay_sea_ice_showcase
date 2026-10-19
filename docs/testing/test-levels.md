@@ -106,7 +106,7 @@ Suitable tests include:
 
 Since issue #97 the unit level is implemented; issue #41
 completed the section 2.2 catalog. `tests/unit/` comprises
-nineteen files:
+twenty files:
 
 * the pytest smoke test,
 * the pure parsing and dispatch tests of the CLI entry points
@@ -135,7 +135,9 @@ nineteen files:
   `test_yearly_means.py`,
   `test_region_metrics.py`,
   `test_results_merge.py`,
-  `test_logging_config.py`.
+  `test_logging_config.py`,
+* and the QA output validator of the issue #41 regression
+  view (`test_output_validator.py`).
 
 ---
 
@@ -711,7 +713,7 @@ It is not an inventory of tests that already exist.
 
 The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
 
-Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3. Since issue #41 the end-to-end level is implemented as well: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3) run in `tests/e2e/` with controlled inputs and isolated paths, and the regression cases of section 6 are mapped in `docs/testing/regression-tests.md`.
+Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3. Since issue #41 the end-to-end level is implemented as well: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3) run in `tests/e2e/` with controlled inputs and isolated paths, and the regression cases of section 6 are mapped in `docs/testing/regression-tests.md`, and the QA validation of the daily pipeline output (`src/qa/validate_output.py`, docs/testing/qa-validation.md) is covered by `tests/unit/test_output_validator.py`.
 
 ---
 
