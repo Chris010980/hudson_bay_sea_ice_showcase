@@ -101,9 +101,9 @@ after issue #106: 96 %, 1900 statements, 85 missed — adjust
 these figures to the measured values whenever the suite
 changes):
 
-* line coverage: **97 %** (1913 statements, 96 missed;
+* line coverage: **97 %** (2083 statements, 92 missed;
   measured after issue #41),
-* unit level: 19 files (the smoke test, the four CLI
+* unit level: 20 files (the smoke test, the four CLI
   parsing/dispatch files reclassified from the component
   level in issue #97, the pure-helper files of issues
   #97/#102, and the eight files of the issue #41 unit
@@ -111,7 +111,7 @@ changes):
   complete-year filter, climatology and anomalies, yearly
   means, region metrics, results merge and log-level
   parsing),
-* suite: 279 tests in 44 files (19 unit, 4 fixture
+* suite: 291 tests in 45 files (20 unit, 4 fixture
   verification, 14 component, 5 integration, 2 end-to-end).
 
 Coverage measurement is part of the mandatory CI test gate

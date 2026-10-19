@@ -58,7 +58,7 @@ Typical candidates include:
 
 Unit tests should preferably operate on values or small controlled datasets supplied directly by the test.
 
-The unit level currently comprises nineteen files:
+The unit level currently comprises twenty files:
 
 ```text
 tests/unit/
@@ -74,6 +74,7 @@ tests/unit/
 ├── test_logging_config.py
 ├── test_main.py
 ├── test_moving_average.py
+├── test_output_validator.py
 ├── test_process_data.py
 ├── test_region_analyzer_extract_date.py
 ├── test_region_metrics.py
@@ -192,7 +193,7 @@ E2E tests should reproduce realistic pipeline behavior while avoiding unnecessar
 
 Because E2E tests are comparatively expensive, they should remain limited and complement rather than replace lower-level tests.
 
-Since issue #41 the two representative E2E workflows of test-levels.md section 5 are implemented in `tests/e2e/`: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3), both with real production stages against isolated directories and controlled inputs. The no-new-data workflow (section 5.4) remains at the integration level by decision. The regression view is documented in `docs/testing/regression-tests.md`.
+Since issue #41 the two representative E2E workflows of test-levels.md section 5 are implemented in `tests/e2e/`: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3), both with real production stages against isolated directories and controlled inputs. The no-new-data workflow (section 5.4) remains at the integration level by decision. The regression view is documented in `docs/testing/regression-tests.md`, and the QA validation of the daily pipeline output is automated in `src/qa/validate_output.py` (docs/testing/qa-validation.md).
 
 ### `regression/`
 
@@ -501,8 +502,8 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 279
-tests in 44 files (19 unit, 4 fixture_tests, 14 component,
+unit tests were added. The suite currently comprises 291
+tests in 45 files (20 unit, 4 fixture_tests, 14 component,
 5 integration, 2 e2e; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first
 run, issue #101 closed the F-016 masking gap, issue #102
@@ -535,6 +536,7 @@ tests/
 │   ├── test_logging_config.py
 │   ├── test_main.py
 │   ├── test_moving_average.py
+│   ├── test_output_validator.py
 │   ├── test_process_data.py
 │   ├── test_region_analyzer_extract_date.py
 │   ├── test_region_metrics.py
