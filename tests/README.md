@@ -58,26 +58,34 @@ Typical candidates include:
 
 Unit tests should preferably operate on values or small controlled datasets supplied directly by the test.
 
-The unit level currently comprises eleven files:
+The unit level currently comprises nineteen files:
 
 ```text
 tests/unit/
+├── test_calendar_reconstruction.py
+├── test_climatology_anomalies.py
+├── test_complete_year_filter.py
 ├── test_download_data.py
 ├── test_downloader_helpers.py
 ├── test_event_window_bounds.py
 ├── test_generate_plots_cli.py
+├── test_interpolation_gaps.py
 ├── test_linear_trend.py
+├── test_logging_config.py
 ├── test_main.py
 ├── test_moving_average.py
 ├── test_process_data.py
 ├── test_region_analyzer_extract_date.py
+├── test_region_metrics.py
+├── test_results_merge.py
 ├── test_smoke.py
-└── test_threshold_crossing_helpers.py
+├── test_threshold_crossing_helpers.py
+└── test_yearly_means.py
 ```
 
 The smoke test verifies that pytest can collect and execute a test successfully. It does not test scientific functionality.
 
-The CLI parsing and dispatch files (`test_main.py`, `test_download_data.py`, `test_process_data.py`, `test_generate_plots_cli.py`) were created as component tests in issues #73/#74 and reclassified to the unit level in issue #97: they operate on pure functions with explicitly injected collaborators and no I/O beyond pytest's temporary directories. The remaining files were added in issue #97 for the pure helpers extracted in issue #40 and the filename date extraction; issue #102 added the linear-trend helper test (docs/testing/test-levels.md, section 2.2).
+The CLI parsing and dispatch files (`test_main.py`, `test_download_data.py`, `test_process_data.py`, `test_generate_plots_cli.py`) were created as component tests in issues #73/#74 and reclassified to the unit level in issue #97: they operate on pure functions with explicitly injected collaborators and no I/O beyond pytest's temporary directories. The remaining files were added in issue #97 for the pure helpers extracted in issue #40 and the filename date extraction; issue #102 added the linear-trend helper test, and issue #41 completed the section 2.2 catalog: the pure scientific cores were extracted (`compute_region_metrics`, `merge_results`) and unit files for the interpolation gaps, the calendar reconstruction, the complete-year filter, climatology and anomalies, yearly means, region metrics, results merge and log-level parsing were added (docs/testing/test-levels.md, section 2.2).
 
 ### `fixture_tests/`
 
@@ -491,8 +499,8 @@ layout was reorganized in issue #76 (fixture verification
 tests), and issue #97 established a real unit level: the pure
 parsing and dispatch tests from issues #73/#74 moved from
 `tests/component/` to `tests/unit/`, and focused pure-helper
-unit tests were added. The suite currently comprises 246
-tests in 34 files (11 unit, 4 fixture_tests, 14 component,
+unit tests were added. The suite currently comprises 277
+tests in 42 files (19 unit, 4 fixture_tests, 14 component,
 5 integration; issue #98 added the download CLI sync-range
 contract tests, issue #99 pinned the update-pipeline first
 run, issue #101 closed the F-016 masking gap, issue #102
@@ -500,7 +508,8 @@ aligned the analyzer API contracts (F-005/F-007), and issue
 #103 pinned the interpolation gap and strict-threshold
 semantics (F-003/F-008), and issue #106 aligned the dispatcher
 and stage CLIs (CLI parity) and injected the remaining
-namespace seams (F-015/F-018/F-019)):
+namespace seams (F-015/F-018/F-019), and issue #41 completed
+the unit-test catalog of test-levels.md section 2.2):
 
 ```text
 tests/
@@ -512,17 +521,25 @@ tests/
 │   └── README.md
 │
 ├── unit/
+│   ├── test_calendar_reconstruction.py
+│   ├── test_climatology_anomalies.py
+│   ├── test_complete_year_filter.py
 │   ├── test_download_data.py
 │   ├── test_downloader_helpers.py
 │   ├── test_event_window_bounds.py
 │   ├── test_generate_plots_cli.py
+│   ├── test_interpolation_gaps.py
 │   ├── test_linear_trend.py
+│   ├── test_logging_config.py
 │   ├── test_main.py
 │   ├── test_moving_average.py
 │   ├── test_process_data.py
 │   ├── test_region_analyzer_extract_date.py
+│   ├── test_region_metrics.py
+│   ├── test_results_merge.py
 │   ├── test_smoke.py
-│   └── test_threshold_crossing_helpers.py
+│   ├── test_threshold_crossing_helpers.py
+│   └── test_yearly_means.py
 │
 ├── fixture_tests/
 │   ├── test_data_fixtures.py

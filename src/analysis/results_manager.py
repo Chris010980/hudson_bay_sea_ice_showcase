@@ -21,6 +21,45 @@ from src.config.paths import (
 logger = logging.getLogger(__name__)
 
 
+def merge_results(
+    existing: pd.DataFrame,
+    new_results: list[dict],
+) -> pd.DataFrame:
+    """Merge new observations into the stored results.
+
+    Pure persistence core of ``ResultsManager.save()``
+    (issue #41, unit-testable per docs/testing/test-levels.md
+    section 2.2): concatenation, date normalization,
+    keep-last deduplication on (date, region) and sorting.
+    """
+
+    df = pd.concat(
+        [
+            existing,
+            pd.DataFrame(new_results),
+        ],
+        ignore_index=True,
+    )
+
+    df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
+
+    df.drop_duplicates(
+        subset=["date", "region"],
+        keep="last",
+        inplace=True,
+    )
+
+    df.sort_values(
+        [
+            "date",
+            "region",
+        ],
+        inplace=True,
+    )
+
+    return df
+
+
 class ResultsManager:
     def __init__(
         self,
@@ -80,28 +119,9 @@ class ResultsManager:
 
             return
 
-        df = pd.concat(
-            [
-                self.df_existing,
-                df_new,
-            ],
-            ignore_index=True,
-        )
-
-        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
-
-        df.drop_duplicates(
-            subset=["date", "region"],
-            keep="last",
-            inplace=True,
-        )
-
-        df.sort_values(
-            [
-                "date",
-                "region",
-            ],
-            inplace=True,
+        df = merge_results(
+            self.df_existing,
+            self.results,
         )
 
         df.to_csv(

@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +27,48 @@ from src.config.settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def compute_region_metrics(
+    region_name: str,
+    observation_date: date,
+    water: np.ndarray,
+    reference: dict,
+    pixel_area_km2: float,
+) -> dict:
+    """Compute the daily coverage metrics of one region.
+
+    Pure scientific core of ``RegionAnalyzer._analyze_region``
+    (issue #41, unit-testable per docs/testing/test-levels.md
+    section 2.2): ice classification, absolute and relative
+    ice areas and the derived coverage percentages.
+    """
+
+    ice = water >= ICE_CONCENTRATION_THRESHOLD_TENTHS
+
+    absolute_ice_area = ice.sum() * pixel_area_km2
+
+    relative_ice_area = (
+        water[ice].sum() / CONCENTRATION_SCALE * pixel_area_km2
+    )
+
+    water_area = reference["water_area_pixel_km2"]
+
+    return {
+        "region": region_name,
+        "date": observation_date,
+        "water_pixels": reference["water_pixels"],
+        "water_area_km2": water_area,
+        "absolute_ice_area_km2": absolute_ice_area,
+        "relative_ice_area_km2": relative_ice_area,
+        "absolute_coverage_percent": 100.0
+        * absolute_ice_area
+        / water_area,
+        "relative_coverage_percent": 100.0
+        * relative_ice_area
+        / water_area,
+        "missing_pixels": 0,
+    }
 
 
 class RegionAnalyzer:
@@ -179,35 +221,19 @@ class RegionAnalyzer:
         # Step 3: Sea ice
         # -------------------------------------------------
 
-        ice = water >= ICE_CONCENTRATION_THRESHOLD_TENTHS
-
-        absolute_ice_area = ice.sum() * self.pixel_area_km2
-
-        relative_ice_area = (
-            water[ice].sum() / CONCENTRATION_SCALE * self.pixel_area_km2
+        metrics = compute_region_metrics(
+            region_name,
+            self.date,
+            water,
+            reference,
+            self.pixel_area_km2,
         )
 
-        water_area = reference["water_area_pixel_km2"]
-
-        self.results[region_name] = {
-            "region": region_name,
-            "date": self.date,
-            "water_pixels": expected,
-            "water_area_km2": water_area,
-            "absolute_ice_area_km2": absolute_ice_area,
-            "relative_ice_area_km2": relative_ice_area,
-            "absolute_coverage_percent": 100.0
-            * absolute_ice_area
-            / water_area,
-            "relative_coverage_percent": 100.0
-            * relative_ice_area
-            / water_area,
-            "missing_pixels": 0,
-        }
+        self.results[region_name] = metrics
 
         logger.info(
             "%-20s : %6.1f %% (%8.0f km²)",
             region_name,
-            100.0 * relative_ice_area / water_area,
-            relative_ice_area,
+            metrics["relative_coverage_percent"],
+            metrics["relative_ice_area_km2"],
         )
