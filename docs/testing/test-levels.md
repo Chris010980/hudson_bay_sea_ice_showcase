@@ -433,6 +433,14 @@ Because E2E tests are comparatively expensive and more environment-dependent, th
 
 They should complement rather than replace unit, component and integration tests.
 
+Current state (V0.2-08, issue #41): the complete processing
+workflow (section 5.2) and the incremental update workflow
+(section 5.3) are implemented in `tests/e2e/`; the no-new-data
+workflow (section 5.4) remains covered at the integration
+level (`tests/integration/test_update_no_new_data.py`), as
+decided in issue #41. The regression view of section 6 is
+maintained in `docs/testing/regression-tests.md`.
+
 ---
 
 ### 5.2 Complete Processing Workflow
@@ -703,7 +711,7 @@ It is not an inventory of tests that already exist.
 
 The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
 
-Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3.
+Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3. Since issue #41 the end-to-end level is implemented as well: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3) run in `tests/e2e/` with controlled inputs and isolated paths, and the regression cases of section 6 are mapped in `docs/testing/regression-tests.md`.
 
 ---
 

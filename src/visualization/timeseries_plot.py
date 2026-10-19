@@ -182,9 +182,17 @@ class TimeSeriesPlotter:
             parse_dates=["date"],
         )
 
-        self.yearly_df = pd.read_csv(
-            self.yearly_csv_file,
-        )
+        try:
+            self.yearly_df = pd.read_csv(
+                self.yearly_csv_file,
+            )
+        except pd.errors.EmptyDataError:
+            logger.warning(
+                "Yearly mean file %s is empty.",
+                self.yearly_csv_file,
+            )
+
+            self.yearly_df = pd.DataFrame()
 
         self.events_df = pd.read_csv(
             self.events_csv_file,
@@ -1286,6 +1294,11 @@ class TimeSeriesPlotter:
             self.load()
 
         df = self.yearly_df.copy()
+
+        if df.empty:
+            logger.warning("No yearly means to plot yet.")
+
+            return
 
         required_columns = {
             "year",

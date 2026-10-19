@@ -101,7 +101,7 @@ after issue #106: 96 %, 1900 statements, 85 missed — adjust
 these figures to the measured values whenever the suite
 changes):
 
-* line coverage: **96 %** (1906 statements, 77 missed;
+* line coverage: **97 %** (1913 statements, 96 missed;
   measured after issue #41),
 * unit level: 19 files (the smoke test, the four CLI
   parsing/dispatch files reclassified from the component
@@ -111,8 +111,8 @@ changes):
   complete-year filter, climatology and anomalies, yearly
   means, region metrics, results merge and log-level
   parsing),
-* suite: 277 tests in 42 files (19 unit, 4 fixture
-  verification, 14 component, 5 integration).
+* suite: 279 tests in 44 files (19 unit, 4 fixture
+  verification, 14 component, 5 integration, 2 end-to-end).
 
 Coverage measurement is part of the mandatory CI test gate
 (`pytest --cov=src` in `.github/workflows/quality-gate.yml`);
