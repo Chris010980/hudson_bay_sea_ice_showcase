@@ -1,4 +1,4 @@
-# Test Strategy — v0.1
+# Test Strategy — v0.2
 
 ## 1. Purpose
 
@@ -17,7 +17,7 @@ Testing is considered an integral part of the software development process rathe
 
 The strategy is derived from the project's functional and non-functional requirements, with particular emphasis on scientific correctness, data integrity, reliability, maintainability, and reproducibility.
 
-The v0.1 strategy defines the intended testing model. It does not imply that every described test or quality gate is already implemented.
+The strategy was originally written for v0.1 as an intended testing model. The v0.2 state is implemented: all five test levels are in use (291 tests in 45 files; see `test-levels.md` and `coverage.md`), and the mandatory CI gates run ruff lint, ruff format and pytest with coverage. Remaining limitations are documented in section 17.
 
 ---
 
@@ -327,6 +327,8 @@ End-to-end tests should be used selectively because they are more expensive and 
 
 The complete production NSIDC workflow does not need to be executed against the live service for every test run. Controlled test data should be preferred for automated E2E testing.
 
+Current state (v0.2): the complete processing workflow and the incremental update workflow are implemented in `tests/e2e/` with controlled inputs and isolated paths (see `test-levels.md`, sections 5.1–5.3).
+
 ### 4.5 Regression Tests
 
 Regression tests preserve behavior that has previously been verified or corrected.
@@ -436,7 +438,7 @@ Particular attention should be given to scientifically and operationally critica
 
 The detailed coverage policy and measurement procedure are defined in `coverage.md`.
 
-The 70% value is an initial project target. It should not be interpreted as evidence that the current implementation already achieves this level.
+The 70% value is an initial project target. The current v0.2 baseline already exceeds it: 96 % line coverage (2083 statements, 92 missed; measured after issue #41). The measured values are maintained in `coverage.md`, section 4.1.
 
 ---
 
@@ -459,7 +461,13 @@ Conversely, runtime tests do not replace static analysis.
 
 Both contribute to the overall software quality process.
 
-The specific tools and mandatory checks are established progressively as part of the project's development tooling.
+The selected tools (v0.2) are:
+
+* `ruff` — mandatory lint gate (`ruff check .`) and formatter (`ruff format --check .`); configuration in `pyproject.toml`: Python 3.12 target, 72-character lines, rule set E/W/F/I/B/UP/C90,
+* `vulture` — advisory dead-code report (`--min-confidence 90`) with the documented whitelist `tests/vulture_whitelist.py`,
+* `radon` — advisory complexity report, local only (`radon cc src -s -n C`).
+
+Static analysis examines source code without executing it; dynamic tests execute the software. Both are mandatory parts of the quality process and neither replaces the other. The static-analysis policy is defined in `docs/development/static-analysis-policy.md`, the tool evaluation in `docs/development/static-analysis.md`.
 
 ---
 
@@ -502,6 +510,8 @@ output/build validation where applicable
 More expensive integration or end-to-end tests may be executed separately where appropriate.
 
 The exact CI quality gates are defined in `ci-quality-gates.md`.
+
+Current state (v0.2): the mandatory CI gates are implemented in `.github/workflows/quality-gate.yml` — `ruff check .`, `ruff format --check .` and `pytest --cov=src` block integration; the vulture dead-code report runs advisingly.
 
 ---
 
@@ -621,3 +631,26 @@ The testing strategy may be extended to cover future functionality such as:
 * multi-platform execution.
 
 Such extensions should introduce corresponding test cases and, where appropriate, new test levels or quality gates.
+
+---
+
+## 17. Current Limitations and Exclusions (v0.2)
+
+This section documents the relevant exclusions and limitations of the implemented v0.2 testing and quality infrastructure, so that no planned functionality is presented as already implemented.
+
+### Static analysis
+
+* Static analysis examines source code without executing it; dynamic tests execute the software. Both contribute distinct evidence and neither replaces the other (section 9).
+* Static type checking is not implemented; no type-checking gate exists.
+* `radon` complexity reporting is advisory and runs locally only; it is not part of CI.
+* `vulture` runs advisingly with `--min-confidence 90`; the whitelist `tests/vulture_whitelist.py` contains two documented false positives (`synthetic_ocean`, S-020; `chunk_size`, S-021).
+* The source tree is `noqa`-free; a documented exception requires an S-entry in `docs/development/static-analysis-findings.md`.
+* ruff analyzes Python source only: `build/`, `output/`, `data/`, `docs/`, `html/`, `releases/`, `.idea/` and `.venv/` are excluded from linting and formatting.
+
+### Dynamic testing
+
+* The regular test suite uses controlled data only; the live NSIDC service is never contacted. E2E tests use controlled inputs and isolated paths.
+* The Natural Earth coastline background is replaced by a no-op in tests; the real rendering path is not verified by the suite.
+* Coverage measurement has no exclusion configuration; the report includes all of `src/`. There is no blocking coverage threshold in CI (see `coverage.md`, section 11).
+* The QA output validator (`src/qa/validate_output.py`) is implemented and unit-tested, but is invoked manually (`python -m src.qa.validate_output`); it is not yet a CI gate (see `docs/testing/qa-validation.md`).
+* The GitHub Pages deployment itself is not tested by the suite; the build output structure is verified instead.

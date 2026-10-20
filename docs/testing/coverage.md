@@ -94,15 +94,13 @@ It is intended to establish a measurable baseline after the automated test suite
 
 The target should be reviewed after the first substantial testing cycle.
 
-### 4.1 Current Baseline (V0.2-07)
+### 4.1 Current Baseline (V0.2-08, issue #41)
 
-The current baseline, measured with `pytest --cov=src` (state
-after issue #106: 96 %, 1900 statements, 85 missed — adjust
-these figures to the measured values whenever the suite
-changes):
+The current baseline, measured with `pytest --cov=src`
+(measured after issue #41 — adjust these figures to the
+measured values whenever the suite changes):
 
-* line coverage: **97 %** (2083 statements, 92 missed;
-  measured after issue #41),
+* line coverage: **96 %** (2083 statements, 92 missed),
 * unit level: 20 files (the smoke test, the four CLI
   parsing/dispatch files reclassified from the component
   level in issue #97, the pure-helper files of issues
@@ -275,7 +273,7 @@ A measured coverage below the configured minimum should cause the corresponding 
 
 This mechanism is intended as a regression-control measure.
 
-For v0.1, this requirement represents the **target CI behavior** and should not be interpreted as evidence that the coverage gate is already fully implemented.
+Current state (v0.2): CI measures coverage together with the mandatory test gate (`pytest --cov=src` in `.github/workflows/quality-gate.yml`) and uploads the coverage report as an artifact. A blocking threshold is not configured; the measured baseline (96 %, section 4.1) exceeds the 70 % target by a wide margin. Introducing a blocking `--cov-fail-under` threshold remains a possible future extension and is not part of the current implementation.
 
 ---
 
