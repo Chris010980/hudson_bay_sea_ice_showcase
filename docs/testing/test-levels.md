@@ -102,7 +102,7 @@ Suitable tests include:
 * JSON structure validation,
 * handling of missing or malformed metadata.
 
-### 2.3 Current Unit-Level Suite (V0.2-07, issue #41)
+### 2.3 Current Unit-Level Suite (V0.2-08, issue #41)
 
 Since issue #97 the unit level is implemented; issue #41
 completed the section 2.2 catalog. `tests/unit/` comprises
