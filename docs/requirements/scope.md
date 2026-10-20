@@ -251,7 +251,7 @@ The project contains a static website providing project documentation, methodolo
 The website source is maintained under:
 
 ```text
-docs/
+html/
 ```
 
 Generated scientific results remain under:

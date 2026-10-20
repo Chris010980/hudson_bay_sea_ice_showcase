@@ -94,12 +94,27 @@ It is intended to establish a measurable baseline after the automated test suite
 
 The target should be reviewed after the first substantial testing cycle.
 
-Increasing the threshold should only be considered after:
+### 4.1 Current Baseline (V0.2-08, issue #41)
 
-* the basic test structure is established,
-* critical scientific components have meaningful coverage,
-* integration tests are available,
-* coverage results have been evaluated over several development cycles.
+The current baseline, measured with `pytest --cov=src`
+(measured after issue #41 — adjust these figures to the
+measured values whenever the suite changes):
+
+* line coverage: **96 %** (2083 statements, 92 missed),
+* unit level: 20 files (the smoke test, the four CLI
+  parsing/dispatch files reclassified from the component
+  level in issue #97, the pure-helper files of issues
+  #97/#102, and the eight files of the issue #41 unit
+  buildup: interpolation gaps, calendar reconstruction,
+  complete-year filter, climatology and anomalies, yearly
+  means, region metrics, results merge and log-level
+  parsing),
+* suite: 291 tests in 45 files (20 unit, 4 fixture
+  verification, 14 component, 5 integration, 2 end-to-end).
+
+Coverage measurement is part of the mandatory CI test gate
+(`pytest --cov=src` in `.github/workflows/quality-gate.yml`);
+the project-wide 70 % minimum target is already exceeded.
 
 ---
 
@@ -258,7 +273,7 @@ A measured coverage below the configured minimum should cause the corresponding 
 
 This mechanism is intended as a regression-control measure.
 
-For v0.1, this requirement represents the **target CI behavior** and should not be interpreted as evidence that the coverage gate is already fully implemented.
+Current state (v0.2): CI measures coverage together with the mandatory test gate (`pytest --cov=src` in `.github/workflows/quality-gate.yml`) and uploads the coverage report as an artifact. A blocking threshold is not configured; the measured baseline (96 %, section 4.1) exceeds the 70 % target by a wide margin. Introducing a blocking `--cov-fail-under` threshold remains a possible future extension and is not part of the current implementation.
 
 ---
 

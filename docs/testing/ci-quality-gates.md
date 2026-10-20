@@ -1,4 +1,4 @@
-# CI Quality Gates — v0.1
+# CI Quality Gates — v0.2
 
 ## 1. Purpose
 
@@ -18,7 +18,7 @@ The purpose of the CI quality gates is to detect changes that:
 
 CI checks support the development process but do not replace scientific review or engineering judgment.
 
-The v0.1 document defines the intended quality-gate model. It does not imply that every described gate is already implemented.
+The document was originally written for v0.1 as an intended quality-gate model. The v0.2 baseline is implemented: `.github/workflows/quality-gate.yml` runs `ruff check .`, `ruff format --check .` and `pytest --cov=src` as mandatory gates, plus the vulture dead-code report advisingly. Gates that are not yet implemented (static type checking, a blocking coverage threshold, CI-side output validation) are marked as such in their sections.
 
 ---
 
@@ -87,6 +87,8 @@ systematic and reproducible automated verification
 
 The existence of a documented quality gate does not imply that the corresponding verification is already fully implemented.
 
+Current state (v0.2): the first systematic gates are implemented. The quality-gate workflow blocks integration on ruff lint, ruff format and the complete pytest suite with coverage measurement; the vulture dead-code report runs advisingly. The gate categories below state their current implementation status.
+
 ---
 
 ## 5. Gate Categories
@@ -123,9 +125,11 @@ Coverage should be measured together with the test suite.
 
 Coverage is not considered a measure of scientific correctness by itself. A test suite with high coverage may still fail to verify important numerical or scientific behavior.
 
-The detailed coverage policy is defined in `test-coverage.md`.
+The detailed coverage policy is defined in `coverage.md`.
 
 The 70% threshold is an initial project target and should become a mandatory gate only once the coverage infrastructure has been established and the baseline is meaningful.
+
+Current state (v0.2): coverage is measured in the mandatory test gate and uploaded as a CI artifact. A blocking threshold is not configured; the measured baseline is 96 % (see `coverage.md`, section 4.1).
 
 ---
 
@@ -164,6 +168,8 @@ Formatting failures should normally be corrected before integration.
 
 The exact formatter and configuration are part of the project's development tooling and may be introduced progressively.
 
+Current state (v0.2): implemented — `ruff format --check .` is a mandatory gate; the formatter configuration (72-character lines, Python 3.12 target) is version-controlled in `pyproject.toml`.
+
 ---
 
 ## 8. Linting Gate
@@ -183,6 +189,8 @@ The exact rule set should be selected based on the project codebase rather than 
 
 The linting configuration should be version-controlled and executed consistently locally and in CI.
 
+Current state (v0.2): implemented — `ruff check .` is a mandatory gate with the rule set E/W/F/I/B/UP/C90 version-controlled in `pyproject.toml` and executed identically locally and in CI.
+
 ---
 
 ## 9. Static Type Checking
@@ -196,6 +204,8 @@ Type checking should initially focus on identifying genuine interface and data-f
 A type-checking gate may therefore be introduced progressively.
 
 The selected tool and strictness level should be documented in the project's development tooling.
+
+Current state (v0.2): not implemented. Type hints are used for public interfaces and important functions, but no type-checking gate exists.
 
 ---
 
@@ -215,6 +225,8 @@ Relevant checks may include:
 Static analysis should support maintainability without treating every potentially unused declaration as an automatic defect.
 
 Findings that require human judgment should be reviewed rather than automatically removed.
+
+Current state (v0.2): implemented as an advisory check — `vulture src tests tests/vulture_whitelist.py --min-confidence 90` runs with `continue-on-error: true`; the whitelist documents two confirmed false positives (S-020, S-021).
 
 ---
 
@@ -278,6 +290,8 @@ Validation should cover, where applicable:
 * the build contains the expected structure.
 
 The exact validation rules should be developed together with the corresponding output-validation tests.
+
+Current state (v0.2): implemented outside CI — the QA validator `src/qa/validate_output.py` checks the analysis CSVs, `latest.json`, the plot inventory and the build artifact; it is covered by `tests/unit/test_output_validator.py` and invoked manually (`python -m src.qa.validate_output`; see `docs/testing/qa-validation.md`). Wiring it into CI as a gate is a possible future extension.
 
 ---
 
@@ -450,6 +464,8 @@ required build validation
 ```
 
 Additional gates should be introduced once the corresponding checks are reliable and sufficiently tested.
+
+Status (V0.2-07, updated in V0.2-08 by issue #42): this baseline is implemented in `.github/workflows/quality-gate.yml` — `ruff check .`, `ruff format --check .` and `pytest --cov=src` are mandatory gates; the vulture dead-code report (with a documented whitelist) runs advisingly. Not implemented in v0.2: static type checking, a blocking coverage threshold, and CI-side output/build validation (the QA validator exists but is invoked manually).
 
 ---
 

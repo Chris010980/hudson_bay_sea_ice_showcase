@@ -1,0 +1,7 @@
+region,date,water_pixels,water_area_km2,absolute_ice_area_km2,relative_ice_area_km2,absolute_coverage_percent,relative_coverage_percent,missing_pixels
+Test Region A,2020-01-01,100,62500.0,62500.0,50000.0,100.0,80.0,0
+Test Region B,2020-01-01,50,31250.0,31250.0,25000.0,100.0,80.0,0
+Test Region A,2020-01-02,100,62500.0,50000.0,40000.0,80.0,64.0,0
+Test Region B,2020-01-02,50,31250.0,18750.0,15000.0,60.0,48.0,0
+Test Region A,2020-01-03,100,62500.0,25000.0,20000.0,40.0,32.0,0
+Test Region B,2020-01-03,50,31250.0,9375.0,7500.0,30.0,24.0,0

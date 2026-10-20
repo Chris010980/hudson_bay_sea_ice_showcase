@@ -5,60 +5,87 @@ Time series plots for Hudson Bay sea ice analysis.
 from __future__ import annotations
 
 import logging
-
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt
+from datetime import datetime
+
 import matplotlib as mpl
 import matplotlib.colors as mcolors
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-from datetime import datetime
 from matplotlib.dates import DateFormatter, MonthLocator
 
-from src.config.paths import PROJECT_ROOT
+from src.analysis.timeseries_analyzer import compute_linear_trend
+from src.config.paths import (
+    DAILY_TIMESERIES_PLOTS_SUBDIR,
+    PLOTS_DIR,
+    YEARLY_TIMESERIES_PLOTS_SUBDIR,
+)
+from src.config.paths import (
+    ICE_COVERAGE_EVENTS_CSV as EVENTS_CSV,
+)
+from src.config.paths import (
+    ICE_COVERAGE_TIMESERIES_CSV as RESULTS_CSV,
+)
+from src.config.paths import (
+    ICE_COVERAGE_YEARLY_CSV as YEARLY_CSV,
+)
+from src.config.settings import (
+    CLIMATOLOGY_END_YEAR,
+    CLIMATOLOGY_START_YEAR,
+    FIGURE_SAVE_DPI,
+)
 
-RESULTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_timeseries.csv"
-OUTPUT_DIR = PROJECT_ROOT / "output" / "plots"
-YEARLY_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_yearly.csv" 
-EVENTS_CSV = PROJECT_ROOT / "output" / "analysis" / "ice_coverage_events.csv"
+# Module-level alias of the central plots directory; it is the
+# production default of the injectable output_dir parameter
+# (issue #106, F-018).
+OUTPUT_DIR = PLOTS_DIR
+
+# Arbitrary non-leap placeholder year for day-of-year axes.
+DAY_OF_YEAR_AXIS_YEAR = 2000
+
+# Seconds per day, used to convert event durations to days.
+SECONDS_PER_DAY = 86400.0
 
 logger = logging.getLogger(__name__)
 
-mpl.rcParams.update({
-    "figure.dpi": 150,
-    "font.size": 10,
-    "axes.titlesize": 12,
-    "axes.labelsize": 11,
-    "xtick.labelsize": 9,
-    "ytick.labelsize": 9,
-    "legend.fontsize": 9,
-    "legend.frameon": False,
-    "lines.linewidth": 1.8,
-    "grid.linestyle": "--",
-    "grid.alpha": 0.3,
-    "grid.color": "0.6",
-    "savefig.bbox": "tight",
-})
+mpl.rcParams.update(
+    {
+        "figure.dpi": 150,
+        "font.size": 10,
+        "axes.titlesize": 12,
+        "axes.labelsize": 11,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "legend.fontsize": 9,
+        "legend.frameon": False,
+        "lines.linewidth": 1.8,
+        "grid.linestyle": "--",
+        "grid.alpha": 0.3,
+        "grid.color": "0.6",
+        "savefig.bbox": "tight",
+    }
+)
 
 
 class TimeSeriesPlotter:
-
     def __init__(
         self,
         csv_file: str | Path = RESULTS_CSV,
         yearly_csv_file: str | Path = YEARLY_CSV,
         events_csv_file: str | Path = EVENTS_CSV,
+        output_dir: str | Path = OUTPUT_DIR,
     ):
 
         self.csv_file = Path(csv_file)
         self.yearly_csv_file = Path(yearly_csv_file)
         self.events_csv_file = Path(events_csv_file)
+        self.output_root = Path(output_dir)
 
         self.df = None
         self.yearly_df = None
@@ -79,7 +106,7 @@ class TimeSeriesPlotter:
 
     def _configure_style(self):
 
-        self.figure_size = (9,6)
+        self.figure_size = (9, 6)
 
         self.polar_figure_size = (6.5, 6)
 
@@ -98,16 +125,16 @@ class TimeSeriesPlotter:
         self.colorbar_fontsize = 10
         self.colorbar_ticksize = 8
 
-        # ------------------------------------------------------------- 
-        # Climatology 
-        # ------------------------------------------------------------- 
-        self.climatology_color = "0.25" 
-        self.climatology_linewidth = 2.2 
-        self.climatology_alpha = 0.95 
+        # -------------------------------------------------------------
+        # Climatology
+        # -------------------------------------------------------------
+        self.climatology_color = "0.25"
+        self.climatology_linewidth = 2.2
+        self.climatology_alpha = 0.95
 
-        # ------------------------------------------------------------- 
-        # Current observation 
-        # ------------------------------------------------------------- 
+        # -------------------------------------------------------------
+        # Current observation
+        # -------------------------------------------------------------
         self.current_marker_size = 45
 
         # Polar layout
@@ -124,9 +151,17 @@ class TimeSeriesPlotter:
 
         self.theta_offset = np.deg2rad(15)
 
-        self.output_dir = OUTPUT_DIR / "timeseries"
+        # Plot output tree (issue #113): the products are
+        # organized by scientific product class below the
+        # plots directory; the quantity leaves separate the
+        # relative and absolute variants.
+        self.output_dir = (
+            self.output_root / DAILY_TIMESERIES_PLOTS_SUBDIR
+        )
 
-        self.polar_output_dir = OUTPUT_DIR / "polar"
+        self.yearly_output_dir = (
+            self.output_root / YEARLY_TIMESERIES_PLOTS_SUBDIR
+        )
 
         self.relative_series = (
             "relative_coverage_percent_of_water",
@@ -140,7 +175,6 @@ class TimeSeriesPlotter:
             "absolute",
         )
 
-
     def load(self):
         """Load the processed sea-ice statistics."""
         self.df = pd.read_csv(
@@ -148,9 +182,17 @@ class TimeSeriesPlotter:
             parse_dates=["date"],
         )
 
-        self.yearly_df = pd.read_csv(
-            self.yearly_csv_file,
-        )
+        try:
+            self.yearly_df = pd.read_csv(
+                self.yearly_csv_file,
+            )
+        except pd.errors.EmptyDataError:
+            logger.warning(
+                "Yearly mean file %s is empty.",
+                self.yearly_csv_file,
+            )
+
+            self.yearly_df = pd.DataFrame()
 
         self.events_df = pd.read_csv(
             self.events_csv_file,
@@ -188,7 +230,7 @@ class TimeSeriesPlotter:
 
         df["plot_date"] = df.date.apply(
             lambda d: datetime(
-                2000,
+                DAY_OF_YEAR_AXIS_YEAR,
                 d.month,
                 d.day,
             )
@@ -204,17 +246,19 @@ class TimeSeriesPlotter:
         self.cmap = mpl.colormaps["plasma"]
 
     # ================================================================
-    #  Gap handling 
-    # ================================================================ 
-    def _prepare_year( self, df_year: pd.DataFrame, ) -> pd.DataFrame: 
-        """ 
-        Prepare one year's data for plotting. NaN values are 
-        deliberately retained. Matplotlib does not draw line segments 
-        across NaN values, which provides the desired behaviour for 
-        data gaps that were not interpolated by the TimeSeriesAnalyzer. 
-        """ 
-        return ( df_year .sort_values("date") .copy() )
-
+    #  Gap handling
+    # ================================================================
+    def _prepare_year(
+        self,
+        df_year: pd.DataFrame,
+    ) -> pd.DataFrame:
+        """
+        Prepare one year's data for plotting. NaN values are
+        deliberately retained. Matplotlib does not draw line segments
+        across NaN values, which provides the desired behaviour for
+        data gaps that were not interpolated by the TimeSeriesAnalyzer.
+        """
+        return df_year.sort_values("date").copy()
 
     def _create_colorbar(
         self,
@@ -260,7 +304,6 @@ class TimeSeriesPlotter:
             self.load()
 
         for region in self.df.region.unique():
-
             self._plot_region(
                 region,
                 "relative_coverage_percent_ma",
@@ -279,17 +322,12 @@ class TimeSeriesPlotter:
         """Plot relative and absolute sea-ice coverage anomalies."""
 
         if self.df is None or self.df.empty:
-            logger.warning(
-                "Cannot plot anomalies: dataframe is empty."
-            )
+            logger.warning("Cannot plot anomalies: dataframe is empty.")
             return
 
         for region in self.df["region"].dropna().unique():
-
             df_region = (
-                self.df[
-                    self.df["region"] == region
-                ]
+                self.df[self.df["region"] == region]
                 .sort_values("date")
                 .copy()
             )
@@ -300,6 +338,7 @@ class TimeSeriesPlotter:
                 std_column="relative_climatology_std_percent",
                 ylabel="Relative anomaly [percentage points]",
                 filename="relative_anomaly",
+                quantity="relative",
                 region=region,
             )
 
@@ -309,6 +348,7 @@ class TimeSeriesPlotter:
                 std_column="absolute_climatology_std_percent",
                 ylabel="Absolute anomaly [percentage points]",
                 filename="absolute_anomaly",
+                quantity="absolute",
                 region=region,
             )
 
@@ -319,6 +359,7 @@ class TimeSeriesPlotter:
         std_column: str,
         ylabel: str,
         filename: str,
+        quantity: str,
         region: str,
     ) -> None:
         """Plot anomalies for one region."""
@@ -336,11 +377,8 @@ class TimeSeriesPlotter:
         # ---------------------------------------------------------
 
         for year in self.unique_years:
-
             df_year = (
-                df_region[
-                    df_region["year"] == year
-                ]
+                df_region[df_region["year"] == year]
                 .sort_values("date")
                 .copy()
             )
@@ -348,16 +386,12 @@ class TimeSeriesPlotter:
             if df_year.empty:
                 continue
 
-            df_year = self._prepare_year(
-                df_year
-            )
+            df_year = self._prepare_year(df_year)
 
             ax.plot(
                 df_year["plot_date"],
                 df_year[anomaly_column],
-                color=self.cmap(
-                    self.norm(year)
-                ),
+                color=self.cmap(self.norm(year)),
                 linewidth=1.3,
                 alpha=0.85,
             )
@@ -386,17 +420,12 @@ class TimeSeriesPlotter:
                     std_column,
                 ]
             ]
-            .dropna(
-                subset=["plot_date", std_column]
-            )
-            .drop_duplicates(
-                subset="plot_date"
-            )
+            .dropna(subset=["plot_date", std_column])
+            .drop_duplicates(subset="plot_date")
             .sort_values("plot_date")
         )
 
         if not climatology.empty:
-
             std = climatology[std_column]
 
             ax.fill_between(
@@ -413,14 +442,11 @@ class TimeSeriesPlotter:
         # Current observation
         # ---------------------------------------------------------
 
-        current = (
-            df_region
-            .dropna(subset=[anomaly_column])
-            .sort_values("date")
+        current = df_region.dropna(subset=[anomaly_column]).sort_values(
+            "date"
         )
 
         if not current.empty:
-
             latest = current.iloc[-1]
 
             ax.scatter(
@@ -456,8 +482,8 @@ class TimeSeriesPlotter:
         )
 
         ax.set_xlim(
-            datetime(2000, 1, 1),
-            datetime(2000, 12, 31),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 1, 1),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 12, 31),
         )
 
         ax.set_ylim(
@@ -465,13 +491,9 @@ class TimeSeriesPlotter:
             100,
         )
 
-        ax.xaxis.set_major_locator(
-            self.month_locator
-        )
+        ax.xaxis.set_major_locator(self.month_locator)
 
-        ax.xaxis.set_major_formatter(
-            self.month_formatter
-        )
+        ax.xaxis.set_major_formatter(self.month_formatter)
 
         ax.grid(
             True,
@@ -504,10 +526,7 @@ class TimeSeriesPlotter:
         # Save
         # ---------------------------------------------------------
 
-        output_dir = (
-            self.output_dir
-            / "anomalies"
-        )
+        output_dir = self.output_dir / "anomalies" / quantity
 
         output_dir.mkdir(
             parents=True,
@@ -515,13 +534,12 @@ class TimeSeriesPlotter:
         )
 
         filepath = (
-            output_dir
-            / f"{region.replace(' ', '_')}_{filename}.png"
+            output_dir / f"{region.replace(' ', '_')}_{filename}.png"
         )
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -568,19 +586,16 @@ class TimeSeriesPlotter:
         ]
 
         # Convert event types into columns.
-        events_pivot = (
-            events.pivot_table(
-                index=[
-                    "region",
-                    "event_year",
-                    "threshold_percent",
-                ],
-                columns="event_type",
-                values="event_date",
-                aggfunc="first",
-            )
-            .reset_index()
-        )
+        events_pivot = events.pivot_table(
+            index=[
+                "region",
+                "event_year",
+                "threshold_percent",
+            ],
+            columns="event_type",
+            values="event_date",
+            aggfunc="first",
+        ).reset_index()
 
         if (
             "break-up" not in events_pivot.columns
@@ -593,12 +608,10 @@ class TimeSeriesPlotter:
             return
 
         events_pivot["duration_days"] = (
-            events_pivot["freeze-up"]
-            - events_pivot["break-up"]
-        ).dt.total_seconds() / 86400.0
+            events_pivot["freeze-up"] - events_pivot["break-up"]
+        ).dt.total_seconds() / SECONDS_PER_DAY
 
         for region in events_pivot["region"].dropna().unique():
-
             df_region = events_pivot[
                 events_pivot["region"] == region
             ].copy()
@@ -623,6 +636,7 @@ class TimeSeriesPlotter:
             spine.set_color("0.4")
             spine.set_linewidth(0.8)
 
+        # Keys mirror settings.EVENT_THRESHOLDS_PERCENT.
         threshold_style = {
             10.0: {
                 "color": "tab:blue",
@@ -642,7 +656,6 @@ class TimeSeriesPlotter:
         }
 
         for threshold, style in threshold_style.items():
-
             data = df_region[
                 df_region["threshold_percent"] == threshold
             ].copy()
@@ -657,9 +670,7 @@ class TimeSeriesPlotter:
             if data.empty:
                 continue
 
-            data = data.sort_values(
-                "event_year"
-            )
+            data = data.sort_values("event_year")
 
             x = data["event_year"].to_numpy(
                 dtype=float,
@@ -674,41 +685,12 @@ class TimeSeriesPlotter:
             # ---------------------------------------------------------
 
             if len(data) >= 2:
-
-                slope, intercept = np.polyfit(
+                slope, intercept, r_squared = compute_linear_trend(
                     x,
                     y,
-                    1,
                 )
 
-                y_trend = (
-                    slope * x
-                    + intercept
-                )
-
-                residuals = (
-                    y
-                    - y_trend
-                )
-
-                ss_res = np.sum(
-                    residuals ** 2
-                )
-
-                ss_tot = np.sum(
-                    (y - np.mean(y)) ** 2
-                )
-
-                if ss_tot > 0:
-
-                    r_squared = (
-                        1.0
-                        - ss_res / ss_tot
-                    )
-
-                else:
-
-                    r_squared = np.nan
+                y_trend = slope * x + intercept
 
                 # Trend line
                 ax.plot(
@@ -721,7 +703,6 @@ class TimeSeriesPlotter:
                 )
 
             else:
-
                 r_squared = np.nan
 
             # ---------------------------------------------------------
@@ -743,17 +724,10 @@ class TimeSeriesPlotter:
             # ---------------------------------------------------------
 
             if len(data) >= 2:
-
-                trend_label = (
-                    f"{style['label']}: "
-                    f"{slope:+.2f} d/year"
-                )
+                trend_label = f"{style['label']}: {slope:+.2f} d/year"
 
                 if np.isfinite(r_squared):
-
-                    trend_label += (
-                        f", $R^2={r_squared:.3f}$"
-                    )
+                    trend_label += f", $R^2={r_squared:.3f}$"
 
                 style["trend_label"] = trend_label
 
@@ -810,9 +784,13 @@ class TimeSeriesPlotter:
         # Save
         # -------------------------------------------------------------
 
-        output_dir = (
-            self.output_dir
-            / "thresholds"
+        output_dir = self.yearly_output_dir / "thresholds" / "relative"
+
+        # Relative-only product (issue #113): no absolute
+        # threshold events exist yet, so the absolute quantity
+        # directory is created and stays empty.
+        (self.yearly_output_dir / "thresholds" / "absolute").mkdir(
+            parents=True, exist_ok=True
         )
 
         output_dir.mkdir(
@@ -820,19 +798,13 @@ class TimeSeriesPlotter:
             exist_ok=True,
         )
 
-        filename = (
-            f"{region.replace(' ', '_')}"
-            "_threshold_duration.png"
-        )
+        filename = f"{region.replace(' ', '_')}_threshold_duration.png"
 
-        filepath = (
-            output_dir
-            / filename
-        )
+        filepath = output_dir / filename
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -852,9 +824,7 @@ class TimeSeriesPlotter:
         """Plot one quantity for one analysis region."""
 
         df_region = (
-            self.df[self.df.region == region]
-            .sort_values("date")
-            .copy()
+            self.df[self.df.region == region].sort_values("date").copy()
         )
 
         if df_region.empty:
@@ -897,11 +867,8 @@ class TimeSeriesPlotter:
         # ---------------------------------------------------------
 
         for year in self.unique_years:
-
             df_year = (
-                df_region[
-                    df_region["year"] == year
-                ]
+                df_region[df_region["year"] == year]
                 .sort_values("date")
                 .copy()
             )
@@ -925,7 +892,9 @@ class TimeSeriesPlotter:
 
         climatology = (
             df_region[
-                df_region["year"].between(1981, 2010)
+                df_region["year"].between(
+                    CLIMATOLOGY_START_YEAR, CLIMATOLOGY_END_YEAR
+                )
             ][
                 [
                     "plot_date",
@@ -940,9 +909,7 @@ class TimeSeriesPlotter:
             .sort_values("plot_date")
         )
 
-        climatology_mean = climatology[
-            climatology_column
-        ]
+        climatology_mean = climatology[climatology_column]
 
         climatology_std = climatology[
             climatology_column.replace(
@@ -952,7 +919,6 @@ class TimeSeriesPlotter:
         ]
 
         if not climatology.empty:
-
             ax.fill_between(
                 climatology["plot_date"],
                 climatology_mean - climatology_std,
@@ -975,14 +941,9 @@ class TimeSeriesPlotter:
         # Current observation
         # ---------------------------------------------------------
 
-        current = (
-            df_region
-            .dropna(subset=[column])
-            .sort_values("date")
-        )
+        current = df_region.dropna(subset=[column]).sort_values("date")
 
         if not current.empty:
-
             latest = current.iloc[-1]
 
             ax.scatter(
@@ -1012,17 +973,13 @@ class TimeSeriesPlotter:
         )
 
         ax.set_xlim(
-            datetime(2000, 1, 1),
-            datetime(2000, 12, 31),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 1, 1),
+            datetime(DAY_OF_YEAR_AXIS_YEAR, 12, 31),
         )
 
-        ax.xaxis.set_major_locator(
-            self.month_locator
-        )
+        ax.xaxis.set_major_locator(self.month_locator)
 
-        ax.xaxis.set_major_formatter(
-            self.month_formatter
-        )
+        ax.xaxis.set_major_formatter(self.month_formatter)
 
         ax.grid(
             True,
@@ -1037,7 +994,6 @@ class TimeSeriesPlotter:
         # ---------------------------------------------------------
 
         if not climatology.empty:
-
             ax.legend(
                 loc="upper right",
                 frameon=False,
@@ -1057,9 +1013,10 @@ class TimeSeriesPlotter:
         # Save
         # ---------------------------------------------------------
 
+        output_dir = self.output_dir / "classical_timeseries" / suffix
+
         filepath = (
-            self.output_dir
-            / f"{region.replace(' ', '_')}_{suffix}.png"
+            output_dir / f"{region.replace(' ', '_')}_{suffix}.png"
         )
 
         filepath.parent.mkdir(
@@ -1069,7 +1026,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -1079,7 +1036,6 @@ class TimeSeriesPlotter:
             filepath,
         )
 
-
     def plot_polar(self):
         """Create polar plots for every region."""
 
@@ -1087,7 +1043,6 @@ class TimeSeriesPlotter:
             self.load()
 
         for region in self.df.region.unique():
-
             self._plot_polar_region(
                 region,
                 "relative_coverage_percent_ma",
@@ -1113,22 +1068,14 @@ class TimeSeriesPlotter:
         between December and January is only allowed for complete years.
         """
 
-        df_year = (
-            df_year
-            .sort_values("date")
-            .copy()
-        )
+        df_year = df_year.sort_values("date").copy()
 
         if df_year.empty:
             return df_year
 
         dates = df_year["date"].dt.normalize()
 
-        expected_days = (
-            366
-            if dates.iloc[0].is_leap_year
-            else 365
-        )
+        expected_days = 366 if dates.iloc[0].is_leap_year else 365
 
         is_complete = (
             dates.nunique() >= expected_days
@@ -1145,10 +1092,7 @@ class TimeSeriesPlotter:
         # so that the polar curve closes at the year boundary.
         first = df_year.iloc[[0]].copy()
 
-        first["theta"] = (
-            2 * np.pi
-            + first["theta"]
-        )
+        first["theta"] = 2 * np.pi + first["theta"]
 
         return pd.concat(
             [df_year, first],
@@ -1158,27 +1102,34 @@ class TimeSeriesPlotter:
     def _plot_polar_region(self, region, column, ylabel, suffix):
         """Plot one quantity for one analysis region."""
 
-        if self.df is None: 
-            return 
+        if self.df is None:
+            return
 
-        if column not in self.df.columns: 
-            logger.warning( "Column %s not found. Skipping %s.", column, region, ) 
+        if column not in self.df.columns:
+            logger.warning(
+                "Column %s not found. Skipping %s.",
+                column,
+                region,
+            )
             return
 
         df_region = self.df[self.df.region == region].copy()
 
-        df_region["theta"] = (2*np.pi * (df_region.day_of_year-1) / 365 + self.theta_offset) % (2*np.pi)
+        df_region["theta"] = (
+            2 * np.pi * (df_region.day_of_year - 1) / 365
+            + self.theta_offset
+        ) % (2 * np.pi)
 
-        fig, ax = plt.subplots(subplot_kw={"projection": "polar"}, figsize=self.polar_figure_size)
+        fig, ax = plt.subplots(
+            subplot_kw={"projection": "polar"},
+            figsize=self.polar_figure_size,
+        )
 
         ax.spines["polar"].set_color("0.4")
         ax.spines["polar"].set_linewidth(0.8)
 
         for year in self.unique_years:
-
-            df_year = df_region[
-                df_region["year"] == year
-            ].copy()
+            df_year = df_region[df_region["year"] == year].copy()
 
             if df_year.empty:
                 continue
@@ -1205,7 +1156,6 @@ class TimeSeriesPlotter:
         climatology = pd.DataFrame()
 
         if climatology_column is not None:
-
             climatology = (
                 df_region[
                     [
@@ -1214,14 +1164,11 @@ class TimeSeriesPlotter:
                         "day_of_year",
                     ]
                 ]
-                .dropna(
-                    subset=[climatology_column]
-                )
+                .dropna(subset=[climatology_column])
                 .sort_values("day_of_year")
             )
 
         if not climatology.empty:
-
             ax.plot(
                 climatology["theta"],
                 climatology[climatology_column],
@@ -1232,17 +1179,14 @@ class TimeSeriesPlotter:
                 label="1981–2010 climatology",
             )
 
-        # ------------------------------------------------------------- 
-        # Current observation 
-        # ------------------------------------------------------------- 
-        current = (
-            df_region
-            .dropna(subset=["date", column])
-            .sort_values("date")
+        # -------------------------------------------------------------
+        # Current observation
+        # -------------------------------------------------------------
+        current = df_region.dropna(subset=["date", column]).sort_values(
+            "date"
         )
 
         if not current.empty:
-
             latest = current.iloc[-1]
 
             ax.scatter(
@@ -1259,8 +1203,20 @@ class TimeSeriesPlotter:
         ax.set_theta_direction(-1)
 
         month_angles = np.deg2rad(np.arange(0, 360, 30))
-        month_labels = ["Dec", "Jan", "Feb", "Mar", "Apr", "May",
-                        "Jun", "Jul", "Aug", "Sep", "Oct", "Nov"]
+        month_labels = [
+            "Dec",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+        ]
 
         ax.set_xticks(month_angles)
         ax.set_xticklabels(month_labels, fontsize=self.tick_fontsize)
@@ -1269,7 +1225,7 @@ class TimeSeriesPlotter:
             colors="0.3",
         )
 
-        #ax.set_title(f"{label} – {region}", fontsize=11, pad=30)
+        # ax.set_title(f"{label} – {region}", fontsize=11, pad=30)
         ax.set_rlabel_position(270)
         ax.grid(
             True,
@@ -1280,15 +1236,15 @@ class TimeSeriesPlotter:
         )
         ax.set_ylabel("")
 
-        # ------------------------------------------------------------- 
-        # Climatology legend 
-        # ------------------------------------------------------------- 
-        if not climatology.empty: 
-            ax.legend( 
-                loc="upper right", 
-                bbox_to_anchor=(1.15, 1.10), 
-                frameon=False, 
-                fontsize=self.legend_fontsize, 
+        # -------------------------------------------------------------
+        # Climatology legend
+        # -------------------------------------------------------------
+        if not climatology.empty:
+            ax.legend(
+                loc="upper right",
+                bbox_to_anchor=(1.15, 1.10),
+                frameon=False,
+                fontsize=self.legend_fontsize,
             )
 
         self._create_colorbar(
@@ -1305,9 +1261,11 @@ class TimeSeriesPlotter:
             top=self.polar_top,
         )
 
+        output_dir = self.output_dir / "polar" / suffix
+
         filepath = (
-            self.output_dir
-            / f"{region.replace(' ','_')}_polar_{suffix}.png"
+            output_dir
+            / f"{region.replace(' ', '_')}_polar_{suffix}.png"
         )
 
         filepath.parent.mkdir(
@@ -1317,7 +1275,7 @@ class TimeSeriesPlotter:
 
         fig.savefig(
             filepath,
-            dpi=300,
+            dpi=FIGURE_SAVE_DPI,
         )
 
         plt.close(fig)
@@ -1328,23 +1286,32 @@ class TimeSeriesPlotter:
         )
 
     def plot_yearly_means(self):
-        """Plot annual mean relative sea-ice coverage with linear trend."""
+        """Plot annual mean relative sea-ice coverage with
+        linear trend.
+        """
 
-        if self.yearly_df is None: 
-            self.load() 
-            
+        if self.yearly_df is None:
+            self.load()
+
         df = self.yearly_df.copy()
+
+        if df.empty:
+            logger.warning("No yearly means to plot yet.")
+
+            return
 
         required_columns = {
             "year",
             "region",
             "relative_mean_coverage_percent",
+            "relative_mean_trend_slope",
+            "relative_mean_trend_intercept",
+            "relative_mean_trend_r_squared",
         }
 
         missing = required_columns - set(df.columns)
 
         if missing:
-
             logger.error(
                 "Yearly mean file is missing columns: %s",
                 ", ".join(sorted(missing)),
@@ -1371,23 +1338,16 @@ class TimeSeriesPlotter:
         )
 
         if df.empty:
-
-            logger.warning(
-                "Yearly mean file contains no valid data."
-            )
+            logger.warning("Yearly mean file contains no valid data.")
 
             return
 
         for region in sorted(df["region"].unique()):
-
             df_region = (
-                df[df["region"] == region]
-                .sort_values("year")
-                .copy()
+                df[df["region"] == region].sort_values("year").copy()
             )
 
             if len(df_region) < 2:
-
                 logger.warning(
                     "Not enough yearly data for trend in %s.",
                     region,
@@ -1399,48 +1359,23 @@ class TimeSeriesPlotter:
                 dtype=float,
             )
 
-            y = df_region[
-                "relative_mean_coverage_percent"
-            ].to_numpy(
+            y = df_region["relative_mean_coverage_percent"].to_numpy(
                 dtype=float,
             )
 
             # ---------------------------------------------------------
-            # Linear trend
+            # Linear trend (precomputed by the analyzer, F-007)
             # ---------------------------------------------------------
 
-            slope, intercept = np.polyfit(
-                x,
-                y,
-                1,
-            )
+            row = df_region.iloc[0]
 
-            y_trend = (
-                slope * x
-                + intercept
-            )
+            slope = row["relative_mean_trend_slope"]
 
-            # Coefficient of determination R²
-            residuals = y - y_trend
+            intercept = row["relative_mean_trend_intercept"]
 
-            ss_res = np.sum(
-                residuals ** 2
-            )
+            r_squared = row["relative_mean_trend_r_squared"]
 
-            ss_tot = np.sum(
-                (y - np.mean(y)) ** 2
-            )
-
-            if ss_tot > 0:
-
-                r_squared = (
-                    1.0
-                    - ss_res / ss_tot
-                )
-
-            else:
-
-                r_squared = np.nan
+            y_trend = slope * x + intercept
 
             # ---------------------------------------------------------
             # Figure
@@ -1451,7 +1386,6 @@ class TimeSeriesPlotter:
             )
 
             for spine in ax.spines.values():
-
                 spine.set_color("0.4")
                 spine.set_linewidth(0.8)
 
@@ -1488,42 +1422,29 @@ class TimeSeriesPlotter:
             # Trend equation
             # ---------------------------------------------------------
 
-            reference_year = 2000
+            reference_year = DAY_OF_YEAR_AXIS_YEAR
 
-            slope, intercept = np.polyfit(
-                x,
-                y,
-                1,
-            )
-
-            reference_value = (
-                slope * reference_year
-                + intercept
-            )
+            reference_value = slope * reference_year + intercept
 
             if slope >= 0:
-
                 equation = (
                     rf"$y = {slope:.3f}(x-{reference_year})"
                     rf" + {reference_value:.1f}$"
                 )
 
             else:
-
                 equation = (
                     rf"$y = {slope:.3f}(x-{reference_year})"
                     rf" + {reference_value:.1f}$"
                 )
 
             if np.isfinite(r_squared):
-
                 trend_text = (
                     f"{equation}\n"
                     rf"$R^2 = {r_squared:.3f}$"
                 )
 
             else:
-
                 trend_text = equation
 
             ax.text(
@@ -1603,10 +1524,23 @@ class TimeSeriesPlotter:
             # Save
             # ---------------------------------------------------------
 
-            filepath = (
-                self.output_dir
-                / f"{region.replace(' ', '_')}_yearly_mean_relative.png"
+            output_dir = (
+                self.yearly_output_dir / "yearly_means" / "relative"
             )
+
+            # Relative-only product (issue #113): the absolute
+            # annual means are persisted but not plotted, so the
+            # absolute quantity directory is created and stays
+            # empty.
+            (
+                self.yearly_output_dir / "yearly_means" / "absolute"
+            ).mkdir(parents=True, exist_ok=True)
+
+            filename = (
+                f"{region.replace(' ', '_')}_yearly_mean_relative.png"
+            )
+
+            filepath = output_dir / filename
 
             filepath.parent.mkdir(
                 parents=True,
@@ -1615,7 +1549,7 @@ class TimeSeriesPlotter:
 
             fig.savefig(
                 filepath,
-                dpi=300,
+                dpi=FIGURE_SAVE_DPI,
             )
 
             plt.close(fig)
@@ -1624,7 +1558,6 @@ class TimeSeriesPlotter:
                 "Saved %s",
                 filepath,
             )
-
 
     def plot_all(self):
         """Create all available time-series plots."""

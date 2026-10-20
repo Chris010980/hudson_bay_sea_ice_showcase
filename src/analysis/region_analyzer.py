@@ -7,33 +7,77 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import numpy as np
 import rasterio
 
-from src.config.paths import PROJECT_ROOT
+from src.config.paths import (
+    REFERENCE_FILTERS_DIR as FILTER_DIR,
+)
+from src.config.paths import (
+    REFERENCE_SUMMARY_JSON as REFERENCE_JSON,
+)
+from src.config.settings import (
+    CONCENTRATION_SCALE,
+    ICE_CONCENTRATION_THRESHOLD_TENTHS,
+    MISSING_PIXEL_VALUE,
+    PIXEL_AREA_KM2,
+)
 
 logger = logging.getLogger(__name__)
 
-REFERENCE_JSON = (
-    PROJECT_ROOT / "output" / "reference" / "reference_summary.json"
-)
 
-FILTER_DIR = (
-    PROJECT_ROOT / "output" / "reference" / "filters"
-)
+def compute_region_metrics(
+    region_name: str,
+    observation_date: date,
+    water: np.ndarray,
+    reference: dict,
+    pixel_area_km2: float,
+) -> dict:
+    """Compute the daily coverage metrics of one region.
+
+    Pure scientific core of ``RegionAnalyzer._analyze_region``
+    (issue #41, unit-testable per docs/testing/test-levels.md
+    section 2.2): ice classification, absolute and relative
+    ice areas and the derived coverage percentages.
+    """
+
+    ice = water >= ICE_CONCENTRATION_THRESHOLD_TENTHS
+
+    absolute_ice_area = ice.sum() * pixel_area_km2
+
+    relative_ice_area = (
+        water[ice].sum() / CONCENTRATION_SCALE * pixel_area_km2
+    )
+
+    water_area = reference["water_area_pixel_km2"]
+
+    return {
+        "region": region_name,
+        "date": observation_date,
+        "water_pixels": reference["water_pixels"],
+        "water_area_km2": water_area,
+        "absolute_ice_area_km2": absolute_ice_area,
+        "relative_ice_area_km2": relative_ice_area,
+        "absolute_coverage_percent": 100.0
+        * absolute_ice_area
+        / water_area,
+        "relative_coverage_percent": 100.0
+        * relative_ice_area
+        / water_area,
+        "missing_pixels": 0,
+    }
 
 
 class RegionAnalyzer:
-
     def __init__(
         self,
         input_tif: str | Path,
         reference_json: str | Path = REFERENCE_JSON,
         filter_dir: str | Path = FILTER_DIR,
-        pixel_area_km2: float = 625.0,
+        pixel_area_km2: float = PIXEL_AREA_KM2,
     ):
 
         self.input_tif = Path(input_tif)
@@ -69,6 +113,19 @@ class RegionAnalyzer:
 
         return self.results
 
+    def extract_date(self):
+        """Public date extraction for external callers.
+
+        Issue #73: the process stage uses this public wrapper
+        instead of the private ``_extract_date`` helper. The
+        helper only stores the date on the instance, so the
+        wrapper returns it.
+        """
+
+        self._extract_date()
+
+        return self.date
+
     # ---------------------------------------------------------
     # loading
     # ---------------------------------------------------------
@@ -83,13 +140,10 @@ class RegionAnalyzer:
         logger.info("Loading %s", self.input_tif.name)
 
         try:
-
             with rasterio.open(self.input_tif) as src:
-
                 self.band = src.read(1)
 
         except Exception as exc:
-
             logger.error(
                 "Cannot read %s: %s",
                 self.input_tif.name,
@@ -115,7 +169,6 @@ class RegionAnalyzer:
     def _analyze_regions(self):
 
         for region_name, reference in self.reference.items():
-
             self._analyze_region(
                 region_name,
                 reference,
@@ -127,9 +180,7 @@ class RegionAnalyzer:
         reference,
     ):
 
-        indices = np.load(
-            self.filter_dir / f"{region_name}_water.npy"
-        )
+        indices = np.load(self.filter_dir / f"{region_name}_water.npy")
 
         values = self.band.flat[indices]
 
@@ -137,12 +188,9 @@ class RegionAnalyzer:
         # Step 1: Missing values
         # -------------------------------------------------
 
-        missing_pixels = np.count_nonzero(
-            values == 2550
-        )
+        missing_pixels = np.count_nonzero(values == MISSING_PIXEL_VALUE)
 
         if missing_pixels > 0:
-
             logger.warning(
                 "%s skipped (%d missing pixels)",
                 region_name,
@@ -155,16 +203,11 @@ class RegionAnalyzer:
         # Step 2: Keep only valid water pixels
         # -------------------------------------------------
 
-        water = values[
-            (values >= 0)
-            &
-            (values <= 1000)
-        ]
+        water = values[(values >= 0) & (values <= CONCENTRATION_SCALE)]
 
         expected = reference["water_pixels"]
 
         if len(water) != expected:
-
             logger.warning(
                 "%s: expected %d water pixels but found %d",
                 region_name,
@@ -178,47 +221,19 @@ class RegionAnalyzer:
         # Step 3: Sea ice
         # -------------------------------------------------
 
-        ice = water >= 150
-
-        absolute_ice_area = (
-            ice.sum()
-            * self.pixel_area_km2
+        metrics = compute_region_metrics(
+            region_name,
+            self.date,
+            water,
+            reference,
+            self.pixel_area_km2,
         )
 
-        relative_ice_area = (
-            water[ice].sum()
-            / 1000.0
-            * self.pixel_area_km2
-        )
-
-        water_area = reference["water_area_pixel_km2"]
-
-        self.results[region_name] = {
-
-            "region": region_name,
-
-            "date": self.date,
-
-            "water_pixels": expected,
-
-            "water_area_km2": water_area,
-
-            "absolute_ice_area_km2": absolute_ice_area,
-
-            "relative_ice_area_km2": relative_ice_area,
-
-            "absolute_coverage_percent":
-                100.0 * absolute_ice_area / water_area,
-
-            "relative_coverage_percent":
-                100.0 * relative_ice_area / water_area,
-
-            "missing_pixels": 0,
-        }
+        self.results[region_name] = metrics
 
         logger.info(
             "%-20s : %6.1f %% (%8.0f km²)",
             region_name,
-            100.0 * relative_ice_area / water_area,
-            relative_ice_area,
+            metrics["relative_coverage_percent"],
+            metrics["relative_ice_area_km2"],
         )

@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Results | Hudson Bay Sea Ice Analysis</title>
+
+<link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Results</h1>
+
+<p class="subtitle">
+
+Automatically generated figures and regional sea ice statistics produced by
+the Hudson Bay Sea Ice Analysis workflow.
+
+</p>
+
+<nav>
+
+<a href="../index.html">Home</a>
+
+<a href="pipeline.html">Pipeline</a>
+
+<a href="methodology.html">Methodology</a>
+
+<a href="regions.html">Regions</a>
+
+<a href="results.html">Results</a>
+
+<a href="roadmap.html">Roadmap</a>
+<a href="testing.html">Testing</a>
+<a
+href="https://github.com/Chris010980/hudson_bay_sea_ice_showcase"
+target="_blank"
+>
+GitHub
+</a>
+
+</nav>
+
+</header>
+
+<div class="container">
+
+<main>
+
+<section class="info-box">
+
+<h2>Overview</h2>
+
+<p>
+
+All figures shown on this page are generated automatically by the processing
+pipeline. Whenever new NSIDC observations become available, the complete set
+of maps and time-series visualisations is updated without manual intervention.
+
+</p>
+
+</section>
+
+<section>
+
+<h2>Latest Dataset</h2>
+
+<div class="stats-grid">
+
+<div class="metric-card">
+
+<h3>Dataset</h3>
+
+<p id="dataset">Loading…</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Date</h3>
+
+<p id="date">Loading…</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Generated</h3>
+
+<p id="generated">Loading…</p>
+
+</div>
+
+<div class="metric-card">
+
+<h3>Observations</h3>
+
+<p id="observations">Loading…</p>
+
+</div>
+
+</div>
+
+</section>
+        <section>
+
+          <h2>Regional Summary</h2>
+
+          <table class="results-table">
+
+            <thead>
+
+              <tr>
+
+                <th>Region</th>
+
+                <th>Coverage</th>
+
+                <th>Ice Area</th>
+
+                <th>Ocean Area</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="regionTableBody">
+
+            </tbody>
+
+          </table>
+
+        </section>
+
+<section>
+
+<h2>Daily Overview Maps</h2>
+
+<p>
+
+Overview maps showing the complete Hudson Bay system and the individual
+analysis regions.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_regions.png"
+alt="Regions">
+
+<figcaption>
+
+Analysis regions
+
+</figcaption>
+
+</figure>
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_hudson_bay.png"
+alt="Hudson Bay">
+
+<figcaption>
+
+Hudson Bay
+
+</figcaption>
+
+</figure>
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_hudson_bay_area.png"
+alt="Hudson Bay Area">
+
+<figcaption>
+
+Hudson Bay Area
+
+</figcaption>
+
+</figure>
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_foxe_basin.png"
+alt="Foxe Basin">
+
+<figcaption>
+
+Foxe Basin
+
+</figcaption>
+
+</figure>
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_gulf_of_boothia.png"
+alt="Gulf of Boothia">
+
+<figcaption>
+
+Gulf of Boothia
+
+</figcaption>
+
+</figure>
+
+<figure class="plot">
+
+<img class="plot-image"
+src="../output/plots/spatial/overview_hudson_strait.png"
+alt="Hudson Strait">
+
+<figcaption>
+
+Hudson Strait
+
+</figcaption>
+
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Relative Sea Ice Coverage</h2>
+
+<p>
+
+Daily relative sea ice coverage for all analysis regions.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/relative/Hudson_Bay_Area_relative.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/relative/Hudson_Bay_relative.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/relative/Foxe_Basin_relative.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/relative/Gulf_of_Boothia_relative.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/relative/Hudson_Strait_relative.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Absolute Sea Ice Coverage</h2>
+
+<p>
+
+Daily absolute sea ice coverage for all analysis regions.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/absolute/Hudson_Bay_Area_absolute.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/absolute/Hudson_Bay_absolute.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/absolute/Foxe_Basin_absolute.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/absolute/Gulf_of_Boothia_absolute.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/classical_timeseries/absolute/Hudson_Strait_absolute.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Relative Polar Diagrams</h2>
+
+<p>
+
+Seasonal representation of the annual sea ice cycle.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/relative/Hudson_Bay_Area_polar_relative.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/relative/Hudson_Bay_polar_relative.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/relative/Foxe_Basin_polar_relative.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/relative/Gulf_of_Boothia_polar_relative.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/relative/Hudson_Strait_polar_relative.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Absolute Polar Diagrams</h2>
+
+<p>
+
+Seasonal representation of the annual absolute sea ice cycle.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/absolute/Hudson_Bay_Area_polar_absolute.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/absolute/Hudson_Bay_polar_absolute.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/absolute/Foxe_Basin_polar_absolute.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/absolute/Gulf_of_Boothia_polar_absolute.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/polar/absolute/Hudson_Strait_polar_absolute.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Coverage Anomalies</h2>
+
+<p>
+
+Anomalies of the relative sea ice coverage against the
+1981–2010 climatology, per analysis region.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/relative/Hudson_Bay_Area_relative_anomaly.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/relative/Hudson_Bay_relative_anomaly.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/relative/Foxe_Basin_relative_anomaly.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/relative/Gulf_of_Boothia_relative_anomaly.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/relative/Hudson_Strait_relative_anomaly.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Absolute Coverage Anomalies</h2>
+
+<p>
+
+Anomalies of the absolute sea ice coverage against the
+1981–2010 climatology, per analysis region.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/absolute/Hudson_Bay_Area_absolute_anomaly.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/absolute/Hudson_Bay_absolute_anomaly.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/absolute/Foxe_Basin_absolute_anomaly.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/absolute/Gulf_of_Boothia_absolute_anomaly.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/daily_timeseries/anomalies/absolute/Hudson_Strait_absolute_anomaly.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Threshold Durations</h2>
+
+<p>
+
+Number of days per year above the evaluated coverage
+thresholds (90 %, 50 %, 10 %), per analysis region.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/thresholds/relative/Hudson_Bay_Area_threshold_duration.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/thresholds/relative/Hudson_Bay_threshold_duration.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/thresholds/relative/Foxe_Basin_threshold_duration.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/thresholds/relative/Gulf_of_Boothia_threshold_duration.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/thresholds/relative/Hudson_Strait_threshold_duration.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Annual Mean Trends</h2>
+
+<p>
+
+Annual mean of the relative sea ice coverage with linear
+trend and coefficient of determination, per analysis region.
+
+</p>
+
+<div class="plot-grid">
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/yearly_means/relative/Hudson_Bay_Area_yearly_mean_relative.png">
+<figcaption>Hudson Bay Area</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/yearly_means/relative/Hudson_Bay_yearly_mean_relative.png">
+<figcaption>Hudson Bay</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/yearly_means/relative/Foxe_Basin_yearly_mean_relative.png">
+<figcaption>Foxe Basin</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/yearly_means/relative/Gulf_of_Boothia_yearly_mean_relative.png">
+<figcaption>Gulf of Boothia</figcaption>
+</figure>
+
+<figure class="plot">
+<img class="plot-image" src="../output/plots/yearly_timeseries/yearly_means/relative/Hudson_Strait_yearly_mean_relative.png">
+<figcaption>Hudson Strait</figcaption>
+</figure>
+
+</div>
+
+</section>
+
+<section>
+
+<h2>Yearly Means</h2>
+
+<p>
+
+Annual mean sea ice coverage per analysis region for the ten
+most recent complete years, derived from the persistent
+yearly analysis products.
+
+</p>
+
+<table class="results-table">
+
+<thead>
+
+<tr>
+
+<th>Region</th>
+
+<th>Year</th>
+
+<th>Relative Mean</th>
+
+<th>Absolute Mean</th>
+
+</tr>
+
+</thead>
+
+<tbody id="yearlyTableBody">
+
+</tbody>
+
+</table>
+
+</section>
+
+<section>
+
+<h2>Seasonal Events</h2>
+
+<p>
+
+Most recent break-up and freeze-up threshold crossings per
+analysis region, including the evaluated coverage threshold.
+
+</p>
+
+<table class="results-table">
+
+<thead>
+
+<tr>
+
+<th>Region</th>
+
+<th>Event</th>
+
+<th>Year</th>
+
+<th>Threshold</th>
+
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+<tbody id="eventsTableBody">
+
+</tbody>
+
+</table>
+
+</section>
+
+<section>
+
+<h2>Generated Products</h2>
+
+<div class="stats-grid">
+
+<div class="info-card">
+
+<h3>Analysis</h3>
+
+<p>
+
+Historical regional statistics are stored as CSV files together with the
+latest dataset metadata used by the website.
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Figures</h3>
+
+<p>
+
+Publication-quality PNG figures are regenerated automatically after every
+successful processing run.
+
+</p>
+
+</div>
+
+<div class="info-card">
+
+<h3>Automation</h3>
+
+<p>
+
+The complete update pipeline is fully reproducible and designed for daily
+execution using GitHub Actions or local scheduling.
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+© <span id="year"></span> Christian Lurz
+
+</p>
+
+</footer>
+
+</div>
+
+<div id="lightbox" class="lightbox" aria-hidden="true">
+
+<img id="lightbox-img" alt="">
+
+</div>
+
+<script>
+
+document.getElementById("year").textContent =
+new Date().getFullYear();
+
+fetch("../output/analysis/latest.json")
+
+.then(r => r.json())
+
+.then(data => {
+        const tbody =
+            document.getElementById("regionTableBody");
+
+        const regions = [...data.regions].sort((a, b) => {
+
+            if (a.region === "Hudson Bay Area") return 1;
+
+            if (b.region === "Hudson Bay Area") return -1;
+
+            return a.region.localeCompare(b.region);
+
+        });
+
+        regions.forEach(region => {
+
+            const classes = [];
+
+            if (region.region === "Hudson Bay") {
+                classes.push("highlight-row");
+            }
+
+            if (region.region === "Hudson Bay Area") {
+                classes.push("summary-row");
+            }
+
+            tbody.insertAdjacentHTML(
+                "beforeend",
+                `
+        <tr class="${classes.join(" ")}">
+            <td>${region.region}</td>
+            <td>${region.relative_coverage_percent.toFixed(1)} %</td>
+            <td>${Math.round(region.relative_ice_area_km2).toLocaleString()} km²</td>
+            <td>${Math.round(region.water_area_km2).toLocaleString()} km²</td>
+        </tr>
+        `
+            );
+
+        });
+
+document.getElementById("dataset").textContent = data.dataset;
+document.getElementById("date").textContent = data.date;
+document.getElementById("generated").textContent =
+new Date(data.generated).toLocaleString();
+document.getElementById("observations").textContent =
+data.observations.toLocaleString();
+
+});
+
+function parseCsv(text) {
+    return text
+        .trim()
+        .split(/\r?\n/)
+        .map(line => line.split(",").map(value => value.trim()));
+}
+
+function regionOrder(a, b) {
+    if (a === "Hudson Bay Area") return 1;
+    if (b === "Hudson Bay Area") return -1;
+    return a.localeCompare(b);
+}
+
+function unavailableRow(tbodyId, columns) {
+    document.getElementById(tbodyId).insertAdjacentHTML(
+        "beforeend",
+        `<tr><td colspan="${columns}">Currently unavailable.</td></tr>`
+    );
+}
+
+fetch("../output/analysis/ice_coverage_yearly.csv")
+.then(r => r.ok ? r.text() : Promise.reject())
+.then(text => {
+    const rows = parseCsv(text);
+    const header = rows.shift();
+    const iRegion = header.indexOf("region");
+    const iYear = header.indexOf("year");
+    const iRelative = header.indexOf("relative_mean_coverage_percent");
+    const iAbsolute = header.indexOf("absolute_mean_coverage_percent");
+
+    const data = rows
+        .map(cols => ({
+            region: cols[iRegion],
+            year: Number(cols[iYear]),
+            relative: Number(cols[iRelative]),
+            absolute: Number(cols[iAbsolute]),
+        }))
+        .filter(row => row.region && Number.isFinite(row.year));
+
+    if (!data.length) {
+        unavailableRow("yearlyTableBody", 4);
+        return;
+    }
+
+    const latestYear = Math.max(...data.map(row => row.year));
+
+    const shown = data
+        .filter(row => row.year > latestYear - 10)
+        .sort((a, b) =>
+            b.year - a.year || regionOrder(a.region, b.region)
+        );
+
+    if (!shown.length) {
+        unavailableRow("yearlyTableBody", 4);
+        return;
+    }
+
+    const tbody = document.getElementById("yearlyTableBody");
+
+    shown.forEach(row => {
+        tbody.insertAdjacentHTML(
+            "beforeend",
+            `
+        <tr>
+            <td>${row.region}</td>
+            <td>${row.year}</td>
+            <td>${row.relative.toFixed(1)} %</td>
+            <td>${row.absolute.toFixed(1)} %</td>
+        </tr>
+        `
+        );
+    });
+})
+.catch(() => unavailableRow("yearlyTableBody", 4));
+
+fetch("../output/analysis/ice_coverage_events.csv")
+.then(r => r.ok ? r.text() : Promise.reject())
+.then(text => {
+    const rows = parseCsv(text);
+    const header = rows.shift();
+    const iRegion = header.indexOf("region");
+    const iType = header.indexOf("event_type");
+    const iYear = header.indexOf("event_year");
+    const iThreshold = header.indexOf("threshold_percent");
+    const iDate = header.indexOf("event_date");
+
+    const data = rows
+        .map(cols => ({
+            region: cols[iRegion],
+            type: cols[iType],
+            year: Number(cols[iYear]),
+            threshold: Number(cols[iThreshold]),
+            date: cols[iDate],
+        }))
+        .filter(row => row.region && row.date);
+
+    if (!data.length) {
+        unavailableRow("eventsTableBody", 5);
+        return;
+    }
+
+    const latestYear = {};
+
+    data.forEach(row => {
+        const key = row.region + "|" + row.type;
+        if (!latestYear[key] || row.year > latestYear[key]) {
+            latestYear[key] = row.year;
+        }
+    });
+
+    const shown = data
+        .filter(row => row.year === latestYear[row.region + "|" + row.type])
+        .sort((a, b) =>
+            regionOrder(a.region, b.region) ||
+            a.type.localeCompare(b.type) ||
+            a.threshold - b.threshold
+        );
+
+    if (!shown.length) {
+        unavailableRow("eventsTableBody", 5);
+        return;
+    }
+
+    const tbody = document.getElementById("eventsTableBody");
+
+    shown.forEach(row => {
+        tbody.insertAdjacentHTML(
+            "beforeend",
+            `
+        <tr>
+            <td>${row.region}</td>
+            <td>${row.type}</td>
+            <td>${row.year}</td>
+            <td>${row.threshold.toFixed(0)} %</td>
+            <td>${row.date.slice(0, 10)}</td>
+        </tr>
+        `
+        );
+    });
+})
+.catch(() => unavailableRow("eventsTableBody", 5));
+
+const lightbox =
+document.getElementById("lightbox");
+
+const lightboxImg =
+document.getElementById("lightbox-img");
+
+document.querySelectorAll(".plot img").forEach(img => {
+
+img.addEventListener("click", () => {
+
+lightboxImg.src = img.src;
+
+lightbox.classList.add("active");
+
+});
+
+});
+
+lightbox.addEventListener("click", () => {
+
+lightbox.classList.remove("active");
+
+});
+
+</script>
+
+</body>
+
+</html>

@@ -1,30 +1,38 @@
 """Download raw NSIDC sea ice GeoTIFF files.
 
-This module owns raw data acquisition only. It does not preprocess rasters,
-calculate statistics, or create plots.
+This module owns raw data acquisition only. It does not
+preprocess rasters, calculate statistics, or create plots.
 """
 
 from __future__ import annotations
 
 import logging
-from os import link
+import os
 import re
-import shutil
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
-from datetime import date
 import requests
 from bs4 import BeautifulSoup
 
-from src.config.paths import DATA_DIR
-
+from src.config.paths import GEOTIFF_DIR
+from src.config.settings import DEFAULT_PRODUCT
 
 DEFAULT_NSIDC_GEOTIFF_URL = (
     "https://noaadata.apps.nsidc.org/NOAA/G02135/north/daily/geotiff"
 )
-DEFAULT_GEOTIFF_DIR = DATA_DIR / "geotiff"
-GEOTIFF_FILENAME_PATTERN = re.compile(r"^N_(?P<date>\d{8})_(?P<product>.+?)_v.+\.tif$")
+DEFAULT_GEOTIFF_DIR = GEOTIFF_DIR
+
+# Module-specific HTTP transport tuning.
+HTTP_TIMEOUT_SECONDS = 30
+DOWNLOAD_CHUNK_BYTES = 8192
+# A single file is downloaded at most this many times before
+# it is skipped and counted as failed (issue #100).
+DOWNLOAD_MAX_ATTEMPTS = 3
+GEOTIFF_FILENAME_PATTERN = re.compile(
+    r"^N_(?P<date>\d{8})_(?P<product>.+?)_v.+\.tif$"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -37,36 +45,44 @@ class DownloadSummary:
     skipped_files: int = 0
     failed_files: int = 0
 
-    def merge(self, other: "DownloadSummary") -> "DownloadSummary":
-        """Return a new summary containing this summary plus another one."""
+    def merge(self, other: DownloadSummary) -> DownloadSummary:
+        """Return a new summary containing this summary plus
+        another one.
+        """
 
         return DownloadSummary(
             checked_files=self.checked_files + other.checked_files,
-            downloaded_files=self.downloaded_files + other.downloaded_files,
+            downloaded_files=self.downloaded_files
+            + other.downloaded_files,
             skipped_files=self.skipped_files + other.skipped_files,
             failed_files=self.failed_files + other.failed_files,
         )
 
 
 class NSIDCDownloader:
-    """Synchronize NOAA/NSIDC daily northern hemisphere GeoTIFF files."""
+    """Synchronize NOAA/NSIDC daily northern hemisphere
+    GeoTIFF files.
+    """
 
     def __init__(
         self,
         base_url: str = DEFAULT_NSIDC_GEOTIFF_URL,
         local_base: str | Path = DEFAULT_GEOTIFF_DIR,
-        product: str = "concentration",
-        timeout: int = 30,
+        product: str = DEFAULT_PRODUCT,
+        timeout: int = HTTP_TIMEOUT_SECONDS,
         session: requests.Session | None = None,
     ) -> None:
         """Create a downloader for one NSIDC GeoTIFF product.
 
         Args:
             base_url: Base URL of the NSIDC directory index.
-            local_base: Local directory where year/month folders are stored.
-            product: Product name fragment to match in remote filenames.
+            local_base: Local directory where year/month
+                folders are stored.
+            product: Product name fragment to match in remote
+                filenames.
             timeout: Request timeout in seconds.
-            session: Optional requests session for connection reuse or tests.
+            session: Optional requests session for connection
+                reuse or tests.
         """
 
         self.base_url = base_url.rstrip("/") + "/"
@@ -75,7 +91,8 @@ class NSIDCDownloader:
         self.timeout = timeout
         self.session = session or requests.Session()
         logger.debug(
-            "Initialized NSIDCDownloader with base_url=%s, local_base=%s, product=%s",
+            "Initialized NSIDCDownloader with base_url=%s, "
+            "local_base=%s, product=%s",
             self.base_url,
             self.local_base,
             self.product,
@@ -103,7 +120,11 @@ class NSIDCDownloader:
             for href in self._iter_hrefs(soup)
             if "_" in href and href.endswith("/")
         ]
-        logger.debug("Found %s remote month directories for %s.", len(months), year)
+        logger.debug(
+            "Found %s remote month directories for %s.",
+            len(months),
+            year,
+        )
         return sorted(months)
 
     def get_remote_files(self, year: str, month: str) -> list[str]:
@@ -116,22 +137,30 @@ class NSIDCDownloader:
             for href in self._iter_hrefs(soup)
             if self.product in href and href.endswith(".tif")
         ]
-        logger.debug("Found %s remote files for %s/%s.", len(files), year, month)
+        logger.debug(
+            "Found %s remote files for %s/%s.", len(files), year, month
+        )
         return sorted(files)
 
     def get_local_files(self, year: str, month: str) -> list[str]:
-        """Return matching local GeoTIFF files for a year/month directory."""
+        """Return matching local GeoTIFF files for a year/month
+        directory.
+        """
 
         local_dir = self.local_base / year / month
         logger.info("Checking local directory: %s", local_dir)
         if not local_dir.exists():
-            logger.warning("Local directory does not exist yet: %s", local_dir)
+            logger.warning(
+                "Local directory does not exist yet: %s", local_dir
+            )
             return []
 
         files = sorted(
             path.name
             for path in local_dir.iterdir()
-            if path.is_file() and path.suffix == ".tif" and self.product in path.name
+            if path.is_file()
+            and path.suffix == ".tif"
+            and self.product in path.name
         )
         logger.info(
             "Found %s local %s file(s) in %s.",
@@ -140,16 +169,55 @@ class NSIDCDownloader:
             local_dir,
         )
         if files:
-            logger.debug("First local file in %s: %s", local_dir, files[0])
+            logger.debug(
+                "First local file in %s: %s", local_dir, files[0]
+            )
         return files
 
-    def download_file(self, year: str, month: str, filename: str) -> bool:
+    def count_local_files_after(
+        self,
+        start_date: date | None,
+    ) -> int:
+        """Return the number of local GeoTIFF files with an
+        observation date after ``start_date``.
+
+        All matching local files count when ``start_date`` is
+        None. The update pipeline uses this to detect locally
+        present but unprocessed observations (issue #101,
+        F-016): a satisfied sync stage alone must not end the
+        update while files newer than the processed state
+        exist locally.
+        """
+
+        if not self.local_base.exists():
+            logger.debug(
+                "No local GeoTIFF directory yet: %s", self.local_base
+            )
+            return 0
+
+        count = 0
+
+        for path in sorted(self.local_base.rglob("*.tif")):
+            file_date = self._file_date(path.name)
+
+            if file_date is None or self.product not in path.name:
+                continue
+
+            if start_date is None or file_date > start_date:
+                count += 1
+
+        return count
+
+    def download_file(
+        self, year: str, month: str, filename: str
+    ) -> bool:
         """Download one file unless it already exists locally.
 
         Returns:
-            ``True`` if the file is present after the call, including files
-            that were skipped because they already existed. ``False`` signals
-            that the remote request failed and no complete local file was saved.
+            ``True`` if the file is present after the call,
+            including files that were skipped because they
+            already existed. ``False`` signals that the remote
+            request failed and no complete local file was saved.
         """
 
         remote_url = f"{self.base_url}{year}/{month}/{filename}"
@@ -159,17 +227,67 @@ class NSIDCDownloader:
         if local_path.exists():
             logger.info("Skipping existing file %s", local_path)
             return True
-        local_match = self._find_equivalent_local_file(local_dir, filename)
+        local_match = self._find_equivalent_local_file(
+            local_dir, filename
+        )
         if local_match is not None:
             logger.info(
-                "Skipping %s because equivalent local file already exists: %s",
+                "Skipping %s because equivalent local "
+                "file already exists: %s",
                 filename,
                 local_match,
             )
             return True
 
         logger.info("Downloading %s", remote_url)
-        response = self.session.get(remote_url, stream=True, timeout=self.timeout)
+
+        temp_path = local_dir / f"{filename}.part"
+
+        for attempt in range(1, DOWNLOAD_MAX_ATTEMPTS + 1):
+            temp_path.unlink(missing_ok=True)
+
+            try:
+                if not self._stream_to_file(
+                    remote_url,
+                    temp_path,
+                ):
+                    return False
+
+                os.replace(temp_path, local_path)
+
+                logger.info("Saved %s", local_path)
+                return True
+
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Download attempt %d/%d for %s failed: %s",
+                    attempt,
+                    DOWNLOAD_MAX_ATTEMPTS,
+                    remote_url,
+                    exc,
+                )
+
+        temp_path.unlink(missing_ok=True)
+
+        return False
+
+    def _stream_to_file(
+        self,
+        remote_url: str,
+        temp_path: Path,
+    ) -> bool:
+        """One download attempt: stream the URL into temp_path.
+
+        Returns False on a non-OK HTTP status (no retry; the
+        request itself failed), True after a complete stream.
+        Request exceptions propagate to the caller, which
+        implements the retry policy (issue #100, F-011).
+        """
+
+        response = self.session.get(
+            remote_url, stream=True, timeout=self.timeout
+        )
+
         if response.status_code != requests.codes.ok:
             logger.warning(
                 "Download failed with HTTP %s: %s",
@@ -178,12 +296,13 @@ class NSIDCDownloader:
             )
             return False
 
-        with local_path.open("wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
+        with temp_path.open("wb") as file:
+            for chunk in response.iter_content(
+                chunk_size=DOWNLOAD_CHUNK_BYTES
+            ):
                 if chunk:
                     file.write(chunk)
 
-        logger.info("Saved %s", local_path)
         return True
 
     def sync(
@@ -198,10 +317,12 @@ class NSIDCDownloader:
         Parameters
         ----------
         start_date
-            First day to consider. If None, the complete archive is checked.
+            First day to consider. If None, the complete archive
+            is checked.
 
         end_date
-            Last day to consider. If None, all available files are checked.
+            Last day to consider. If None, all available files
+            are checked.
 
         dry_run
             Only compare remote and local files without downloading.
@@ -217,38 +338,17 @@ class NSIDCDownloader:
         )
 
         for year in years:
-
             year_int = int(year)
 
-            if (
-                start_date is not None
-                and year_int < start_date.year
-            ):
+            if not self._year_in_range(year_int, start_date, end_date):
                 continue
 
-            if (
-                end_date is not None
-                and year_int > end_date.year
-            ):
-                continue
-
-            remote_months = self.get_remote_months(year)
-
-            for month in remote_months:
-
-                month_int = int(month.split("_")[0])
-
-                if (
-                    start_date is not None
-                    and year_int == start_date.year
-                    and month_int < start_date.month
-                ):
-                    continue
-
-                if (
-                    end_date is not None
-                    and year_int == end_date.year
-                    and month_int > end_date.month
+            for month in self.get_remote_months(year):
+                if not self._month_in_range(
+                    year_int,
+                    int(month.split("_")[0]),
+                    start_date,
+                    end_date,
                 ):
                     continue
 
@@ -258,105 +358,36 @@ class NSIDCDownloader:
                     month,
                 )
 
-                remote_files = self.get_remote_files(
+                remote_files = self._remote_files_in_range(
                     year,
                     month,
+                    start_date,
+                    end_date,
                 )
-
-                # -----------------------------------------
-                # Filter files by date
-                # -----------------------------------------
-
-                filtered_remote_files = []
-
-                for filename in remote_files:
-
-                    key = self._file_key(filename)
-
-                    if key is None:
-                        continue
-
-                    file_date = date.fromisoformat(
-                        f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
-                    )
-
-                    if (
-                        start_date is not None
-                        and file_date < start_date
-                    ):
-                        continue
-
-                    if (
-                        end_date is not None
-                        and file_date > end_date
-                    ):
-                        continue
-
-                    filtered_remote_files.append(filename)
-
-                remote_files = filtered_remote_files
 
                 if not remote_files:
                     continue
 
-                local_files = self.get_local_files(
-                    year,
-                    month,
-                )
-                local_file_set = set(local_files)
-                local_file_keys = {
-                    file_key
-                    for filename in local_files
-                    if (file_key := self._file_key(filename)) is not None
-                }
-                exact_matches = sum(1 for name in remote_files if name in local_file_set)
-                missing_files = [
-                    name
-                    for name in remote_files
-                    if name not in local_file_set and self._file_key(name) not in local_file_keys
-                ]
-                logger.info(
-                    "%s/%s comparison: remote=%s, local=%s, exact_matches=%s, "
-                    "missing=%s, skipped=%s.",
-                    year,
-                    month,
-                    len(remote_files),
-                    len(local_files),
-                    exact_matches,
-                    len(missing_files),
-                    len(remote_files) - len(missing_files),
-                )
-                if len(remote_files) - len(missing_files) > exact_matches:
-                    logger.info(
-                        "%s/%s skipped %s file(s) by matching date and product "
-                        "despite different versioned filenames.",
-                        year,
-                        month,
-                        len(remote_files) - len(missing_files) - exact_matches,
-                    )
-                if remote_files:
-                    logger.debug("First remote file for %s/%s: %s", year, month, remote_files[0])
-                if missing_files:
-                    logger.debug(
-                        "First missing file for %s/%s: %s",
-                        year,
-                        month,
-                        missing_files[0],
-                    )
+                local_files = self.get_local_files(year, month)
 
-                if missing_files:
-                    logger.info(
-                        "%s/%s has %s missing file(s).",
-                        year,
-                        month,
-                        len(missing_files),
-                    )
-                else:
-                    logger.info("%s/%s is already up to date.", year, month)
+                missing_files, exact_matches = self._missing_files(
+                    remote_files,
+                    local_files,
+                )
+
+                self._log_month_comparison(
+                    year,
+                    month,
+                    remote_files,
+                    local_files,
+                    missing_files,
+                    exact_matches,
+                )
 
                 month_summary = DownloadSummary(
                     checked_files=len(remote_files),
-                    skipped_files=len(remote_files) - len(missing_files),
+                    skipped_files=len(remote_files)
+                    - len(missing_files),
                 )
 
                 if dry_run:
@@ -369,21 +400,11 @@ class NSIDCDownloader:
                     summary = summary.merge(month_summary)
                     continue
 
-                downloaded = 0
-                failed = 0
-                for filename in missing_files:
-                    if self.download_file(year, month, filename):
-                        downloaded += 1
-                    else:
-                        failed += 1
-
-                if failed:
-                    logger.warning(
-                        "%s/%s finished with %s failed download(s).",
-                        year,
-                        month,
-                        failed,
-                    )
+                downloaded, failed = self._download_missing(
+                    year,
+                    month,
+                    missing_files,
+                )
 
                 summary = summary.merge(
                     DownloadSummary(
@@ -396,6 +417,201 @@ class NSIDCDownloader:
 
         logger.info("Download sync finished: %s", summary)
         return summary
+
+    def _year_in_range(
+        self,
+        year_int: int,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> bool:
+        """Return whether a year intersects the date range."""
+
+        if start_date is not None and year_int < start_date.year:
+            return False
+
+        if end_date is not None and year_int > end_date.year:
+            return False
+
+        return True
+
+    def _month_in_range(
+        self,
+        year_int: int,
+        month_int: int,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> bool:
+        """Return whether a month intersects the date range."""
+
+        if (
+            start_date is not None
+            and year_int == start_date.year
+            and month_int < start_date.month
+        ):
+            return False
+
+        if (
+            end_date is not None
+            and year_int == end_date.year
+            and month_int > end_date.month
+        ):
+            return False
+
+        return True
+
+    def _remote_files_in_range(
+        self,
+        year: str,
+        month: str,
+        start_date: date | None,
+        end_date: date | None,
+    ) -> list[str]:
+        """Return the remote files of one month within the
+        date range.
+        """
+
+        remote_files = self.get_remote_files(
+            year,
+            month,
+        )
+
+        filtered = []
+
+        for filename in remote_files:
+            file_date = self._file_date(filename)
+
+            if file_date is None:
+                continue
+
+            if start_date is not None and file_date < start_date:
+                continue
+
+            if end_date is not None and file_date > end_date:
+                continue
+
+            filtered.append(filename)
+
+        return filtered
+
+    def _missing_files(
+        self,
+        remote_files: list[str],
+        local_files: list[str],
+    ) -> tuple[list[str], int]:
+        """Return the missing remote files and the number of
+        exact local filename matches.
+        """
+
+        local_file_set = set(local_files)
+
+        local_file_keys = {
+            file_key
+            for filename in local_files
+            if (file_key := self._file_key(filename)) is not None
+        }
+
+        exact_matches = sum(
+            1 for name in remote_files if name in local_file_set
+        )
+
+        missing = [
+            name
+            for name in remote_files
+            if name not in local_file_set
+            and self._file_key(name) not in local_file_keys
+        ]
+
+        return missing, exact_matches
+
+    def _log_month_comparison(
+        self,
+        year: str,
+        month: str,
+        remote_files: list[str],
+        local_files: list[str],
+        missing_files: list[str],
+        exact_matches: int,
+    ) -> None:
+        """Log the remote/local comparison of one month."""
+
+        logger.info(
+            "%s/%s comparison: remote=%s, "
+            "local=%s, exact_matches=%s, "
+            "missing=%s, skipped=%s.",
+            year,
+            month,
+            len(remote_files),
+            len(local_files),
+            exact_matches,
+            len(missing_files),
+            len(remote_files) - len(missing_files),
+        )
+
+        if len(remote_files) - len(missing_files) > exact_matches:
+            logger.info(
+                "%s/%s skipped %s file(s) by matching "
+                "date and product "
+                "despite different versioned filenames.",
+                year,
+                month,
+                len(remote_files) - len(missing_files) - exact_matches,
+            )
+
+        if remote_files:
+            logger.debug(
+                "First remote file for %s/%s: %s",
+                year,
+                month,
+                remote_files[0],
+            )
+
+        if missing_files:
+            logger.debug(
+                "First missing file for %s/%s: %s",
+                year,
+                month,
+                missing_files[0],
+            )
+
+        if missing_files:
+            logger.info(
+                "%s/%s has %s missing file(s).",
+                year,
+                month,
+                len(missing_files),
+            )
+
+        else:
+            logger.info("%s/%s is already up to date.", year, month)
+
+    def _download_missing(
+        self,
+        year: str,
+        month: str,
+        missing_files: list[str],
+    ) -> tuple[int, int]:
+        """Download the missing files of one month; return
+        the (downloaded, failed) counts.
+        """
+
+        downloaded = 0
+        failed = 0
+
+        for filename in missing_files:
+            if self.download_file(year, month, filename):
+                downloaded += 1
+            else:
+                failed += 1
+
+        if failed:
+            logger.warning(
+                "%s/%s finished with %s failed download(s).",
+                year,
+                month,
+                failed,
+            )
+
+        return downloaded, failed
 
     def _get_index(self, url: str) -> BeautifulSoup:
         """Fetch and parse one remote HTML directory index."""
@@ -420,12 +636,28 @@ class NSIDCDownloader:
 
         return match.group("date"), match.group("product")
 
+    def _file_date(self, filename: str) -> date | None:
+        """Return the observation date encoded in a NSIDC
+        GeoTIFF filename, or None if the name does not match.
+        """
+
+        key = self._file_key(filename)
+
+        if key is None:
+            return None
+
+        return date.fromisoformat(
+            f"{key[0][:4]}-{key[0][4:6]}-{key[0][6:]}"
+        )
+
     def _find_equivalent_local_file(
         self,
         local_dir: Path,
         filename: str,
     ) -> Path | None:
-        """Return an existing local file with the same date and product."""
+        """Return an existing local file with the same date
+        and product.
+        """
 
         file_key = self._file_key(filename)
         if file_key is None or not local_dir.exists():
@@ -443,7 +675,9 @@ class NSIDCDownloader:
 
     @staticmethod
     def _iter_hrefs(soup: BeautifulSoup) -> list[str]:
-        """Return all href values from links in a parsed HTML document."""
+        """Return all href values from links in a parsed HTML
+        document.
+        """
 
         links = soup.find_all("a")
 
@@ -455,35 +689,36 @@ class NSIDCDownloader:
         for link in links[:10]:
             logger.info(link.get("href"))
 
-        return [ href for link in links if (href := link.get("href")) ]
-    
-    @staticmethod
-    def delete_local_data() -> None:
-        """
-        Remove all downloaded GeoTIFF files while preserving the
-        directory structure.
-        """
+        return [href for link in links if (href := link.get("href"))]
 
-        geotiff_root = DATA_DIR / "geotiff"
+    @staticmethod
+    def delete_local_data(
+        *,
+        geotiff_root: Path = GEOTIFF_DIR,
+    ) -> None:
+        """
+        Remove all downloaded GeoTIFF files.
+
+        Only ``.tif`` files are deleted; other files survive.
+        Empty month and year directories are removed as well;
+        the GeoTIFF root itself is preserved. The cleanup root
+        is injectable through ``geotiff_root`` (production
+        default: ``GEOTIFF_DIR``; issue #104).
+        """
 
         if not geotiff_root.exists():
-
-            logger.info(
-                "No local GeoTIFF directory found."
-            )
+            logger.info("No local GeoTIFF directory found.")
 
             return
 
         removed = 0
 
         for tif in geotiff_root.rglob("*.tif"):
-
             try:
                 tif.unlink()
                 removed += 1
 
             except Exception as exc:
-
                 logger.warning(
                     "Could not remove %s: %s",
                     tif,
@@ -495,9 +730,7 @@ class NSIDCDownloader:
             geotiff_root.rglob("*"),
             reverse=True,
         ):
-
             if directory.is_dir():
-
                 try:
                     directory.rmdir()
 

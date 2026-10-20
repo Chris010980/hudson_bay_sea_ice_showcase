@@ -58,7 +58,7 @@ Foxe Basin,break-up,1987,50.0,1987-07-27 11:52:25.718577
 Foxe Basin,break-up,1987,90.0,1987-06-19 17:37:25.018450
 Foxe Basin,freeze-up,1987,10.0,
 Foxe Basin,freeze-up,1987,50.0,1987-11-10 02:51:06.270591
-Foxe Basin,freeze-up,1987,90.0,1987-11-29 20:53:00.541388
+Foxe Basin,freeze-up,1987,90.0,
 Foxe Basin,break-up,1988,10.0,1988-08-24 16:07:16.504353
 Foxe Basin,break-up,1988,50.0,1988-07-19 10:49:51.326209
 Foxe Basin,break-up,1988,90.0,1988-06-06 06:57:42.020905
@@ -645,8 +645,8 @@ Hudson Bay,break-up,1987,10.0,1987-07-16 03:50:32.710978
 Hudson Bay,break-up,1987,50.0,1987-06-28 04:09:43.645413
 Hudson Bay,break-up,1987,90.0,1987-04-13 23:39:54.586801
 Hudson Bay,freeze-up,1987,10.0,1987-11-13 04:57:20.996602
-Hudson Bay,freeze-up,1987,50.0,1987-11-30 13:10:17.263652
-Hudson Bay,freeze-up,1987,90.0,1988-01-06 11:35:02.278206
+Hudson Bay,freeze-up,1987,50.0,
+Hudson Bay,freeze-up,1987,90.0,
 Hudson Bay,break-up,1988,10.0,1988-07-14 01:22:08.824166
 Hudson Bay,break-up,1988,50.0,1988-06-19 23:13:10.722027
 Hudson Bay,break-up,1988,90.0,1988-04-19 09:47:59.552517
@@ -939,8 +939,8 @@ Hudson Bay Area,break-up,1987,10.0,1987-08-12 04:46:30.847913
 Hudson Bay Area,break-up,1987,50.0,1987-07-03 22:03:03.376110
 Hudson Bay Area,break-up,1987,90.0,1987-04-16 15:15:55.495978
 Hudson Bay Area,freeze-up,1987,10.0,1987-10-18 16:11:04.393179
-Hudson Bay Area,freeze-up,1987,50.0,1987-11-26 10:31:27.378640
-Hudson Bay Area,freeze-up,1987,90.0,1988-01-04 18:52:39.981330
+Hudson Bay Area,freeze-up,1987,50.0,
+Hudson Bay Area,freeze-up,1987,90.0,
 Hudson Bay Area,break-up,1988,10.0,1988-07-30 18:58:50.969788
 Hudson Bay Area,break-up,1988,50.0,1988-06-27 10:46:20.779180
 Hudson Bay Area,break-up,1988,90.0,1988-05-01 01:13:59.971516
@@ -1233,8 +1233,8 @@ Hudson Strait,break-up,1987,10.0,1987-07-19 05:20:20.020855
 Hudson Strait,break-up,1987,50.0,1987-06-25 16:36:38.188874
 Hudson Strait,break-up,1987,90.0,1987-04-14 08:42:08.055077
 Hudson Strait,freeze-up,1987,10.0,1987-11-18 19:34:12.186805
-Hudson Strait,freeze-up,1987,50.0,1987-11-30 20:01:01.374533
-Hudson Strait,freeze-up,1987,90.0,1988-01-07 17:34:33.790462
+Hudson Strait,freeze-up,1987,50.0,
+Hudson Strait,freeze-up,1987,90.0,1988-01-23 15:32:39.220389
 Hudson Strait,break-up,1988,10.0,1988-07-21 14:01:27.320837
 Hudson Strait,break-up,1988,50.0,1988-06-25 04:46:13.614775
 Hudson Strait,break-up,1988,90.0,1988-04-18 04:37:20.986132

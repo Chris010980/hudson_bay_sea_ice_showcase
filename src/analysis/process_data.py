@@ -5,27 +5,30 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from collections.abc import Sequence
-from pathlib import Path
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 if __package__ in (None, ""):
     sys.path.append(str(Path(__file__).resolve().parents[1]))
-
-from src.config.logging_config import DEFAULT_LOG_FILE, configure_logging
-from src.analysis.reference_builder import ReferenceBuilder
 
 from src.analysis.reference_builder import ReferenceBuilder
 from src.analysis.region_analyzer import RegionAnalyzer
 from src.analysis.results_manager import ResultsManager
 from src.analysis.timeseries_analyzer import TimeSeriesAnalyzer
-
+from src.config.logging_config import (
+    add_log_arguments,
+    configure_logging,
+)
 from src.config.paths import DATA_DIR
+from src.config.settings import DEFAULT_PRODUCT
 
 logger = logging.getLogger(__name__)
 
+AnalyzerFactory = Callable[[Path], RegionAnalyzer]
+"""Constructor contract of the process stage (issue #73)."""
 
-from dataclasses import dataclass
 
 @dataclass(slots=True)
 class ProcessSummary:
@@ -35,12 +38,14 @@ class ProcessSummary:
     new_results: int = 0
 
 
-def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    """Parse command line options for the preprocessing stage."""
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add the process-stage-specific options (CLI parity, #106).
 
-    parser = argparse.ArgumentParser(description="Preprocess raw sea ice data.")
-    parser.add_argument("--log-level", default="INFO")
-    parser.add_argument("--log-file", default=str(DEFAULT_LOG_FILE))
+    The module CLI and the dispatcher sub-parser share this
+    specification, so both entry points expose the identical
+    option set.
+    """
+
     parser.add_argument(
         "--start-date",
         type=date.fromisoformat,
@@ -57,48 +62,47 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Only process GeoTIFFs up to this date.",
     )
 
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command line options for the preprocessing stage."""
+
+    parser = argparse.ArgumentParser(
+        description="Preprocess raw sea ice data."
+    )
+
+    add_log_arguments(parser)
+
+    add_arguments(parser)
+
     return parser.parse_args(argv)
 
 
-def main(argv=None):
+def process_geotiffs(
+    geotiffs: Sequence[Path],
+    results: ResultsManager,
+    summary: ProcessSummary,
+    *,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    analyzer_factory: AnalyzerFactory = RegionAnalyzer,
+) -> None:
+    """Process GeoTIFF observations into results rows.
 
-    args = parse_args(argv)
-
-    configure_logging(
-        level=args.log_level,
-        log_file=args.log_file,
-    )
-
-    builder = ReferenceBuilder()
-
-    builder.ensure_reference()
-
-    results = ResultsManager()
-
-    summary = ProcessSummary()
-
-    geotiffs = sorted(
-        DATA_DIR.rglob("*concentration*.tif")
-    )
+    Extracted from ``main()`` in issue #73 so the loop is
+    testable with injected collaborators; the behavior is
+    unchanged.
+    """
 
     for tif in geotiffs:
-
         try:
+            analyzer = analyzer_factory(tif)
 
-            analyzer = RegionAnalyzer(tif)
+            analyzer.extract_date()
 
-            analyzer._extract_date()
-
-            if (
-                args.start_date is not None
-                and analyzer.date < args.start_date
-            ):
+            if start_date is not None and analyzer.date < start_date:
                 continue
 
-            if (
-                args.end_date is not None
-                and analyzer.date > args.end_date
-            ):
+            if end_date is not None and analyzer.date > end_date:
                 continue
 
             if results.is_date_processed(
@@ -123,7 +127,6 @@ def main(argv=None):
             summary.new_results += 1
 
         except Exception as exc:
-
             summary.failed_files += 1
 
             logger.error(
@@ -132,13 +135,59 @@ def main(argv=None):
                 exc,
             )
 
-    results.save()
 
-    logger.info(
-        "Running time series analysis."
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    data_dir: Path = DATA_DIR,
+    product: str = DEFAULT_PRODUCT,
+    reference_builder: ReferenceBuilder | None = None,
+    results: ResultsManager | None = None,
+    analyzer_factory: AnalyzerFactory = RegionAnalyzer,
+    timeseries: TimeSeriesAnalyzer | None = None,
+) -> ProcessSummary:
+    """Run the preprocessing stage from command line arguments.
+
+    Since issue #73 the collaborators and paths are injectable
+    keyword arguments with the previous production defaults;
+    the pipeline behavior is unchanged.
+    """
+
+    args = parse_args(argv)
+
+    configure_logging(
+        level=args.log_level,
+        log_file=args.log_file,
     )
 
-    ts = TimeSeriesAnalyzer()
+    builder = (
+        reference_builder
+        if reference_builder is not None
+        else ReferenceBuilder()
+    )
+
+    builder.ensure_reference()
+
+    manager = results if results is not None else ResultsManager()
+
+    summary = ProcessSummary()
+
+    geotiffs = sorted(data_dir.rglob(f"*{product}*.tif"))
+
+    process_geotiffs(
+        geotiffs,
+        manager,
+        summary,
+        start_date=args.start_date,
+        end_date=args.end_date,
+        analyzer_factory=analyzer_factory,
+    )
+
+    manager.save()
+
+    logger.info("Running time series analysis.")
+
+    ts = timeseries if timeseries is not None else TimeSeriesAnalyzer()
 
     ts.analyze()
 
@@ -147,6 +196,7 @@ def main(argv=None):
     logger.info(summary)
 
     return summary
+
 
 if __name__ == "__main__":
     main()

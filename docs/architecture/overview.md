@@ -80,7 +80,7 @@ The current system consists of several processing and supporting areas:
                                                          │ output/plots/    │
                                                          └──────────────────┘
 
-        docs/ ─────────────────────┐
+        html/ ─────────────────────┐
                                    ▼
                             ┌──────────────────┐
         output/ ───────────►│ Website Build    │
@@ -308,7 +308,7 @@ The two orchestration paths are intentionally separate: `all` provides explicit 
 The website source is located under:
 
 ```text
-docs/
+html/
 ```
 
 `build_pages.py` combines the website source with the generated project output and creates:

@@ -102,6 +102,43 @@ Suitable tests include:
 * JSON structure validation,
 * handling of missing or malformed metadata.
 
+### 2.3 Current Unit-Level Suite (V0.2-08, issue #41)
+
+Since issue #97 the unit level is implemented; issue #41
+completed the section 2.2 catalog. `tests/unit/` comprises
+twenty files:
+
+* the pytest smoke test,
+* the pure parsing and dispatch tests of the CLI entry points
+  (`test_main.py`, `test_download_data.py`,
+  `test_process_data.py`, `test_generate_plots_cli.py`),
+  created in issues #73/#74 as component tests and
+  reclassified in #97 because they operate on pure functions
+  with explicitly injected collaborators and no I/O beyond
+  pytest's temporary directories,
+* focused unit tests for the pure helpers extracted in
+  issues #40/#73 and the filename date extraction
+  (`test_downloader_helpers.py`,
+  `test_threshold_crossing_helpers.py`,
+  `test_event_window_bounds.py`,
+  `test_region_analyzer_extract_date.py`,
+  `test_moving_average.py`),
+* the linear-trend helper test added in issue #102
+  (`test_linear_trend.py`),
+* and the issue #41 unit buildup for the section 2.2
+  scientific-calculation, time-series, validation and
+  configuration candidates:
+  `test_interpolation_gaps.py`,
+  `test_calendar_reconstruction.py`,
+  `test_complete_year_filter.py`,
+  `test_climatology_anomalies.py`,
+  `test_yearly_means.py`,
+  `test_region_metrics.py`,
+  `test_results_merge.py`,
+  `test_logging_config.py`,
+* and the QA output validator of the issue #41 regression
+  view (`test_output_validator.py`).
+
 ---
 
 ## 3. Component Tests
@@ -338,7 +375,7 @@ The spatial plotting chain should be tested analogously using the outputs of the
 The website build should be tested as an integration between the static website source and generated project outputs:
 
 ```text
-docs/
+html/
   +
 output/
   ↓
@@ -397,6 +434,14 @@ End-to-end tests verify complete user-relevant processing workflows from control
 Because E2E tests are comparatively expensive and more environment-dependent, their number should remain limited.
 
 They should complement rather than replace unit, component and integration tests.
+
+Current state (V0.2-08, issue #41): the complete processing
+workflow (section 5.2) and the incremental update workflow
+(section 5.3) are implemented in `tests/e2e/`; the no-new-data
+workflow (section 5.4) remains covered at the integration
+level (`tests/integration/test_update_no_new_data.py`), as
+decided in issue #41. The regression view of section 6 is
+maintained in `docs/testing/regression-tests.md`.
 
 ---
 
@@ -649,17 +694,17 @@ It is not an inventory of tests that already exist.
 
 | Component               |   Unit  | Component | Integration |      E2E     |
 | ----------------------- | :-----: | :-------: | :---------: | :----------: |
-| `main.py`               |    –    |     ✓     |      ✓      |       ✓      |
+| `main.py`               |    ✓    |     ✓     |      ✓      |       ✓      |
 | `NSIDCDownloader`       |    ✓    |     ✓     |      ✓      |      ✓*      |
-| `download_data.py`      | limited |     ✓     |      ✓      |      ✓*      |
+| `download_data.py`      |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `ReferenceBuilder`      |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `RegionAnalyzer`        |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `ResultsManager`        |    ✓    |     ✓     |      ✓      |      ✓*      |
-| `process_data.py`       | limited |     ✓     |      ✓      |       ✓      |
+| `process_data.py`       |    ✓    |     ✓     |      ✓      |       ✓      |
 | `TimeSeriesAnalyzer`    |    ✓    |     ✓     |      ✓      |       ✓      |
 | `SeaIcePlotter`         |    ✓    |     ✓     |      ✓      |      ✓*      |
 | `TimeSeriesPlotter`     |    ✓    |     ✓     |      ✓      |       ✓      |
-| `generate_plots.py`     | limited |     ✓     |      ✓      |       ✓      |
+| `generate_plots.py`     |    ✓    |     ✓     |      ✓      |       ✓      |
 | `update_pipeline.py`    | limited |     ✓     |      ✓      |       ✓      |
 | `build_pages.py`        | limited |     ✓     |      ✓      |       ✓      |
 | GitHub Pages deployment |    –    |     –     |   limited   | dedicated CI |
@@ -667,6 +712,8 @@ It is not an inventory of tests that already exist.
 `*` E2E tests should use controlled or mocked external input rather than depend on the live external service.
 
 The table defines where tests are appropriate; it does not imply that every check in the table is already implemented.
+
+Current state (V0.2-07, issues #97 and #41): the unit-level cells for the CLI entry points (`main.py`, `download_data.py`, `process_data.py`, `generate_plots.py`), for the pure analysis and downloader helpers, and — since issue #41 extracted the pure cores (`compute_region_metrics`, `merge_results`) — for the `RegionAnalyzer` and `ResultsManager` scientific and persistence calculations are implemented; see section 2.3. Since issue #41 the end-to-end level is implemented as well: the complete processing workflow (section 5.2) and the incremental update workflow (section 5.3) run in `tests/e2e/` with controlled inputs and isolated paths, and the regression cases of section 6 are mapped in `docs/testing/regression-tests.md`, and the QA validation of the daily pipeline output (`src/qa/validate_output.py`, docs/testing/qa-validation.md) is covered by `tests/unit/test_output_validator.py`.
 
 ---
 
